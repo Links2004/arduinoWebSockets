@@ -37,44 +37,12 @@
 #endif
 #endif
 
-
+#include "WebSockets.h"
 
 #define WEBSOCKETS_SERVER_CLIENT_MAX  (5)
 
-typedef enum {
-        WSC_NOT_CONNECTED,
-        WSC_HEADER,
-        WSC_CONNECTED
-} WSclientsStatus_t;
 
-typedef struct {
-        uint8_t num; ///< connection number
-
-        WSclientsStatus_t status;
-#ifdef ESP8266
-        WiFiClient tcp;
-#else
-#ifdef UIPETHERNET_H
-        UIPClient tcp;
-#else
-        EthernetClient tcp;
-#endif
-#endif
-        String cUrl;        ///< http url
-
-        bool cIsUpgrade;    ///< Connection == Upgrade
-        bool cIsWebsocket;  ///< Upgrade == websocket
-
-        String cKey;        ///< client Sec-WebSocket-Key
-        String cProtocol;   ///< client Sec-WebSocket-Protocol
-        String cExtensions; ///< client Sec-WebSocket-Extensions
-        int cVersion;       ///< client Sec-WebSocket-Version
-
-        String sKey;        ///< server Sec-WebSocket-Key
-
-} WSclients_t;
-
-class WebSocketsServer {
+class WebSocketsServer: private WebSockets {
 public:
         WebSocketsServer(uint16_t port);
         ~WebSocketsServer(void);
@@ -95,17 +63,17 @@ private:
 #endif
 #endif
 
-        WSclients_t _clients[WEBSOCKETS_SERVER_CLIENT_MAX];
+        WSclient_t _clients[WEBSOCKETS_SERVER_CLIENT_MAX];
 
 
-        void clientDisconnect(WSclients_t * client);
-        bool clientIsConnected(WSclients_t * client);
+        void clientDisconnect(WSclient_t * client);
+        bool clientIsConnected(WSclient_t * client);
 
         void handleNewClients(void);
         void handleClientData(void);
 
-        void handleHeader(WSclients_t * client);
-
+        void handleHeader(WSclient_t * client);
+        void handleWebsocket(WSclient_t * client);
 
 };
 

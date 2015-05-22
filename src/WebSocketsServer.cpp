@@ -35,12 +35,13 @@ WebSocketsServer::WebSocketsServer(uint16_t port) {
     _port = port;
     _server = new WiFiServer(port);
 }
+
 WebSocketsServer::~WebSocketsServer() {
     // todo how to close server?
 }
 
 void WebSocketsServer::begin(void) {
-    WSclients_t * client;
+    WSclient_t * client;
 
     // init client storage
     for(uint8_t i = 0; i < WEBSOCKETS_SERVER_CLIENT_MAX; i++) {
@@ -76,9 +77,9 @@ void WebSocketsServer::loop(void) {
 
 /**
  * Disconnect an client
- * @param num uint8_t index of _clients array
+ * @param client WSclients_t *  ptr to the client struct
  */
-void WebSocketsServer::clientDisconnect(WSclients_t * client) {
+void WebSocketsServer::clientDisconnect(WSclient_t * client) {
 
     if(client->tcp) {
         client->tcp.stop();
@@ -101,10 +102,10 @@ void WebSocketsServer::clientDisconnect(WSclients_t * client) {
 
 /**
  * get client state
- * @param num uint8_t index of _clients array
+ * @param client WSclients_t *  ptr to the client struct
  * @return true = conneted
  */
-bool WebSocketsServer::clientIsConnected(WSclients_t * client) {
+bool WebSocketsServer::clientIsConnected(WSclient_t * client) {
 
     if(client->status != WSC_NOT_CONNECTED && client->tcp.connected()) {
         return true;
@@ -121,7 +122,7 @@ bool WebSocketsServer::clientIsConnected(WSclients_t * client) {
  * Handle incomming Connection Request
  */
 void WebSocketsServer::handleNewClients(void) {
-    WSclients_t * client;
+    WSclient_t * client;
     while(_server->hasClient()) {
         bool ok = false;
         // search free list entry for client
@@ -135,7 +136,7 @@ void WebSocketsServer::handleNewClients(void) {
                 client->tcp = _server->available();
                 client->tcp.setNoDelay(true);
                 // set Timeout for readBytesUntil and readStringUntil
-                client->tcp.setTimeout(1000);
+                client->tcp.setTimeout(WEBSOCKETS_TCP_TIMEOUT);
                 client->status = WSC_HEADER;
 
                 IPAddress ip = client->tcp.remoteIP();
@@ -162,7 +163,7 @@ void WebSocketsServer::handleNewClients(void) {
  */
 void WebSocketsServer::handleClientData(void) {
 
-    WSclients_t * client;
+    WSclient_t * client;
     for(uint8_t i = 0; i < WEBSOCKETS_SERVER_CLIENT_MAX; i++) {
         client = &_clients[i];
         if(clientIsConnected(client)) {
@@ -174,6 +175,7 @@ void WebSocketsServer::handleClientData(void) {
                         handleHeader(client);
                         break;
                     case WSC_CONNECTED:
+                        WebSockets::handleWebsocket(client);
                         break;
                     default:
                         clientDisconnect(client);
@@ -185,30 +187,11 @@ void WebSocketsServer::handleClientData(void) {
     }
 }
 
-/*
- [WS-Server][0] new client from 192.168.2.23
- [WS-Server][0][handleHeader] RX: GET /test HTTP/1.1
- [WS-Server][0][handleHeader] RX: Host: 10.11.2.1:81
- [WS-Server][0][handleHeader] RX: Connection: Upgrade
- [WS-Server][0][handleHeader] RX: Pragma: no-cache
- [WS-Server][0][handleHeader] RX: Cache-Control: no-cache
- [WS-Server][0][handleHeader] RX: Upgrade: websocket
- [WS-Server][0][handleHeader] RX: Origin: null
- [WS-Server][0][handleHeader] RX: Sec-WebSocket-Version: 13
- [WS-Server][0][handleHeader] RX: DNT: 1
- [WS-Server][0][handleHeader] RX: User-Agent: Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/43.0.2357.65 Safari/537.36
- [WS-Server][0][handleHeader] RX: Accept-Encoding: gzip, deflate, sdch
- [WS-Server][0][handleHeader] RX: Accept-Language: de-DE,de;q=0.8,en-US;q=0.6,en;q=0.4
- [WS-Server][0][handleHeader] RX: Sec-WebSocket-Key: FRddfIKSePnzAzKOqUGI/Q==
- [WS-Server][0][handleHeader] RX: Sec-WebSocket-Extensions: permessage-deflate; client_max_window_bits
- [WS-Server][0][handleHeader] RX: Sec-WebSocket-Protocol: esp8266, test
- */
-
 /**
- * handle the WebSocket headder reading
- * @param num uint8_t index of _clients array
+ * handle the WebSocket header reading
+ * @param client WSclients_t *  ptr to the client struct
  */
-void WebSocketsServer::handleHeader(WSclients_t * client) {
+void WebSocketsServer::handleHeader(WSclient_t * client) {
 
     String headerLine = client->tcp.readStringUntil('\n');
     headerLine.trim(); // remove \r
@@ -268,7 +251,6 @@ void WebSocketsServer::handleHeader(WSclients_t * client) {
 
             DEBUG_WEBSOCKETS("[WS-Server][%d][handleHeader] Websocket connection incomming.\n", client->num);
 
-
             // generate Sec-WebSocket-Accept key
             uint8_t sha1HashBin[20] = {0};
             sha1(client->cKey + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11", &sha1HashBin[0]);
@@ -295,11 +277,15 @@ void WebSocketsServer::handleHeader(WSclients_t * client) {
                     "Sec-WebSocket-Version: 13\r\n"
                     "Sec-WebSocket-Accept: ");
             client->tcp.write(client->sKey.c_str(), client->sKey.length());
-            client->tcp.write("\r\n"
-                    "Sec-WebSocket-Protocol: ");
-            client->tcp.write(client->cProtocol.c_str(), client->cProtocol.length()); // support any protocol for now
-            client->tcp.write("\r\n"
-                    "\r\n");
+            client->tcp.write("\r\n");
+
+            if(client->cProtocol.length() > 0) {
+                // todo add api to set Protocol of Server
+                client->tcp.write("Sec-WebSocket-Protocol: esp8266\r\n");
+            }
+
+            // header end
+            client->tcp.write("\r\n");
 
         } else {
             DEBUG_WEBSOCKETS("[WS-Server][%d][handleHeader] no Websocket connection close.\n", client->num);
@@ -315,3 +301,6 @@ void WebSocketsServer::handleHeader(WSclients_t * client) {
         }
     }
 }
+
+
+
