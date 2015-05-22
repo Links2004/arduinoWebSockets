@@ -52,6 +52,17 @@ typedef enum {
     WSC_CONNECTED
 } WSclientsStatus_t;
 
+typedef enum {
+    WSop_continuation = 0x00, ///< %x0 denotes a continuation frame
+    WSop_text = 0x01,         ///< %x1 denotes a text frame
+    WSop_binary = 0x02,       ///< %x2 denotes a binary frame
+                              ///< %x3-7 are reserved for further non-control frames
+    WSop_close = 0x08,        ///< %x8 denotes a connection close
+    WSop_ping = 0x09,         ///< %x9 denotes a ping
+    WSop_pong = 0x0A          ///< %xA denotes a pong
+                              ///< %xB-F are reserved for further control frames
+} WSopcode_t;
+
 typedef struct {
         uint8_t num; ///< connection number
 
@@ -81,11 +92,15 @@ typedef struct {
 
 class WebSockets {
     protected:
-
-        void handleWebsocket(WSclient_t * client);
-
         virtual void clientDisconnect(WSclient_t * client);
         virtual bool clientIsConnected(WSclient_t * client);
+
+
+        void clientDisconnect(WSclient_t * client, uint16_t code, char * reason = NULL, size_t reasonLen = 0);
+        void sendFrame(WSclient_t * client, WSopcode_t opcode, uint8_t * payload = NULL, size_t lenght = 0);
+
+
+        void handleWebsocket(WSclient_t * client);
 
         bool readWait(WSclient_t * client, uint8_t *out, size_t n);
 };
