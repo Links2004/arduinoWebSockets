@@ -26,7 +26,7 @@
 #include "WebSocketsServer.h"
 
 extern "C" {
-    #include "libb64/cencode.h"
+#include "libb64/cencode.h"
 }
 
 #include <Hash.h>
@@ -34,12 +34,18 @@ extern "C" {
 WebSocketsServer::WebSocketsServer(uint16_t port) {
     _port = port;
     _server = new WiFiServer(port);
+
+    _cbEvent = NULL;
+
 }
 
 WebSocketsServer::~WebSocketsServer() {
     // todo how to close server?
 }
 
+/**
+ * calles to init the Websockets server
+ */
 void WebSocketsServer::begin(void) {
     WSclient_t * client;
 
@@ -71,13 +77,116 @@ void WebSocketsServer::loop(void) {
 
 }
 
+/**
+ * set callback function
+ * @param cbEvent WebSocketServerEvent
+ */
+void WebSocketsServer::onEvent(WebSocketServerEvent cbEvent) {
+    WebSocketsServer::_cbEvent = cbEvent;
+}
+
+/**
+ * send text data to client
+ * @param num uint8_t client id
+ * @param payload uint8_t *
+ * @param length size_t
+ */
+void WebSocketsServer::sendTXT(uint8_t num, uint8_t * payload, size_t length) {
+    if(num >= WEBSOCKETS_SERVER_CLIENT_MAX) {
+        return;
+    }
+    WSclient_t * client = &_clients[num];
+    if(clientIsConnected(client)) {
+        sendFrame(client, WSop_text, payload, length);
+    }
+}
+
+void WebSocketsServer::sendTXT(uint8_t num, String payload) {
+    sendTXT(num, (uint8_t *)payload.c_str(), payload.length());
+}
+
+/**
+ * send text data to client all
+ * @param payload uint8_t *
+ * @param length size_t
+ */
+void WebSocketsServer::broadcastTXT(uint8_t * payload, size_t length) {
+    WSclient_t * client;
+    for(uint8_t i = 0; i < WEBSOCKETS_SERVER_CLIENT_MAX; i++) {
+        client = &_clients[i];
+        if(clientIsConnected(client)) {
+            sendFrame(client, WSop_text, payload, length);
+        }
+    }
+}
+
+
+void WebSocketsServer::broadcastTXT(String payload) {
+    broadcastTXT((uint8_t *)payload.c_str(), payload.length());
+}
+
+/**
+ * send binary data to client
+ * @param num uint8_t client id
+ * @param payload uint8_t *
+ * @param length size_t
+ */
+void WebSocketsServer::sendBIN(uint8_t num, uint8_t * payload, size_t length) {
+    if(num >= WEBSOCKETS_SERVER_CLIENT_MAX) {
+        return;
+    }
+    WSclient_t * client = &_clients[num];
+    if(clientIsConnected(client)) {
+        sendFrame(client, WSop_binary, payload, length);
+    }
+}
+
+/**
+ * send binary data to client all
+ * @param payload uint8_t *
+ * @param length size_t
+ */
+void WebSocketsServer::broadcastBIN(uint8_t * payload, size_t length) {
+    WSclient_t * client;
+    for(uint8_t i = 0; i < WEBSOCKETS_SERVER_CLIENT_MAX; i++) {
+        client = &_clients[i];
+        if(clientIsConnected(client)) {
+            sendFrame(client, WSop_binary, payload, length);
+        }
+    }
+}
+
 //#################################################################################
 //#################################################################################
 //#################################################################################
 
 /**
+ *
+ * @param client WSclient_t *  ptr to the client struct
+ * @param opcode WSopcode_t
+ * @param payload  uint8_t *
+ * @param lenght size_t
+ */
+void WebSocketsServer::messageRecived(WSclient_t * client, WSopcode_t opcode, uint8_t * payload, size_t lenght) {
+    WStype_t type = WStype_ERROR;
+
+    switch(opcode) {
+        case WSop_text:
+            type = WStype_TEXT;
+            break;
+        case WSop_binary:
+            type = WStype_BIN;
+            break;
+    }
+
+    if(_cbEvent) {
+        _cbEvent(client->num, type, payload, lenght);
+    }
+}
+
+/**
  * Disconnect an client
- * @param client WSclients_t *  ptr to the client struct
+ * @param client WSclient_t *  ptr to the client struct
  */
 void WebSocketsServer::clientDisconnect(WSclient_t * client) {
 
@@ -98,11 +207,14 @@ void WebSocketsServer::clientDisconnect(WSclient_t * client) {
 
     DEBUG_WEBSOCKETS("[WS-Server][%d] client disconnected.\n", client->num);
 
+    if(_cbEvent) {
+        _cbEvent(client->num, WStype_DISCONNECTED, NULL, 0);
+    }
 }
 
 /**
  * get client state
- * @param client WSclients_t *  ptr to the client struct
+ * @param client WSclient_t *  ptr to the client struct
  * @return true = conneted
  */
 bool WebSocketsServer::clientIsConnected(WSclient_t * client) {
@@ -189,7 +301,7 @@ void WebSocketsServer::handleClientData(void) {
 
 /**
  * handle the WebSocket header reading
- * @param client WSclients_t *  ptr to the client struct
+ * @param client WSclient_t *  ptr to the client struct
  */
 void WebSocketsServer::handleHeader(WSclient_t * client) {
 
@@ -225,13 +337,7 @@ void WebSocketsServer::handleHeader(WSclient_t * client) {
     } else {
         DEBUG_WEBSOCKETS("[WS-Server][%d][handleHeader] Header read fin.\n", client->num);
 
-        DEBUG_WEBSOCKETS("[WS-Server][%d][handleHeader]  - cURL: %s\n", client->num, client->cUrl.c_str());
-        DEBUG_WEBSOCKETS("[WS-Server][%d][handleHeader]  - cIsUpgrade: %d\n", client->num, client->cIsUpgrade);
-        DEBUG_WEBSOCKETS("[WS-Server][%d][handleHeader]  - cIsWebsocket: %d\n", client->num, client->cIsWebsocket);
-        DEBUG_WEBSOCKETS("[WS-Server][%d][handleHeader]  - cKey: %s\n", client->num, client->cKey.c_str());
-        DEBUG_WEBSOCKETS("[WS-Server][%d][handleHeader]  - cProtocol: %s\n", client->num, client->cProtocol.c_str());
-        DEBUG_WEBSOCKETS("[WS-Server][%d][handleHeader]  - cExtensions: %s\n", client->num, client->cExtensions.c_str());
-        DEBUG_WEBSOCKETS("[WS-Server][%d][handleHeader]  - cVersion: %d\n", client->num, client->cVersion);
+        DEBUG_WEBSOCKETS("[WS-Server][%d][handleHeader]  - cURL: %s\n", client->num, client->cUrl.c_str());DEBUG_WEBSOCKETS("[WS-Server][%d][handleHeader]  - cIsUpgrade: %d\n", client->num, client->cIsUpgrade);DEBUG_WEBSOCKETS("[WS-Server][%d][handleHeader]  - cIsWebsocket: %d\n", client->num, client->cIsWebsocket);DEBUG_WEBSOCKETS("[WS-Server][%d][handleHeader]  - cKey: %s\n", client->num, client->cKey.c_str());DEBUG_WEBSOCKETS("[WS-Server][%d][handleHeader]  - cProtocol: %s\n", client->num, client->cProtocol.c_str());DEBUG_WEBSOCKETS("[WS-Server][%d][handleHeader]  - cExtensions: %s\n", client->num, client->cExtensions.c_str());DEBUG_WEBSOCKETS("[WS-Server][%d][handleHeader]  - cVersion: %d\n", client->num, client->cVersion);
 
         bool ok = (client->cIsUpgrade && client->cIsWebsocket);
 
@@ -252,7 +358,7 @@ void WebSocketsServer::handleHeader(WSclient_t * client) {
             DEBUG_WEBSOCKETS("[WS-Server][%d][handleHeader] Websocket connection incomming.\n", client->num);
 
             // generate Sec-WebSocket-Accept key
-            uint8_t sha1HashBin[20] = {0};
+            uint8_t sha1HashBin[20] = { 0 };
             sha1(client->cKey + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11", &sha1HashBin[0]);
 
             char sha1Base64[64] = { 0 };
@@ -260,7 +366,7 @@ void WebSocketsServer::handleHeader(WSclient_t * client) {
 
             base64_encodestate _state;
             base64_init_encodestate(&_state);
-            len = base64_encode_block((const char *)&sha1HashBin[0], 20, &sha1Base64[0], &_state);
+            len = base64_encode_block((const char *) &sha1HashBin[0], 20, &sha1Base64[0], &_state);
             base64_encode_blockend((sha1Base64 + len), &_state);
 
             client->sKey = sha1Base64;
@@ -287,6 +393,10 @@ void WebSocketsServer::handleHeader(WSclient_t * client) {
             // header end
             client->tcp.write("\r\n");
 
+            if(_cbEvent) {
+                _cbEvent(client->num, WStype_CONNECTED, NULL, 0);
+            }
+
         } else {
             DEBUG_WEBSOCKETS("[WS-Server][%d][handleHeader] no Websocket connection close.\n", client->num);
             client->tcp.write("HTTP/1.1 400 Bad Request\r\n"
@@ -301,6 +411,4 @@ void WebSocketsServer::handleHeader(WSclient_t * client) {
         }
     }
 }
-
-
 

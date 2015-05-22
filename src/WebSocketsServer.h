@@ -42,13 +42,37 @@
 #define WEBSOCKETS_SERVER_CLIENT_MAX  (5)
 
 
+typedef enum {
+    WStype_ERROR,
+    WStype_DISCONNECTED,
+    WStype_CONNECTED,
+    WStype_TEXT,
+    WStype_BIN
+} WStype_t;
+
+
 class WebSocketsServer: private WebSockets {
 public:
+
+        typedef void (*WebSocketServerEvent)(uint8_t num, WStype_t type, uint8_t * payload, size_t length);
+
         WebSocketsServer(uint16_t port);
         ~WebSocketsServer(void);
 
         void begin(void);
         void loop(void);
+
+        void onEvent(WebSocketServerEvent cbEvent);
+
+
+        void sendTXT(uint8_t num, uint8_t * payload, size_t length);
+        void broadcastTXT(uint8_t * payload, size_t length);
+
+        void sendTXT(uint8_t num, String payload);
+        void broadcastTXT(String payload);
+
+        void sendBIN(uint8_t num, uint8_t * payload, size_t length);
+        void broadcastBIN(uint8_t * payload, size_t length);
 
 private:
         uint16_t _port;
@@ -65,6 +89,10 @@ private:
 
         WSclient_t _clients[WEBSOCKETS_SERVER_CLIENT_MAX];
 
+        WebSocketServerEvent _cbEvent;
+
+        void messageRecived(WSclient_t * client, WSopcode_t opcode, uint8_t * payload, size_t length);
+        void clientConnected(WSclient_t * client);
 
         void clientDisconnect(WSclient_t * client);
         bool clientIsConnected(WSclient_t * client);

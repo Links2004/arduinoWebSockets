@@ -17,6 +17,10 @@ connection.onmessage = function (e) {
 	console.log('Server: ', e.data);
 };
 
+setInterval(function() {
+	connection.send('Message from Browser to ESP8266 yay its Working!!'); 
+}, 10000);
+
 </script>
 
 </head>

@@ -27,19 +27,13 @@
 /**
  *
  * @param client WSclient_t *  ptr to the client struct
- * @param code
+ * @param code uint16_t see RFC
  * @param reason
  * @param reasonLen
  */
 void WebSockets::clientDisconnect(WSclient_t * client, uint16_t code, char * reason, size_t reasonLen) {
     if(client->status == WSC_CONNECTED && code) {
-        //todo send reason to client
-
-        if(reasonLen > 0 && reason) {
-
-        } else {
-
-        }
+        sendFrame(client, WSop_close, (uint8_t *) reason, reasonLen);
     }
     clientDisconnect(client);
 }
@@ -49,9 +43,9 @@ void WebSockets::clientDisconnect(WSclient_t * client, uint16_t code, char * rea
  * @param client WSclient_t *  ptr to the client struct
  * @param opcode WSopcode_t
  * @param payload uint8_t *
- * @param lenght size_t
+ * @param length size_t
  */
-void WebSockets::sendFrame(WSclient_t * client, WSopcode_t opcode, uint8_t * payload, size_t lenght) {
+void WebSockets::sendFrame(WSclient_t * client, WSopcode_t opcode, uint8_t * payload, size_t length) {
 
     uint8_t buffer[16] = { 0 };
     uint8_t i = 0;
@@ -61,31 +55,32 @@ void WebSockets::sendFrame(WSclient_t * client, WSopcode_t opcode, uint8_t * pay
     buffer[i] = bit(7);     // set Fin
     buffer[i++] |= opcode;    // set opcode
 
-    if(lenght < 126) {
-        buffer[i++] = lenght;
+    if(length < 126) {
+        buffer[i++] = length;
 
-    } else if(lenght < 0xFFFF) {
+    } else if(length < 0xFFFF) {
         buffer[i++] = 126;
-        buffer[i++] = ((lenght >> 8) & 0xFF);
-        buffer[i++] = (lenght & 0xFF);
+        buffer[i++] = ((length >> 8) & 0xFF);
+        buffer[i++] = (length & 0xFF);
     } else {
+        // normaly we never get here (to less memory)
         buffer[i++] = 127;
         buffer[i++] = 0x00;
         buffer[i++] = 0x00;
         buffer[i++] = 0x00;
         buffer[i++] = 0x00;
-        buffer[i++] = ((lenght >> 24) & 0xFF);
-        buffer[i++] = ((lenght >> 16) & 0xFF);
-        buffer[i++] = ((lenght >> 8) & 0xFF);
-        buffer[i++] = (lenght & 0xFF);
+        buffer[i++] = ((length >> 24) & 0xFF);
+        buffer[i++] = ((length >> 16) & 0xFF);
+        buffer[i++] = ((length >> 8) & 0xFF);
+        buffer[i++] = (length & 0xFF);
     }
 
     // send header
     client->tcp.write(&buffer[0], i);
 
-    if(payload && lenght > 0) {
+    if(payload && length > 0) {
         // send payload
-        client->tcp.write(&payload[0], lenght);
+        client->tcp.write(&payload[0], length);
     }
 
 }
@@ -136,7 +131,7 @@ void WebSockets::handleWebsocket(WSclient_t * client) {
         }
         payloadLen = buffer[0] << 8 | buffer[1];
     } else if(payloadLen == 127) {
-        // read 64bit inteager as Lenght
+        // read 64bit inteager as length
         if(!readWait(client, buffer, 8)) {
             //timeout
             clientDisconnect(client, 1002);
@@ -191,32 +186,24 @@ void WebSockets::handleWebsocket(WSclient_t * client) {
 
         switch(opCode) {
             case WSop_text:
-                DEBUG_WEBSOCKETS("[WS-Server][%d][handleWebsocket] text: %s\n", client->num, payload)
-                ;
-                // todo API for user to get message may callback
-
-                // send the frame back!
-                sendFrame(client, WSop_text, payload, payloadLen);
-
-                break;
+                DEBUG_WEBSOCKETS("[WS-Server][%d][handleWebsocket] text: %s\n", client->num, payload);
+                // no break here!
             case WSop_binary:
-                // todo API for user to get message may callback
+                messageRecived(client, opCode, payload, payloadLen);
                 break;
             case WSop_ping:
-                // todo send pong
+                // send pong back
+                sendFrame(client, WSop_pong, payload, payloadLen);
                 break;
             case WSop_pong:
-                DEBUG_WEBSOCKETS("[WS-Server][%d][handleWebsocket] get pong from Client (%s)\n", client->num, payload)
-                ;
+                DEBUG_WEBSOCKETS("[WS-Server][%d][handleWebsocket] get pong from Client (%s)\n", client->num, payload);
                 break;
-            case WSop_close: {
-                uint16_t reasonCode = buffer[0] << 8 | buffer[1];
-
-                DEBUG_WEBSOCKETS("[WS-Server][%d][handleWebsocket] client ask for close. Code: %d (%s)\n", client->num, reasonCode, (payload + 2));
-
-                // todo send confimation to client
-                clientDisconnect(client, 1000, (char *) (payload + 2), payloadLen - 2);
-            }
+            case WSop_close:
+                {
+                    uint16_t reasonCode = buffer[0] << 8 | buffer[1];
+                    DEBUG_WEBSOCKETS("[WS-Server][%d][handleWebsocket] client ask for close. Code: %d (%s)\n", client->num, reasonCode, (payload + 2));
+                    clientDisconnect(client, 1000);
+                }
                 break;
             case WSop_continuation:
                 // continuation is not supported

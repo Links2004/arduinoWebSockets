@@ -37,7 +37,7 @@
 #endif
 #endif
 
-#define DEBUG_WEBSOCKETS(...) Serial1.printf( __VA_ARGS__ ); Serial1.flush()
+//#define DEBUG_WEBSOCKETS(...) Serial1.printf( __VA_ARGS__ );
 
 #ifndef DEBUG_WEBSOCKETS
 #define DEBUG_WEBSOCKETS(...)
@@ -95,9 +95,10 @@ class WebSockets {
         virtual void clientDisconnect(WSclient_t * client);
         virtual bool clientIsConnected(WSclient_t * client);
 
+        virtual void messageRecived(WSclient_t * client, WSopcode_t opcode, uint8_t * payload, size_t length);
 
         void clientDisconnect(WSclient_t * client, uint16_t code, char * reason = NULL, size_t reasonLen = 0);
-        void sendFrame(WSclient_t * client, WSopcode_t opcode, uint8_t * payload = NULL, size_t lenght = 0);
+        void sendFrame(WSclient_t * client, WSopcode_t opcode, uint8_t * payload = NULL, size_t length = 0);
 
 
         void handleWebsocket(WSclient_t * client);
