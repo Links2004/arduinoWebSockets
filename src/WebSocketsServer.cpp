@@ -25,6 +25,12 @@
 #include "WebSockets.h"
 #include "WebSocketsServer.h"
 
+extern "C" {
+    #include "libb64/cencode.h"
+}
+
+#include <Hash.h>
+
 WebSocketsServer::WebSocketsServer(uint16_t port) {
     _port = port;
     _server = new WiFiServer(port);
@@ -160,7 +166,7 @@ void WebSocketsServer::handleClientData(void) {
     for(uint8_t i = 0; i < WEBSOCKETS_SERVER_CLIENT_MAX; i++) {
         client = &_clients[i];
         if(clientIsConnected(client)) {
-             int len = client->tcp.available();
+            int len = client->tcp.available();
             if(len > 0) {
 
                 switch(client->status) {
@@ -178,7 +184,6 @@ void WebSocketsServer::handleClientData(void) {
         delay(0);
     }
 }
-
 
 /*
  [WS-Server][0] new client from 192.168.2.23
@@ -208,7 +213,6 @@ void WebSocketsServer::handleHeader(WSclients_t * client) {
     String headerLine = client->tcp.readStringUntil('\n');
     headerLine.trim(); // remove \r
 
-
     if(headerLine.length() > 0) {
         DEBUG_WEBSOCKETS("[WS-Server][%d][handleHeader] RX: %s\n", client->num, headerLine.c_str());
 
@@ -226,6 +230,7 @@ void WebSocketsServer::handleHeader(WSclients_t * client) {
         } else if(headerLine.startsWith("Sec-WebSocket-Key: ")) {
             // 19 = lenght of "Sec-WebSocket-Key: "
             client->cKey = headerLine.substring(19);
+            client->cKey.trim(); // see rfc6455
         } else if(headerLine.startsWith("Sec-WebSocket-Protocol: ")) {
             // 24 = lenght of "Sec-WebSocket-Protocol: "
             client->cProtocol = headerLine.substring(24);
@@ -263,12 +268,39 @@ void WebSocketsServer::handleHeader(WSclients_t * client) {
 
             DEBUG_WEBSOCKETS("[WS-Server][%d][handleHeader] Websocket connection incomming.\n", client->num);
 
-            //todo generate server key
 
-            //client->sKey.c_str();
+            // generate Sec-WebSocket-Accept key
+            uint8_t sha1HashBin[20] = {0};
+            sha1(client->cKey + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11", &sha1HashBin[0]);
 
+            char sha1Base64[64] = { 0 };
+            int len = 0;
 
-            //client->status = WSC_CONNECTED;
+            base64_encodestate _state;
+            base64_init_encodestate(&_state);
+            len = base64_encode_block((const char *)&sha1HashBin[0], 20, &sha1Base64[0], &_state);
+            base64_encode_blockend((sha1Base64 + len), &_state);
+
+            client->sKey = sha1Base64;
+            client->sKey.trim();
+
+            DEBUG_WEBSOCKETS("[WS-Server][%d][handleHeader]  - sKey: %s\n", client->num, client->sKey.c_str());
+
+            client->status = WSC_CONNECTED;
+
+            client->tcp.write("HTTP/1.1 101 Switching Protocols\r\n"
+                    "Server: ESP8266-WebSocketsServer\r\n"
+                    "Upgrade: websocket\r\n"
+                    "Connection: Upgrade\r\n"
+                    "Sec-WebSocket-Version: 13\r\n"
+                    "Sec-WebSocket-Accept: ");
+            client->tcp.write(client->sKey.c_str(), client->sKey.length());
+            client->tcp.write("\r\n"
+                    "Sec-WebSocket-Protocol: ");
+            client->tcp.write(client->cProtocol.c_str(), client->cProtocol.length()); // support any protocol for now
+            client->tcp.write("\r\n"
+                    "\r\n");
+
         } else {
             DEBUG_WEBSOCKETS("[WS-Server][%d][handleHeader] no Websocket connection close.\n", client->num);
             client->tcp.write("HTTP/1.1 400 Bad Request\r\n"
