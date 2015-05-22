@@ -1,0 +1,31 @@
+<html>
+<head>
+
+<script>
+
+
+var connection = new WebSocket('ws://10.11.2.1:81/test', ['esp8266', 'test']);
+
+// When the connection is open, send some data to the server
+connection.onopen = function () {
+  connection.send('ping'); // Send the message 'Ping' to the server
+};
+
+// Log errors
+connection.onerror = function (error) {
+  console.log('WebSocket Error ' + error);
+};
+
+// Log messages from the server
+connection.onmessage = function (e) {
+  console.log('Server: ' + e.data);
+};
+
+
+</script>
+
+</head>
+<body>
+Test Websocket.
+</body>
+</html>
