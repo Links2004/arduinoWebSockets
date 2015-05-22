@@ -48,6 +48,8 @@ typedef enum {
 } WSclientsStatus_t;
 
 typedef struct {
+        uint8_t num; ///< connection number
+
         WSclientsStatus_t status;
 #ifdef ESP8266
         WiFiClient tcp;
@@ -96,13 +98,13 @@ private:
         WSclients_t _clients[WEBSOCKETS_SERVER_CLIENT_MAX];
 
 
-        void clientDisconnect(uint8_t num);
-        bool clientIsConnected(uint8_t num);
+        void clientDisconnect(WSclients_t * client);
+        bool clientIsConnected(WSclients_t * client);
 
         void handleNewClients(void);
         void handleClientData(void);
 
-        void handleHeader(uint8_t num);
+        void handleHeader(WSclients_t * client);
 
 
 };
