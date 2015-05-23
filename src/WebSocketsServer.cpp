@@ -55,8 +55,6 @@ void WebSocketsServer::begin(void) {
         client->cIsUpgrade = false;
         client->cIsWebsocket = false;
 
-        client->sKey = "";
-
         client->status = WSC_NOT_CONNECTED;
     }
 
@@ -259,8 +257,6 @@ void WebSocketsServer::clientDisconnect(WSclient_t * client) {
     client->cIsUpgrade = false;
     client->cIsWebsocket = false;
 
-    client->sKey = "";
-
     client->status = WSC_NOT_CONNECTED;
 
     DEBUG_WEBSOCKETS("[WS-Server][%d] client disconnected.\n", client->num);
@@ -422,9 +418,9 @@ void WebSocketsServer::handleHeader(WSclient_t * client) {
             DEBUG_WEBSOCKETS("[WS-Server][%d][handleHeader] Websocket connection incomming.\n", client->num);
 
             // generate Sec-WebSocket-Accept key
-            client->sKey = acceptKey(client->cKey);
+            String sKey = acceptKey(client->cKey);
 
-            DEBUG_WEBSOCKETS("[WS-Server][%d][handleHeader]  - sKey: %s\n", client->num, client->sKey.c_str());
+            DEBUG_WEBSOCKETS("[WS-Server][%d][handleHeader]  - sKey: %s\n", client->num, sKey.c_str());
 
             client->status = WSC_CONNECTED;
 
@@ -434,7 +430,7 @@ void WebSocketsServer::handleHeader(WSclient_t * client) {
                     "Connection: Upgrade\r\n"
                     "Sec-WebSocket-Version: 13\r\n"
                     "Sec-WebSocket-Accept: ");
-            client->tcp.write(client->sKey.c_str(), client->sKey.length());
+            client->tcp.write(sKey.c_str(), sKey.length());
             client->tcp.write("\r\n");
 
             if(client->cProtocol.length() > 0) {

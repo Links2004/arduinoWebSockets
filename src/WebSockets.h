@@ -86,8 +86,6 @@ typedef struct {
         String cExtensions; ///< client Sec-WebSocket-Extensions
         int cVersion;       ///< client Sec-WebSocket-Version
 
-        String sKey;        ///< server Sec-WebSocket-Key
-
 } WSclient_t;
 
 class WebSockets {
