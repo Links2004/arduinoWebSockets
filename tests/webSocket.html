@@ -5,7 +5,7 @@
 var connection = new WebSocket('ws://10.11.2.1:81/test', ['esp8266']);
 
 connection.onopen = function () {
-	connection.send('Message from Browser to ESP8266 yay its Working!!'); 
+	connection.send('Message from Browser to ESP8266 yay its Working!! ' + new Date()); 
 	connection.send('ping');
 };
 
@@ -18,7 +18,7 @@ connection.onmessage = function (e) {
 };
 
 setInterval(function() {
-	connection.send('Message from Browser to ESP8266 yay its Working!!'); 
+	connection.send('Message from Browser to ESP8266 yay its Working!! ' + new Date()); 
 }, 10000);
 
 </script>
