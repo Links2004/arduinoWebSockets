@@ -63,12 +63,12 @@ void WebSocketsServer::begin(void) {
     _server->begin();
 }
 
+/**
+ * called in arduino loop
+ */
 void WebSocketsServer::loop(void) {
-
     handleNewClients();
-
     handleClientData();
-
 }
 
 /**
@@ -183,8 +183,35 @@ void WebSocketsServer::broadcastBIN(uint8_t * payload, size_t length) {
     }
 }
 
-void  WebSocketsServer::broadcastBIN(const uint8_t * payload, size_t length) {
+void WebSocketsServer::broadcastBIN(const uint8_t * payload, size_t length) {
     broadcastBIN((uint8_t *) payload, length);
+}
+
+/**
+ * disconnect all clients
+ */
+void WebSocketsServer::disconnect(void) {
+    WSclient_t * client;
+    for(uint8_t i = 0; i < WEBSOCKETS_SERVER_CLIENT_MAX; i++) {
+        client = &_clients[i];
+        if(clientIsConnected(client)) {
+            WebSockets::clientDisconnect(client, 1000);
+        }
+    }
+}
+
+/**
+ * disconnect one client
+ * @param num
+ */
+void WebSocketsServer::disconnect(uint8_t num) {
+    if(num >= WEBSOCKETS_SERVER_CLIENT_MAX) {
+        return;
+    }
+    WSclient_t * client = &_clients[num];
+    if(clientIsConnected(client)) {
+        WebSockets::clientDisconnect(client, 1000);
+    }
 }
 
 //#################################################################################
@@ -422,7 +449,7 @@ void WebSocketsServer::handleHeader(WSclient_t * client) {
             WebSockets::sendFrame(client, WSop_ping);
 
             if(_cbEvent) {
-                _cbEvent(client->num, WStype_CONNECTED, (uint8_t *)client->cUrl.c_str(), client->cUrl.length());
+                _cbEvent(client->num, WStype_CONNECTED, (uint8_t *) client->cUrl.c_str(), client->cUrl.length());
             }
 
         } else {

@@ -83,6 +83,9 @@ public:
         void broadcastBIN(uint8_t * payload, size_t length);
         void broadcastBIN(const uint8_t * payload, size_t length);
 
+        void disconnect(void);
+        void disconnect(uint8_t num);
+
 private:
         uint16_t _port;
 

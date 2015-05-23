@@ -37,7 +37,7 @@
 #endif
 #endif
 
-//#define DEBUG_WEBSOCKETS(...) Serial1.printf( __VA_ARGS__ );
+#define DEBUG_WEBSOCKETS(...) Serial1.printf( __VA_ARGS__ );
 
 #ifndef DEBUG_WEBSOCKETS
 #define DEBUG_WEBSOCKETS(...)
