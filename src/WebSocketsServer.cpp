@@ -74,7 +74,7 @@ void WebSocketsServer::loop(void) {
  * @param cbEvent WebSocketServerEvent
  */
 void WebSocketsServer::onEvent(WebSocketServerEvent cbEvent) {
-    WebSocketsServer::_cbEvent = cbEvent;
+    _cbEvent = cbEvent;
 }
 
 /**
@@ -122,11 +122,13 @@ void WebSocketsServer::broadcastTXT(uint8_t * payload, size_t length) {
     if(length == 0) {
         length = strlen((const char *) payload);
     }
+
     for(uint8_t i = 0; i < WEBSOCKETS_SERVER_CLIENT_MAX; i++) {
         client = &_clients[i];
         if(clientIsConnected(client)) {
             sendFrame(client, WSop_text, payload, length);
         }
+        delay(0);
     }
 }
 
@@ -178,6 +180,7 @@ void WebSocketsServer::broadcastBIN(uint8_t * payload, size_t length) {
         if(clientIsConnected(client)) {
             sendFrame(client, WSop_binary, payload, length);
         }
+        delay(0);
     }
 }
 
@@ -263,6 +266,7 @@ void WebSocketsServer::messageRecived(WSclient_t * client, WSopcode_t opcode, ui
 void WebSocketsServer::clientDisconnect(WSclient_t * client) {
 
     if(client->tcp) {
+        client->tcp.flush();
         client->tcp.stop();
     }
 

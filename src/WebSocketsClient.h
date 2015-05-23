@@ -25,8 +25,64 @@
 #ifndef WEBSOCKETSCLIENT_H_
 #define WEBSOCKETSCLIENT_H_
 
+#include <Arduino.h>
 
+#ifdef ESP8266
+#include <ESP8266WiFi.h>
+#else
+#include <UIPEthernet.h>
+#ifndef UIPETHERNET_H
+#include <Ethernet.h>
+#include <SPI.h>
+#endif
+#endif
 
+#include "WebSockets.h"
 
+class WebSocketsClient: private WebSockets {
+    public:
+
+        typedef void (*WebSocketClientEvent)(WStype_t type, uint8_t * payload, size_t length);
+
+        WebSocketsClient(void);
+        ~WebSocketsClient(void);
+
+        void begin(const char *host, uint16_t port, const char * url);
+        void begin(String host, uint16_t port, String url);
+
+        void loop(void);
+
+        void onEvent(WebSocketClientEvent cbEvent);
+
+        void sendTXT(uint8_t * payload, size_t length = 0);
+        void sendTXT(const uint8_t * payload, size_t length = 0);
+        void sendTXT(char * payload, size_t length = 0);
+        void sendTXT(const char * payload, size_t length = 0);
+        void sendTXT(String payload);
+
+        void sendBIN(uint8_t * payload, size_t length);
+        void sendBIN(const uint8_t * payload, size_t length);
+
+        void disconnect(void);
+
+    private:
+        String _host;
+        uint16_t _port;
+
+        WSclient_t _client;
+
+        WebSocketClientEvent _cbEvent;
+
+        void messageRecived(WSclient_t * client, WSopcode_t opcode, uint8_t * payload, size_t length);
+
+        void clientDisconnect(WSclient_t * client);
+        bool clientIsConnected(WSclient_t * client);
+
+        void handleNewClients(void);
+        void handleClientData(void);
+
+        void handleHeader(WSclient_t * client);
+
+};
 
 #endif /* WEBSOCKETSCLIENT_H_ */

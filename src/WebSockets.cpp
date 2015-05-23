@@ -38,6 +38,7 @@ extern "C" {
  * @param reasonLen
  */
 void WebSockets::clientDisconnect(WSclient_t * client, uint16_t code, char * reason, size_t reasonLen) {
+    DEBUG_WEBSOCKETS("[WS-Server][%d][handleWebsocket] clientDisconnect code: %u\n", client->num, code);
     if(client->status == WSC_CONNECTED && code) {
         if(reason) {
             sendFrame(client, WSop_close, (uint8_t *) reason, reasonLen);
@@ -59,6 +60,10 @@ void WebSockets::clientDisconnect(WSclient_t * client, uint16_t code, char * rea
  * @param length size_t
  */
 void WebSockets::sendFrame(WSclient_t * client, WSopcode_t opcode, uint8_t * payload, size_t length) {
+
+    if(!client->tcp.connected()) {
+        return;
+    }
 
     uint8_t buffer[16] = { 0 };
     uint8_t i = 0;

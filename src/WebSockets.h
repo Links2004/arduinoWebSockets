@@ -53,6 +53,14 @@ typedef enum {
 } WSclientsStatus_t;
 
 typedef enum {
+    WStype_ERROR,
+    WStype_DISCONNECTED,
+    WStype_CONNECTED,
+    WStype_TEXT,
+    WStype_BIN
+} WStype_t;
+
+typedef enum {
     WSop_continuation = 0x00, ///< %x0 denotes a continuation frame
     WSop_text = 0x01,         ///< %x1 denotes a text frame
     WSop_binary = 0x02,       ///< %x2 denotes a binary frame
