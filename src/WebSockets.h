@@ -104,6 +104,9 @@ class WebSockets {
         void handleWebsocket(WSclient_t * client);
 
         bool readWait(WSclient_t * client, uint8_t *out, size_t n);
+
+        String acceptKey(String clientKey);
+        String base64_encode(uint8_t * data, size_t length);
 };
 
 #endif /* WEBSOCKETS_H_ */

@@ -65,14 +65,23 @@ public:
         void onEvent(WebSocketServerEvent cbEvent);
 
 
-        void sendTXT(uint8_t num, uint8_t * payload, size_t length);
-        void broadcastTXT(uint8_t * payload, size_t length);
-
+        void sendTXT(uint8_t num, uint8_t * payload, size_t length = 0);
+        void sendTXT(uint8_t num, const uint8_t * payload, size_t length = 0);
+        void sendTXT(uint8_t num, char * payload, size_t length = 0);
+        void sendTXT(uint8_t num, const char * payload, size_t length = 0);
         void sendTXT(uint8_t num, String payload);
+
+        void broadcastTXT(uint8_t * payload, size_t length = 0);
+        void broadcastTXT(const uint8_t * payload, size_t length = 0);
+        void broadcastTXT(char * payload, size_t length = 0);
+        void broadcastTXT(const char * payload, size_t length = 0);
         void broadcastTXT(String payload);
 
         void sendBIN(uint8_t num, uint8_t * payload, size_t length);
+        void sendBIN(uint8_t num, const uint8_t * payload, size_t length);
+
         void broadcastBIN(uint8_t * payload, size_t length);
+        void broadcastBIN(const uint8_t * payload, size_t length);
 
 private:
         uint16_t _port;

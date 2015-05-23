@@ -25,12 +25,6 @@
 #include "WebSockets.h"
 #include "WebSocketsServer.h"
 
-extern "C" {
-#include "libb64/cencode.h"
-}
-
-#include <Hash.h>
-
 WebSocketsServer::WebSocketsServer(uint16_t port) {
     _port = port;
     _server = new WiFiServer(port);
@@ -95,10 +89,25 @@ void WebSocketsServer::sendTXT(uint8_t num, uint8_t * payload, size_t length) {
     if(num >= WEBSOCKETS_SERVER_CLIENT_MAX) {
         return;
     }
+    if(length == 0) {
+        length = strlen((const char *) payload);
+    }
     WSclient_t * client = &_clients[num];
     if(clientIsConnected(client)) {
         sendFrame(client, WSop_text, payload, length);
     }
+}
+
+void WebSocketsServer::sendTXT(uint8_t num, const uint8_t * payload, size_t length) {
+    sendTXT(num, (uint8_t *) payload, length);
+}
+
+void WebSocketsServer::sendTXT(uint8_t num, char * payload, size_t length) {
+    sendTXT(num, (uint8_t *) payload, length);
+}
+
+void WebSocketsServer::sendTXT(uint8_t num, const char * payload, size_t length) {
+    sendTXT(num, (uint8_t *) payload, length);
 }
 
 void WebSocketsServer::sendTXT(uint8_t num, String payload) {
@@ -112,12 +121,27 @@ void WebSocketsServer::sendTXT(uint8_t num, String payload) {
  */
 void WebSocketsServer::broadcastTXT(uint8_t * payload, size_t length) {
     WSclient_t * client;
+    if(length == 0) {
+        length = strlen((const char *) payload);
+    }
     for(uint8_t i = 0; i < WEBSOCKETS_SERVER_CLIENT_MAX; i++) {
         client = &_clients[i];
         if(clientIsConnected(client)) {
             sendFrame(client, WSop_text, payload, length);
         }
     }
+}
+
+void WebSocketsServer::broadcastTXT(const uint8_t * payload, size_t length) {
+    broadcastTXT((uint8_t *) payload, length);
+}
+
+void WebSocketsServer::broadcastTXT(char * payload, size_t length) {
+    broadcastTXT((uint8_t *) payload, length);
+}
+
+void WebSocketsServer::broadcastTXT(const char * payload, size_t length) {
+    broadcastTXT((uint8_t *) payload, length);
 }
 
 void WebSocketsServer::broadcastTXT(String payload) {
@@ -140,6 +164,10 @@ void WebSocketsServer::sendBIN(uint8_t num, uint8_t * payload, size_t length) {
     }
 }
 
+void WebSocketsServer::sendBIN(uint8_t num, const uint8_t * payload, size_t length) {
+    sendBIN(num, (uint8_t *) payload, length);
+}
+
 /**
  * send binary data to client all
  * @param payload uint8_t *
@@ -153,6 +181,10 @@ void WebSocketsServer::broadcastBIN(uint8_t * payload, size_t length) {
             sendFrame(client, WSop_binary, payload, length);
         }
     }
+}
+
+void  WebSocketsServer::broadcastBIN(const uint8_t * payload, size_t length) {
+    broadcastBIN((uint8_t *) payload, length);
 }
 
 //#################################################################################
@@ -289,7 +321,7 @@ void WebSocketsServer::handleClientData(void) {
                         WebSockets::handleWebsocket(client);
                         break;
                     default:
-                        clientDisconnect(client);
+                        WebSockets::clientDisconnect(client, 1002);
                         break;
                 }
             }
@@ -363,19 +395,7 @@ void WebSocketsServer::handleHeader(WSclient_t * client) {
             DEBUG_WEBSOCKETS("[WS-Server][%d][handleHeader] Websocket connection incomming.\n", client->num);
 
             // generate Sec-WebSocket-Accept key
-            uint8_t sha1HashBin[20] = { 0 };
-            sha1(client->cKey + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11", &sha1HashBin[0]);
-
-            char sha1Base64[64] = { 0 };
-            int len = 0;
-
-            base64_encodestate _state;
-            base64_init_encodestate(&_state);
-            len = base64_encode_block((const char *) &sha1HashBin[0], 20, &sha1Base64[0], &_state);
-            base64_encode_blockend((sha1Base64 + len), &_state);
-
-            client->sKey = sha1Base64;
-            client->sKey.trim();
+            client->sKey = acceptKey(client->cKey);
 
             DEBUG_WEBSOCKETS("[WS-Server][%d][handleHeader]  - sKey: %s\n", client->num, client->sKey.c_str());
 
@@ -398,8 +418,11 @@ void WebSocketsServer::handleHeader(WSclient_t * client) {
             // header end
             client->tcp.write("\r\n");
 
+            // send ping
+            WebSockets::sendFrame(client, WSop_ping);
+
             if(_cbEvent) {
-                _cbEvent(client->num, WStype_CONNECTED, NULL, 0);
+                _cbEvent(client->num, WStype_CONNECTED, (uint8_t *)client->cUrl.c_str(), client->cUrl.length());
             }
 
         } else {

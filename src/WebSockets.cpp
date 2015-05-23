@@ -24,6 +24,12 @@
 
 #include "WebSockets.h"
 
+extern "C" {
+#include "libb64/cencode.h"
+}
+
+#include <Hash.h>
+
 /**
  *
  * @param client WSclient_t *  ptr to the client struct
@@ -195,8 +201,7 @@ void WebSockets::handleWebsocket(WSclient_t * client) {
 
     switch(opCode) {
         case WSop_text:
-            DEBUG_WEBSOCKETS("[WS-Server][%d][handleWebsocket] text: %s\n", client->num, payload)
-            ;
+            DEBUG_WEBSOCKETS("[WS-Server][%d][handleWebsocket] text: %s\n", client->num, payload);
             // no break here!
         case WSop_binary:
             messageRecived(client, opCode, payload, payloadLen);
@@ -206,8 +211,7 @@ void WebSockets::handleWebsocket(WSclient_t * client) {
             sendFrame(client, WSop_pong, payload, payloadLen);
             break;
         case WSop_pong:
-            DEBUG_WEBSOCKETS("[WS-Server][%d][handleWebsocket] get pong from Client (%s)\n", client->num, payload)
-            ;
+            DEBUG_WEBSOCKETS("[WS-Server][%d][handleWebsocket] get pong from Client (%s)\n", client->num, payload);
             break;
         case WSop_close:
             {
@@ -238,6 +242,43 @@ void WebSockets::handleWebsocket(WSclient_t * client) {
         free(payload);
     }
 
+}
+
+/**
+ * generate the key for Sec-WebSocket-Accept
+ * @param clientKey String
+ * @return String Accept Key
+ */
+String WebSockets::acceptKey(String clientKey) {
+    uint8_t sha1HashBin[20] = { 0 };
+    sha1(clientKey + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11", &sha1HashBin[0]);
+
+    String key = base64_encode(sha1HashBin, 20);
+    key.trim();
+
+    return key;
+}
+
+/**
+ * base64_encode
+ * @param data uint8_t *
+ * @param length size_t
+ * @return base64 encoded String
+ */
+String WebSockets::base64_encode(uint8_t * data, size_t length) {
+
+    char * buffer = (char *) malloc((length*1.4)+1);
+    if(buffer) {
+        base64_encodestate _state;
+        base64_init_encodestate(&_state);
+        int len = base64_encode_block((const char *) &data[0], length, &buffer[0], &_state);
+        len = base64_encode_blockend((buffer + len), &_state);
+
+        String base64 = String(buffer);
+        free(buffer);
+        return base64;
+    }
+    return "-FAIL-";
 }
 
 /**
