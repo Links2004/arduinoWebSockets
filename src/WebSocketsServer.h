@@ -86,6 +86,8 @@ public:
         void disconnect(void);
         void disconnect(uint8_t num);
 
+        IPAddress remoteIP(uint8_t num);
+
 private:
         uint16_t _port;
 

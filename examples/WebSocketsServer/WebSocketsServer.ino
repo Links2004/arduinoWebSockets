@@ -20,13 +20,16 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t lenght
 
     switch(type) {
         case WStype_DISCONNECTED:
-            Serial1.printf("[%d] Disconnected!\n", num);
+            Serial1.printf("[%u] Disconnected!\n", num);
             break;
         case WStype_CONNECTED:
-            Serial1.printf("[%d] Connected.\n", num);
+            {
+                IPAddress ip = webSocket.remoteIP(num);
+                Serial1.printf("[%u] Connected from %d.%d.%d.%d url: %s\n", num, ip[0], ip[1], ip[2], ip[3], payload);
+            }
             break;
         case WStype_TEXT:
-            Serial1.printf("[%d] get Text: %s\n", num, payload);
+            Serial1.printf("[%u] get Text: %s\n", num, payload);
 
             // echo data back to browser
             webSocket.sendTXT(num, payload, lenght);
@@ -35,7 +38,7 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t lenght
             webSocket.broadcastTXT(payload, lenght);
             break;
         case WStype_BIN:
-            Serial1.printf("[%d] get binary.\n", num);
+            Serial1.printf("[%u] get binary lenght: %u\n", num, lenght);
             hexdump(payload, lenght);
 
             // echo data back to browser

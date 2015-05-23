@@ -200,7 +200,7 @@ void WebSocketsServer::disconnect(void) {
 
 /**
  * disconnect one client
- * @param num
+ * @param num uint8_t client id
  */
 void WebSocketsServer::disconnect(uint8_t num) {
     if(num >= WEBSOCKETS_SERVER_CLIENT_MAX) {
@@ -210,6 +210,22 @@ void WebSocketsServer::disconnect(uint8_t num) {
     if(clientIsConnected(client)) {
         WebSockets::clientDisconnect(client, 1000);
     }
+}
+
+/**
+ * get an IP for a client
+ * @param num uint8_t client id
+ * @return IPAddress
+ */
+IPAddress WebSocketsServer::remoteIP(uint8_t num) {
+    if(num < WEBSOCKETS_SERVER_CLIENT_MAX) {
+        WSclient_t * client = &_clients[num];
+        if(clientIsConnected(client)) {
+            return client->tcp.remoteIP();
+        }
+    }
+
+    return IPAddress();
 }
 
 //#################################################################################
