@@ -33,7 +33,14 @@
  */
 void WebSockets::clientDisconnect(WSclient_t * client, uint16_t code, char * reason, size_t reasonLen) {
     if(client->status == WSC_CONNECTED && code) {
-        sendFrame(client, WSop_close, (uint8_t *) reason, reasonLen);
+        if(reason) {
+            sendFrame(client, WSop_close, (uint8_t *) reason, reasonLen);
+        } else {
+            uint8_t buffer[2];
+            buffer[0] = ((code >> 8) & 0xFF);
+            buffer[1] = (code & 0xFF);
+            sendFrame(client, WSop_close, &buffer[0], 2);
+        }
     }
     clientDisconnect(client);
 }
@@ -171,6 +178,7 @@ void WebSockets::handleWebsocket(WSclient_t * client) {
 
         if(!readWait(client, payload, payloadLen)) {
             DEBUG_WEBSOCKETS("[WS-Server][%d][handleWebsocket] missing data!\n", client->num);
+            free(payload);
             clientDisconnect(client, 1002);
             return;
         }
@@ -183,36 +191,51 @@ void WebSockets::handleWebsocket(WSclient_t * client) {
                 payload[i] = (payload[i] ^ maskKey[i % 4]);
             }
         }
+    }
 
-        switch(opCode) {
-            case WSop_text:
-                DEBUG_WEBSOCKETS("[WS-Server][%d][handleWebsocket] text: %s\n", client->num, payload);
-                // no break here!
-            case WSop_binary:
-                messageRecived(client, opCode, payload, payloadLen);
-                break;
-            case WSop_ping:
-                // send pong back
-                sendFrame(client, WSop_pong, payload, payloadLen);
-                break;
-            case WSop_pong:
-                DEBUG_WEBSOCKETS("[WS-Server][%d][handleWebsocket] get pong from Client (%s)\n", client->num, payload);
-                break;
-            case WSop_close:
-                {
-                    uint16_t reasonCode = buffer[0] << 8 | buffer[1];
-                    DEBUG_WEBSOCKETS("[WS-Server][%d][handleWebsocket] client ask for close. Code: %d (%s)\n", client->num, reasonCode, (payload + 2));
-                    clientDisconnect(client, 1000);
+    switch(opCode) {
+        case WSop_text:
+            DEBUG_WEBSOCKETS("[WS-Server][%d][handleWebsocket] text: %s\n", client->num, payload)
+            ;
+            // no break here!
+        case WSop_binary:
+            messageRecived(client, opCode, payload, payloadLen);
+            break;
+        case WSop_ping:
+            // send pong back
+            sendFrame(client, WSop_pong, payload, payloadLen);
+            break;
+        case WSop_pong:
+            DEBUG_WEBSOCKETS("[WS-Server][%d][handleWebsocket] get pong from Client (%s)\n", client->num, payload)
+            ;
+            break;
+        case WSop_close:
+            {
+                uint16_t reasonCode = 1000;
+                if(payloadLen >= 2) {
+                    reasonCode = payload[0] << 8 | payload[1];
                 }
-                break;
-            case WSop_continuation:
-                // continuation is not supported
-                clientDisconnect(client, 1003);
-                break;
-            default:
-                clientDisconnect(client, 1002);
-                break;
-        }
+
+                DEBUG_WEBSOCKETS("[WS-Server][%d][handleWebsocket] client ask for close. Code: %d", client->num, reasonCode);
+                if(payloadLen > 2) {
+                    DEBUG_WEBSOCKETS("(%s)\n", (payload+2));
+                } else {
+                    DEBUG_WEBSOCKETS("\n");
+                }
+                clientDisconnect(client, 1000);
+            }
+            break;
+        case WSop_continuation:
+            // continuation is not supported
+            clientDisconnect(client, 1003);
+            break;
+        default:
+            clientDisconnect(client, 1002);
+            break;
+    }
+
+    if(payload) {
+        free(payload);
     }
 
 }

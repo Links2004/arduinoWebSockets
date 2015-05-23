@@ -102,7 +102,7 @@ void WebSocketsServer::sendTXT(uint8_t num, uint8_t * payload, size_t length) {
 }
 
 void WebSocketsServer::sendTXT(uint8_t num, String payload) {
-    sendTXT(num, (uint8_t *)payload.c_str(), payload.length());
+    sendTXT(num, (uint8_t *) payload.c_str(), payload.length());
 }
 
 /**
@@ -120,9 +120,8 @@ void WebSocketsServer::broadcastTXT(uint8_t * payload, size_t length) {
     }
 }
 
-
 void WebSocketsServer::broadcastTXT(String payload) {
-    broadcastTXT((uint8_t *)payload.c_str(), payload.length());
+    broadcastTXT((uint8_t *) payload.c_str(), payload.length());
 }
 
 /**
@@ -311,7 +310,7 @@ void WebSocketsServer::handleHeader(WSclient_t * client) {
     if(headerLine.length() > 0) {
         DEBUG_WEBSOCKETS("[WS-Server][%d][handleHeader] RX: %s\n", client->num, headerLine.c_str());
 
-        // websocket request starts allway with GET see rfc6455
+        // websocket request starts allways with GET see rfc6455
         if(headerLine.startsWith("GET ")) {
             // cut URL out
             client->cUrl = headerLine.substring(4, headerLine.indexOf(' ', 4));
@@ -337,7 +336,13 @@ void WebSocketsServer::handleHeader(WSclient_t * client) {
     } else {
         DEBUG_WEBSOCKETS("[WS-Server][%d][handleHeader] Header read fin.\n", client->num);
 
-        DEBUG_WEBSOCKETS("[WS-Server][%d][handleHeader]  - cURL: %s\n", client->num, client->cUrl.c_str());DEBUG_WEBSOCKETS("[WS-Server][%d][handleHeader]  - cIsUpgrade: %d\n", client->num, client->cIsUpgrade);DEBUG_WEBSOCKETS("[WS-Server][%d][handleHeader]  - cIsWebsocket: %d\n", client->num, client->cIsWebsocket);DEBUG_WEBSOCKETS("[WS-Server][%d][handleHeader]  - cKey: %s\n", client->num, client->cKey.c_str());DEBUG_WEBSOCKETS("[WS-Server][%d][handleHeader]  - cProtocol: %s\n", client->num, client->cProtocol.c_str());DEBUG_WEBSOCKETS("[WS-Server][%d][handleHeader]  - cExtensions: %s\n", client->num, client->cExtensions.c_str());DEBUG_WEBSOCKETS("[WS-Server][%d][handleHeader]  - cVersion: %d\n", client->num, client->cVersion);
+        DEBUG_WEBSOCKETS("[WS-Server][%d][handleHeader]  - cURL: %s\n", client->num, client->cUrl.c_str());
+        DEBUG_WEBSOCKETS("[WS-Server][%d][handleHeader]  - cIsUpgrade: %d\n", client->num, client->cIsUpgrade);
+        DEBUG_WEBSOCKETS("[WS-Server][%d][handleHeader]  - cIsWebsocket: %d\n", client->num, client->cIsWebsocket);
+        DEBUG_WEBSOCKETS("[WS-Server][%d][handleHeader]  - cKey: %s\n", client->num, client->cKey.c_str());
+        DEBUG_WEBSOCKETS("[WS-Server][%d][handleHeader]  - cProtocol: %s\n", client->num, client->cProtocol.c_str());
+        DEBUG_WEBSOCKETS("[WS-Server][%d][handleHeader]  - cExtensions: %s\n", client->num, client->cExtensions.c_str());
+        DEBUG_WEBSOCKETS("[WS-Server][%d][handleHeader]  - cVersion: %d\n", client->num, client->cVersion);
 
         bool ok = (client->cIsUpgrade && client->cIsWebsocket);
 
