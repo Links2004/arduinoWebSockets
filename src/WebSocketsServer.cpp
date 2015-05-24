@@ -458,7 +458,7 @@ void WebSocketsServer::handleHeader(WSclient_t * client) {
             client->status = WSC_CONNECTED;
 
             client->tcp.write("HTTP/1.1 101 Switching Protocols\r\n"
-                    "Server: ESP8266-WebSocketsServer\r\n"
+                    "Server: arduino-WebSocketsServer\r\n"
                     "Upgrade: websocket\r\n"
                     "Connection: Upgrade\r\n"
                     "Sec-WebSocket-Version: 13\r\n"

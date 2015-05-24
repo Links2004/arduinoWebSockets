@@ -28,7 +28,9 @@ extern "C" {
 #include "libb64/cencode.h"
 }
 
+#ifdef ESP8266
 #include <Hash.h>
+#endif
 
 /**
  *
@@ -284,8 +286,11 @@ void WebSockets::handleWebsocket(WSclient_t * client) {
  */
 String WebSockets::acceptKey(String clientKey) {
     uint8_t sha1HashBin[20] = { 0 };
+#ifdef ESP8266
     sha1(clientKey + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11", &sha1HashBin[0]);
-
+#else
+#error todo implement sha1 for AVR
+#endif
     String key = base64_encode(sha1HashBin, 20);
     key.trim();
 
@@ -327,19 +332,20 @@ bool WebSockets::readWait(WSclient_t * client, uint8_t *out, size_t n) {
 
     while(n > 0) {
         if(!client->tcp.connected()) {
-            DEBUG_WEBSOCKETS("[readWait] Receive not connected - 1!\n");
+            DEBUG_WEBSOCKETS("[readWait] not connected!\n");
             return false;
         }
-        while(!client->tcp.available()) {
-            if(!client->tcp.connected()) {
-                DEBUG_WEBSOCKETS("[readWait] Receive not connected - 2!\n");
-                return false;
-            }
-            if((millis() - t) > WEBSOCKETS_TCP_TIMEOUT) {
-                DEBUG_WEBSOCKETS("[readWait] Receive TIMEOUT!\n");
-                return false;
-            }
+
+        if((millis() - t) > WEBSOCKETS_TCP_TIMEOUT) {
+            DEBUG_WEBSOCKETS("[readWait] receive TIMEOUT!\n");
+            return false;
+        }
+
+        if(!client->tcp.available()) {
+#ifdef ESP8266
             delay(0);
+#endif
+            continue;
         }
 
         len = client->tcp.read((uint8_t*) out, n);
@@ -351,7 +357,9 @@ bool WebSockets::readWait(WSclient_t * client, uint8_t *out, size_t n) {
         } else {
             //DEBUG_WEBSOCKETS("Receive %d left %d!\n", len, n);
         }
+#ifdef ESP8266
         delay(0);
+#endif
     }
     return true;
 }
