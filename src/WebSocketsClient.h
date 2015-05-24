@@ -47,8 +47,8 @@ class WebSocketsClient: private WebSockets {
         WebSocketsClient(void);
         ~WebSocketsClient(void);
 
-        void begin(const char *host, uint16_t port, const char * url);
-        void begin(String host, uint16_t port, String url);
+        void begin(const char *host, uint16_t port, const char * url = "/");
+        void begin(String host, uint16_t port, String url = "/");
 
         void loop(void);
 
@@ -81,6 +81,7 @@ class WebSocketsClient: private WebSockets {
         void handleNewClients(void);
         void handleClientData(void);
 
+        void sendHeader(WSclient_t * client);
         void handleHeader(WSclient_t * client);
 
 };

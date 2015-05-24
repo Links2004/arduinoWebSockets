@@ -58,6 +58,9 @@ void WebSocketsServer::begin(void) {
         client->status = WSC_NOT_CONNECTED;
     }
 
+    // todo find better seed
+    randomSeed(millis());
+
     _server->begin();
 }
 
@@ -128,7 +131,9 @@ void WebSocketsServer::broadcastTXT(uint8_t * payload, size_t length) {
         if(clientIsConnected(client)) {
             sendFrame(client, WSop_text, payload, length);
         }
+#ifdef ESP8266
         delay(0);
+#endif
     }
 }
 
@@ -180,7 +185,9 @@ void WebSocketsServer::broadcastBIN(uint8_t * payload, size_t length) {
         if(clientIsConnected(client)) {
             sendFrame(client, WSop_binary, payload, length);
         }
+#ifdef ESP8266
         delay(0);
+#endif
     }
 }
 
@@ -320,7 +327,9 @@ void WebSocketsServer::handleNewClients(void) {
 
                 // store new connection
                 client->tcp = _server->available();
+#ifdef ESP8266
                 client->tcp.setNoDelay(true);
+#endif
                 // set Timeout for readBytesUntil and readStringUntil
                 client->tcp.setTimeout(WEBSOCKETS_TCP_TIMEOUT);
                 client->status = WSC_HEADER;
@@ -340,7 +349,9 @@ void WebSocketsServer::handleNewClients(void) {
             tcpClient.stop();
         }
 
+#ifdef ESP8266
         delay(0);
+#endif
     }
 }
 
@@ -369,7 +380,9 @@ void WebSocketsServer::handleClientData(void) {
                 }
             }
         }
+#ifdef ESP8266
         delay(0);
+#endif
     }
 }
 
@@ -455,7 +468,7 @@ void WebSocketsServer::handleHeader(WSclient_t * client) {
 
             if(client->cProtocol.length() > 0) {
                 // todo add api to set Protocol of Server
-                client->tcp.write("Sec-WebSocket-Protocol: esp8266\r\n");
+                client->tcp.write("Sec-WebSocket-Protocol: arduino\r\n");
             }
 
             // header end
@@ -471,7 +484,7 @@ void WebSocketsServer::handleHeader(WSclient_t * client) {
         } else {
             DEBUG_WEBSOCKETS("[WS-Server][%d][handleHeader] no Websocket connection close.\n", client->num);
             client->tcp.write("HTTP/1.1 400 Bad Request\r\n"
-                    "Server: ESP8266-WebSocketsServer\r\n"
+                    "Server: arduino-WebSocket-Server\r\n"
                     "Content-Type: text/plain\r\n"
                     "Content-Length: 32\r\n"
                     "Connection: close\r\n"

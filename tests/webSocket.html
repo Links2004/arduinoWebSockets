@@ -2,7 +2,7 @@
 <head>
 
 <script>
-var connection = new WebSocket('ws://10.11.2.1:81/test', ['esp8266']);
+var connection = new WebSocket('ws://10.11.2.1:81/test', ['arduino']);
 
 connection.onopen = function () {
 	connection.send('Message from Browser to ESP8266 yay its Working!! ' + new Date()); 
@@ -18,8 +18,8 @@ connection.onmessage = function (e) {
 };
 
 setInterval(function() {
-	connection.send('Message from Browser to ESP8266 yay its Working!! ' + new Date()); 
-}, 10000);
+	connection.send('Time: ' + new Date()); 
+}, 1000);
 
 </script>
 

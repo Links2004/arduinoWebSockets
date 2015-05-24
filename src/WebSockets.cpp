@@ -38,7 +38,7 @@ extern "C" {
  * @param reasonLen
  */
 void WebSockets::clientDisconnect(WSclient_t * client, uint16_t code, char * reason, size_t reasonLen) {
-    DEBUG_WEBSOCKETS("[WS-Server][%d][handleWebsocket] clientDisconnect code: %u\n", client->num, code);
+    DEBUG_WEBSOCKETS("[WS][%d][handleWebsocket] clientDisconnect code: %u\n", client->num, code);
     if(client->status == WSC_CONNECTED && code) {
         if(reason) {
             sendFrame(client, WSop_close, (uint8_t *) reason, reasonLen);
@@ -59,22 +59,36 @@ void WebSockets::clientDisconnect(WSclient_t * client, uint16_t code, char * rea
  * @param payload uint8_t *
  * @param length size_t
  */
-void WebSockets::sendFrame(WSclient_t * client, WSopcode_t opcode, uint8_t * payload, size_t length) {
+void WebSockets::sendFrame(WSclient_t * client, WSopcode_t opcode, uint8_t * payload, size_t length, bool mask) {
+
+    DEBUG_WEBSOCKETS("[WS][%d][sendFrame] ------- send massage frame -------\n", client->num);
+    DEBUG_WEBSOCKETS("[WS][%d][sendFrame] opCode: %u mask: %u length: %u\n", client->num, opcode, mask, length);
+
+    if(opcode == WSop_text) {
+        DEBUG_WEBSOCKETS("[WS][%d][sendFrame] text: %s\n", client->num, payload);
+    }
 
     if(!client->tcp.connected()) {
+        DEBUG_WEBSOCKETS("[WS][%d][sendFrame] not Connected!?\n", client->num);
         return;
     }
 
+    uint8_t maskKey[4] = { 0 };
     uint8_t buffer[16] = { 0 };
     uint8_t i = 0;
 
     //create header
+    buffer[i] = bit(7);         // set Fin
+    buffer[i++] |= opcode;      // set opcode
 
-    buffer[i] = bit(7);     // set Fin
-    buffer[i++] |= opcode;    // set opcode
+    buffer[i] = 0x00;
+
+    if(mask) {
+        buffer[i] |= bit(7);     // set mask
+    }
 
     if(length < 126) {
-        buffer[i++] = length;
+        buffer[i++] |= length;
 
     } else if(length < 0xFFFF) {
         buffer[i++] = 126;
@@ -91,6 +105,20 @@ void WebSockets::sendFrame(WSclient_t * client, WSopcode_t opcode, uint8_t * pay
         buffer[i++] = ((length >> 16) & 0xFF);
         buffer[i++] = ((length >> 8) & 0xFF);
         buffer[i++] = (length & 0xFF);
+    }
+
+    if(mask) {
+        // todo generate random mask key
+        for(uint8_t x = 0; x < sizeof(maskKey); x++) {
+            // maskKey[x] = random(0xFF);
+            maskKey[x] = 0x00; // fake xor (0x00 0x00 0x00 0x00)
+            buffer[i++] = maskKey[x];
+        }
+
+        // todo encode XOR
+        //for(size_t x = 0; x < length; x++) {
+        //    payload[x] = (payload[x] ^ maskKey[x % 4]);
+        //}
     }
 
     // send header
@@ -123,7 +151,7 @@ void WebSockets::handleWebsocket(WSclient_t * client) {
 
     uint8_t * payload = NULL;
 
-    DEBUG_WEBSOCKETS("[WS-Server][%d][handleWebsocket] ------- read massage frame -------\n", client->num);
+    DEBUG_WEBSOCKETS("[WS][%d][handleWebsocket] ------- read massage frame -------\n", client->num);
 
     if(!readWait(client, buffer, 2)) {
         //timeout
@@ -164,11 +192,11 @@ void WebSockets::handleWebsocket(WSclient_t * client) {
         }
     }
 
-    DEBUG_WEBSOCKETS("[WS-Server][%d][handleWebsocket] fin: %u rsv1: %u rsv2: %u rsv3 %u  opCode: %u\n", client->num, fin, rsv1, rsv2, rsv3, opCode);
-    DEBUG_WEBSOCKETS("[WS-Server][%d][handleWebsocket] mask: %u payloadLen: %u\n", client->num, mask, payloadLen);
+    DEBUG_WEBSOCKETS("[WS][%d][handleWebsocket] fin: %u rsv1: %u rsv2: %u rsv3 %u  opCode: %u\n", client->num, fin, rsv1, rsv2, rsv3, opCode);
+    DEBUG_WEBSOCKETS("[WS][%d][handleWebsocket] mask: %u payloadLen: %u\n", client->num, mask, payloadLen);
 
     if(payloadLen > WEBSOCKETS_MAX_DATA_SIZE) {
-        DEBUG_WEBSOCKETS("[WS-Server][%d][handleWebsocket] payload to big! (%u)\n", client->num, payloadLen);
+        DEBUG_WEBSOCKETS("[WS][%d][handleWebsocket] payload to big! (%u)\n", client->num, payloadLen);
         clientDisconnect(client, 1009);
         return;
     }
@@ -182,13 +210,13 @@ void WebSockets::handleWebsocket(WSclient_t * client) {
         payload = (uint8_t *) malloc(payloadLen + 1);
 
         if(!payload) {
-            DEBUG_WEBSOCKETS("[WS-Server][%d][handleWebsocket] to less memory to handle payload %d!\n", client->num, payloadLen);
+            DEBUG_WEBSOCKETS("[WS][%d][handleWebsocket] to less memory to handle payload %d!\n", client->num, payloadLen);
             clientDisconnect(client, 1011);
             return;
         }
 
         if(!readWait(client, payload, payloadLen)) {
-            DEBUG_WEBSOCKETS("[WS-Server][%d][handleWebsocket] missing data!\n", client->num);
+            DEBUG_WEBSOCKETS("[WS][%d][handleWebsocket] missing data!\n", client->num);
             free(payload);
             clientDisconnect(client, 1002);
             return;
@@ -206,7 +234,7 @@ void WebSockets::handleWebsocket(WSclient_t * client) {
 
     switch(opCode) {
         case WSop_text:
-            DEBUG_WEBSOCKETS("[WS-Server][%d][handleWebsocket] text: %s\n", client->num, payload);
+            DEBUG_WEBSOCKETS("[WS][%d][handleWebsocket] text: %s\n", client->num, payload);
             // no break here!
         case WSop_binary:
             messageRecived(client, opCode, payload, payloadLen);
@@ -216,7 +244,7 @@ void WebSockets::handleWebsocket(WSclient_t * client) {
             sendFrame(client, WSop_pong, payload, payloadLen);
             break;
         case WSop_pong:
-            DEBUG_WEBSOCKETS("[WS-Server][%d][handleWebsocket] get pong from Client (%s)\n", client->num, payload);
+            DEBUG_WEBSOCKETS("[WS][%d][handleWebsocket] get pong  (%s)\n", client->num, payload);
             break;
         case WSop_close:
             {
@@ -225,9 +253,9 @@ void WebSockets::handleWebsocket(WSclient_t * client) {
                     reasonCode = payload[0] << 8 | payload[1];
                 }
 
-                DEBUG_WEBSOCKETS("[WS-Server][%d][handleWebsocket] client ask for close. Code: %d", client->num, reasonCode);
+                DEBUG_WEBSOCKETS("[WS][%d][handleWebsocket] get ask for close. Code: %d", client->num, reasonCode);
                 if(payloadLen > 2) {
-                    DEBUG_WEBSOCKETS("(%s)\n", (payload+2));
+                    DEBUG_WEBSOCKETS(" (%s)\n", (payload+2));
                 } else {
                     DEBUG_WEBSOCKETS("\n");
                 }
@@ -271,8 +299,8 @@ String WebSockets::acceptKey(String clientKey) {
  * @return base64 encoded String
  */
 String WebSockets::base64_encode(uint8_t * data, size_t length) {
-
-    char * buffer = (char *) malloc((length*1.4)+1);
+    size_t size = ((length*1.6f)+1);
+    char * buffer = (char *) malloc(size);
     if(buffer) {
         base64_encodestate _state;
         base64_init_encodestate(&_state);
@@ -283,7 +311,7 @@ String WebSockets::base64_encode(uint8_t * data, size_t length) {
         free(buffer);
         return base64;
     }
-    return "-FAIL-";
+    return String("-FAIL-");
 }
 
 /**

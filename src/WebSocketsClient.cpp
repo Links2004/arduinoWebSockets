@@ -44,12 +44,17 @@ void WebSocketsClient::begin(const char *host, uint16_t port, const char * url) 
 
     _client.status = WSC_NOT_CONNECTED;
     _client.cUrl = url;
+    _client.cCode = 0;
     _client.cIsUpgrade = false;
     _client.cIsWebsocket = true;
     _client.cKey = "";
+    _client.cAccept = "";
     _client.cProtocol = "";
     _client.cExtensions = "";
     _client.cVersion = 0;
+
+    // todo find better seed
+    randomSeed(millis());
 }
 
 void WebSocketsClient::begin(String host, uint16_t port, String url) {
@@ -62,12 +67,20 @@ void WebSocketsClient::begin(String host, uint16_t port, String url) {
 void WebSocketsClient::loop(void) {
     if(!clientIsConnected(&_client)) {
         if(_client.tcp.connect(_host.c_str(), _port)) {
-            DEBUG_WEBSOCKETS("[WS-Client] connected to %s:%u\n", _host.c_str(), _port);
+            DEBUG_WEBSOCKETS("[WS-Client] connected to %s:%u.\n", _host.c_str(), _port);
 
-            _client.tcp.setNoDelay(true);
+            _client.status = WSC_HEADER;
+
             // set Timeout for readBytesUntil and readStringUntil
             _client.tcp.setTimeout(WEBSOCKETS_TCP_TIMEOUT);
-            _client.status = WSC_HEADER;
+
+#ifdef ESP8266
+            _client.tcp.setNoDelay(true);
+#endif
+
+            // send Header to Server
+            sendHeader(&_client);
+
         } else {
             DEBUG_WEBSOCKETS("[WS-Client] connection to %s:%u Faild\n", _host.c_str(), _port);
             delay(10); //some litle delay to not flood the server
@@ -96,7 +109,7 @@ void WebSocketsClient::sendTXT(uint8_t * payload, size_t length) {
         length = strlen((const char *) payload);
     }
     if(clientIsConnected(&_client)) {
-        sendFrame(&_client, WSop_text, payload, length);
+        sendFrame(&_client, WSop_text, payload, length, true);
     }
 }
 
@@ -124,7 +137,7 @@ void WebSocketsClient::sendTXT(String payload) {
  */
 void WebSocketsClient::sendBIN(uint8_t * payload, size_t length) {
     if(clientIsConnected(&_client)) {
-        sendFrame(&_client, WSop_binary, payload, length);
+        sendFrame(&_client, WSop_binary, payload, length, true);
     }
 }
 
@@ -181,7 +194,9 @@ void WebSocketsClient::clientDisconnect(WSclient_t * client) {
         client->tcp.stop();
     }
 
+    client->cCode = 0;
     client->cKey = "";
+    client->cAccept = "";
     client->cProtocol = "";
     client->cVersion = 0;
     client->cIsUpgrade = false;
@@ -232,7 +247,59 @@ void WebSocketsClient::handleClientData(void) {
                 break;
         }
     }
+#ifdef ESP8266
     delay(0);
+#endif
+}
+
+/**
+ * send the WebSocket header to Server
+ * @param client WSclient_t *  ptr to the client struct
+ */
+void WebSocketsClient::sendHeader(WSclient_t * client) {
+
+    DEBUG_WEBSOCKETS("[WS-Client][sendHeader] sending header...\n");
+
+    uint8_t randomKey[16] = { 0 };
+
+    for(uint8_t i = 0; i < sizeof(randomKey); i++) {
+        randomKey[i] = random(0xFF);
+    }
+
+    client->cKey = base64_encode(&randomKey[0], 16);
+
+    unsigned long start = micros();
+
+    //todo use tcp.write only once
+
+    client->tcp.write("GET ");
+    client->tcp.write(client->cUrl.c_str(), client->cUrl.length());
+    client->tcp.write(" HTTP/1.1\r\n"
+            "Host: ");
+
+    client->tcp.write(_host.c_str(), _host.length());
+    client->tcp.write("\r\n"
+            "Upgrade: websocket\r\n"
+            "Connection: Upgrade\r\n"
+            "User-Agent: arduino-WebSocket-Client\r\n"
+            "Sec-WebSocket-Version: 13\r\n"
+            "Sec-WebSocket-Protocol: arduino\r\n" // todo add api to set Protocol of Server
+            "Sec-WebSocket-Key: ");
+
+    client->tcp.write(client->cKey.c_str(), client->cKey.length());
+    client->tcp.write("\r\n");
+
+    if(client->cExtensions.length() > 0) {
+        client->tcp.write("Sec-WebSocket-Extensions: ");
+        client->tcp.write(client->cExtensions.c_str(), client->cExtensions.length());
+        client->tcp.write("\r\n");
+    }
+
+    // Header end wait for Server response
+    client->tcp.write("\r\n");
+
+    DEBUG_WEBSOCKETS("[WS-Client][sendHeader] sending header... Done (%uus).\n", (micros() - start));
+
 }
 
 /**
@@ -247,36 +314,40 @@ void WebSocketsClient::handleHeader(WSclient_t * client) {
     if(headerLine.length() > 0) {
         DEBUG_WEBSOCKETS("[WS-Client][handleHeader] RX: %s\n", headerLine.c_str());
 
-        // websocket request starts allways with GET see rfc6455
-        if(headerLine.startsWith("GET ")) {
-            // cut URL out
-            client->cUrl = headerLine.substring(4, headerLine.indexOf(' ', 4));
+        if(headerLine.startsWith("HTTP/1.")) {
+            // "HTTP/1.1 101 Switching Protocols"
+            client->cCode = headerLine.substring(9, headerLine.indexOf(' ', 9)).toInt();
         } else if(headerLine == "Connection: Upgrade") {
             client->cIsUpgrade = true;
         } else if(headerLine == "Upgrade: websocket") {
             client->cIsWebsocket = true;
-        } else if(headerLine.startsWith("Sec-WebSocket-Version: ")) {
-            // 23 = lenght of "Sec-WebSocket-Version: "
-            client->cVersion = headerLine.substring(23).toInt();
-        } else if(headerLine.startsWith("Sec-WebSocket-Key: ")) {
-            // 19 = lenght of "Sec-WebSocket-Key: "
-            client->cKey = headerLine.substring(19);
-            client->cKey.trim(); // see rfc6455
+        } else if(headerLine.startsWith("Sec-WebSocket-Accept: ")) {
+            // 22 = lenght of "Sec-WebSocket-Accept: "
+            client->cAccept = headerLine.substring(22);
+            client->cAccept.trim(); // see rfc6455
         } else if(headerLine.startsWith("Sec-WebSocket-Protocol: ")) {
             // 24 = lenght of "Sec-WebSocket-Protocol: "
             client->cProtocol = headerLine.substring(24);
         } else if(headerLine.startsWith("Sec-WebSocket-Extensions: ")) {
             // 26 = lenght of "Sec-WebSocket-Extensions: "
             client->cExtensions = headerLine.substring(26);
+        } else if(headerLine.startsWith("Sec-WebSocket-Version: ")) {
+            // 23 = lenght of "Sec-WebSocket-Version: "
+            client->cVersion = headerLine.substring(23).toInt();
         }
 
     } else {
         DEBUG_WEBSOCKETS("[WS-Client][handleHeader] Header read fin.\n");
+        DEBUG_WEBSOCKETS("[WS-Client][handleHeader] Client settings:\n");
 
         DEBUG_WEBSOCKETS("[WS-Client][handleHeader]  - cURL: %s\n", client->cUrl.c_str());
+        DEBUG_WEBSOCKETS("[WS-Client][handleHeader]  - cKey: %s\n", client->cKey.c_str());
+
+        DEBUG_WEBSOCKETS("[WS-Client][handleHeader] Server header:\n");
+        DEBUG_WEBSOCKETS("[WS-Client][handleHeader]  - cCode: %d\n", client->cCode);
         DEBUG_WEBSOCKETS("[WS-Client][handleHeader]  - cIsUpgrade: %d\n", client->cIsUpgrade);
         DEBUG_WEBSOCKETS("[WS-Client][handleHeader]  - cIsWebsocket: %d\n", client->cIsWebsocket);
-        DEBUG_WEBSOCKETS("[WS-Client][handleHeader]  - cKey: %s\n", client->cKey.c_str());
+        DEBUG_WEBSOCKETS("[WS-Client][handleHeader]  - cAccept: %s\n", client->cAccept.c_str());
         DEBUG_WEBSOCKETS("[WS-Client][handleHeader]  - cProtocol: %s\n", client->cProtocol.c_str());
         DEBUG_WEBSOCKETS("[WS-Client][handleHeader]  - cExtensions: %s\n", client->cExtensions.c_str());
         DEBUG_WEBSOCKETS("[WS-Client][handleHeader]  - cVersion: %d\n", client->cVersion);
@@ -284,47 +355,38 @@ void WebSocketsClient::handleHeader(WSclient_t * client) {
         bool ok = (client->cIsUpgrade && client->cIsWebsocket);
 
         if(ok) {
-            if(client->cUrl.length() == 0) {
-                ok = false;
+            switch(client->cCode) {
+                case 101:  ///< Switching Protocols
+
+                    break;
+                case 403: ///< Forbidden
+                    // todo handle login
+                default:   ///< Server dont unterstand requrst
+                    ok = false;
+                    DEBUG_WEBSOCKETS("[WS-Client][handleHeader] serverCode is not 101 (%d)\n", client->cCode);
+                    clientDisconnect(&_client);
+                    break;
             }
-            if(client->cKey.length() == 0) {
+        }
+
+        if(ok) {
+            if(client->cAccept.length() == 0) {
                 ok = false;
-            }
-            if(client->cVersion != 13) {
-                ok = false;
+            } else {
+                // generate Sec-WebSocket-Accept key for check
+                String sKey = acceptKey(client->cKey);
+                if(sKey != client->cAccept) {
+                    DEBUG_WEBSOCKETS("[WS-Client][handleHeader] Sec-WebSocket-Accept is wrong\n");
+                    ok = false;
+                }
             }
         }
 
         if(ok) {
 
-            DEBUG_WEBSOCKETS("[WS-Client][handleHeader] Websocket connection incomming.\n");
-
-            // generate Sec-WebSocket-Accept key
-            String sKey = acceptKey(client->cKey);
-
-            DEBUG_WEBSOCKETS("[WS-Client][handleHeader]  - sKey: %s\n", sKey.c_str());
+            DEBUG_WEBSOCKETS("[WS-Client][handleHeader] Websocket connection init done.\n");
 
             client->status = WSC_CONNECTED;
-
-            client->tcp.write("HTTP/1.1 101 Switching Protocols\r\n"
-                    "Server: ESP8266-WebSocketsClient\r\n"
-                    "Upgrade: websocket\r\n"
-                    "Connection: Upgrade\r\n"
-                    "Sec-WebSocket-Version: 13\r\n"
-                    "Sec-WebSocket-Accept: ");
-            client->tcp.write(sKey.c_str(), sKey.length());
-            client->tcp.write("\r\n");
-
-            if(client->cProtocol.length() > 0) {
-                // todo add api to set Protocol of Server
-                client->tcp.write("Sec-WebSocket-Protocol: esp8266\r\n");
-            }
-
-            // header end
-            client->tcp.write("\r\n");
-
-            // send ping
-            WebSockets::sendFrame(client, WSop_ping);
 
             if(_cbEvent) {
                 _cbEvent(WStype_CONNECTED, (uint8_t *) client->cUrl.c_str(), client->cUrl.length());
@@ -332,14 +394,7 @@ void WebSocketsClient::handleHeader(WSclient_t * client) {
 
         } else {
             DEBUG_WEBSOCKETS("[WS-Client][handleHeader] no Websocket connection close.\n");
-            client->tcp.write("HTTP/1.1 400 Bad Request\r\n"
-                    "Server: ESP8266-WebSocketsClient\r\n"
-                    "Content-Type: text/plain\r\n"
-                    "Content-Length: 32\r\n"
-                    "Connection: close\r\n"
-                    "Sec-WebSocket-Version: 13\r\n"
-                    "\r\n"
-                    "This is a Websocket server only!");
+            client->tcp.write("This is a webSocket client!");
             clientDisconnect(client);
         }
     }

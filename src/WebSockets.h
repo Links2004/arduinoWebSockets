@@ -37,7 +37,7 @@
 #endif
 #endif
 
-#define DEBUG_WEBSOCKETS(...) Serial1.printf( __VA_ARGS__ );
+//#define DEBUG_WEBSOCKETS(...) Serial1.printf( __VA_ARGS__ )
 
 #ifndef DEBUG_WEBSOCKETS
 #define DEBUG_WEBSOCKETS(...)
@@ -85,14 +85,16 @@ typedef struct {
 #endif
 #endif
         String cUrl;        ///< http url
+        uint16_t cCode;     ///< http code
 
         bool cIsUpgrade;    ///< Connection == Upgrade
         bool cIsWebsocket;  ///< Upgrade == websocket
 
         String cKey;        ///< client Sec-WebSocket-Key
+        String cAccept;     ///< client Sec-WebSocket-Accept
         String cProtocol;   ///< client Sec-WebSocket-Protocol
         String cExtensions; ///< client Sec-WebSocket-Extensions
-        int cVersion;       ///< client Sec-WebSocket-Version
+        uint16_t cVersion;  ///< client Sec-WebSocket-Version
 
 } WSclient_t;
 
@@ -104,7 +106,7 @@ class WebSockets {
         virtual void messageRecived(WSclient_t * client, WSopcode_t opcode, uint8_t * payload, size_t length);
 
         void clientDisconnect(WSclient_t * client, uint16_t code, char * reason = NULL, size_t reasonLen = 0);
-        void sendFrame(WSclient_t * client, WSopcode_t opcode, uint8_t * payload = NULL, size_t length = 0);
+        void sendFrame(WSclient_t * client, WSopcode_t opcode, uint8_t * payload = NULL, size_t length = 0, bool mask = false);
 
 
         void handleWebsocket(WSclient_t * client);
@@ -113,6 +115,7 @@ class WebSockets {
 
         String acceptKey(String clientKey);
         String base64_encode(uint8_t * data, size_t length);
+
 };
 
 #endif /* WEBSOCKETS_H_ */
