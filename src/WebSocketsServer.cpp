@@ -406,6 +406,8 @@ void WebSocketsServer::handleHeader(WSclient_t * client) {
             client->cIsUpgrade = true;
         } else if(headerLine == "Upgrade: websocket") {
             client->cIsWebsocket = true;
+        } else if(headerLine == "Upgrade: WebSocket") {
+            client->cIsWebsocket = true;
         } else if(headerLine.startsWith("Sec-WebSocket-Version: ")) {
             // 23 = lenght of "Sec-WebSocket-Version: "
             client->cVersion = headerLine.substring(23).toInt();
