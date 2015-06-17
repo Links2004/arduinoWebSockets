@@ -61,10 +61,10 @@ void WebSockets::clientDisconnect(WSclient_t * client, uint16_t code, char * rea
  * @param payload uint8_t *
  * @param length size_t
  */
-void WebSockets::sendFrame(WSclient_t * client, WSopcode_t opcode, uint8_t * payload, size_t length, bool mask) {
+void WebSockets::sendFrame(WSclient_t * client, WSopcode_t opcode, uint8_t * payload, size_t length, bool mask, bool fin) {
 
     DEBUG_WEBSOCKETS("[WS][%d][sendFrame] ------- send massage frame -------\n", client->num);
-    DEBUG_WEBSOCKETS("[WS][%d][sendFrame] opCode: %u mask: %u length: %u\n", client->num, opcode, mask, length);
+    DEBUG_WEBSOCKETS("[WS][%d][sendFrame] fin: %u opCode: %u mask: %u length: %u\n", client->num, fin, opcode, mask, length);
 
     if(opcode == WSop_text) {
         DEBUG_WEBSOCKETS("[WS][%d][sendFrame] text: %s\n", client->num, payload);
@@ -80,25 +80,30 @@ void WebSockets::sendFrame(WSclient_t * client, WSopcode_t opcode, uint8_t * pay
     uint8_t i = 0;
 
     //create header
-    buffer[i] = bit(7);         // set Fin
-    buffer[i++] |= opcode;      // set opcode
 
+    // byte 0
     buffer[i] = 0x00;
+    if(fin) {
+        buffer[i] |= bit(7);    ///< set Fin
+    }
+    buffer[i++] |= opcode;      ///< set opcode
 
+    // byte 1
+    buffer[i] = 0x00;
     if(mask) {
-        buffer[i] |= bit(7);     // set mask
+        buffer[i] |= bit(7);    ///< set mask
     }
 
     if(length < 126) {
         buffer[i++] |= length;
 
     } else if(length < 0xFFFF) {
-        buffer[i++] = 126;
+        buffer[i++] |= 126;
         buffer[i++] = ((length >> 8) & 0xFF);
         buffer[i++] = (length & 0xFF);
     } else {
         // normaly we never get here (to less memory)
-        buffer[i++] = 127;
+        buffer[i++] |= 127;
         buffer[i++] = 0x00;
         buffer[i++] = 0x00;
         buffer[i++] = 0x00;

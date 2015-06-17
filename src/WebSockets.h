@@ -106,7 +106,7 @@ class WebSockets {
         virtual void messageRecived(WSclient_t * client, WSopcode_t opcode, uint8_t * payload, size_t length);
 
         void clientDisconnect(WSclient_t * client, uint16_t code, char * reason = NULL, size_t reasonLen = 0);
-        void sendFrame(WSclient_t * client, WSopcode_t opcode, uint8_t * payload = NULL, size_t length = 0, bool mask = false);
+        void sendFrame(WSclient_t * client, WSopcode_t opcode, uint8_t * payload = NULL, size_t length = 0, bool mask = false, bool fin = true);
 
 
         void handleWebsocket(WSclient_t * client);
