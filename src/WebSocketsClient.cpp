@@ -321,6 +321,8 @@ void WebSocketsClient::handleHeader(WSclient_t * client) {
             client->cIsUpgrade = true;
         } else if(headerLine == "Upgrade: websocket") {
             client->cIsWebsocket = true;
+        } else if(headerLine == "Upgrade: WebSocket") {
+            client->cIsWebsocket = true;
         } else if(headerLine.startsWith("Sec-WebSocket-Accept: ")) {
             // 22 = lenght of "Sec-WebSocket-Accept: "
             client->cAccept = headerLine.substring(22);
