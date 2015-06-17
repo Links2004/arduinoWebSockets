@@ -404,10 +404,13 @@ void WebSocketsServer::handleHeader(WSclient_t * client) {
             client->cUrl = headerLine.substring(4, headerLine.indexOf(' ', 4));
         } else if(headerLine == "Connection: Upgrade") {
             client->cIsUpgrade = true;
-        } else if(headerLine == "Upgrade: websocket") {
-            client->cIsWebsocket = true;
-        } else if(headerLine == "Upgrade: WebSocket") {
-            client->cIsWebsocket = true;
+        } else if(headerLine.startsWith("Upgrade: ")) {
+            // 9 = lenght of "Upgrade: "
+            String low = headerLine.substring(9);
+            low.toLowerCase();
+            if(low == "websocket") {
+                client->cIsWebsocket = true;
+            }
         } else if(headerLine.startsWith("Sec-WebSocket-Version: ")) {
             // 23 = lenght of "Sec-WebSocket-Version: "
             client->cVersion = headerLine.substring(23).toInt();

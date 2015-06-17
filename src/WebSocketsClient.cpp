@@ -319,10 +319,13 @@ void WebSocketsClient::handleHeader(WSclient_t * client) {
             client->cCode = headerLine.substring(9, headerLine.indexOf(' ', 9)).toInt();
         } else if(headerLine == "Connection: Upgrade") {
             client->cIsUpgrade = true;
-        } else if(headerLine == "Upgrade: websocket") {
-            client->cIsWebsocket = true;
-        } else if(headerLine == "Upgrade: WebSocket") {
-            client->cIsWebsocket = true;
+        } else if(headerLine.startsWith("Upgrade: ")) {
+            // 9 = lenght of "Upgrade: "
+            String low = headerLine.substring(9);
+            low.toLowerCase();
+            if(low == "websocket") {
+                client->cIsWebsocket = true;
+            }
         } else if(headerLine.startsWith("Sec-WebSocket-Accept: ")) {
             // 22 = lenght of "Sec-WebSocket-Accept: "
             client->cAccept = headerLine.substring(22);
