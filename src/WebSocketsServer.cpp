@@ -402,8 +402,11 @@ void WebSocketsServer::handleHeader(WSclient_t * client) {
         if(headerLine.startsWith("GET ")) {
             // cut URL out
             client->cUrl = headerLine.substring(4, headerLine.indexOf(' ', 4));
-        } else if(headerLine == "Connection: Upgrade") {
-            client->cIsUpgrade = true;
+        } else if(headerLine.startsWith("Connection: ")) {
+            // 12 = lenght of "Connection: "
+            if(headerLine.indexOf("Upgrade", 12)) {
+                client->cIsUpgrade = true;
+            }
         } else if(headerLine.startsWith("Upgrade: ")) {
             // 9 = lenght of "Upgrade: "
             String low = headerLine.substring(9);
