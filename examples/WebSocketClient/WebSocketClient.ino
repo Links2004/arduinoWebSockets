@@ -18,26 +18,28 @@ ESP8266WiFiMulti WiFiMulti;
 WebSocketsClient webSocket;
 
 
+#define USE_SERIAL Serial1
+
 void webSocketEvent(WStype_t type, uint8_t * payload, size_t lenght) {
 
 
     switch(type) {
         case WStype_DISCONNECTED:
-            Serial1.printf("[WSc] Disconnected!\n");
+            USE_SERIAL.printf("[WSc] Disconnected!\n");
             break;
         case WStype_CONNECTED:
             {
-                Serial1.printf("[WSc] Connected to url: %s\n",  payload);
+                USE_SERIAL.printf("[WSc] Connected to url: %s\n",  payload);
             }
             break;
         case WStype_TEXT:
-            Serial1.printf("[WSc] get text: %s\n", lenght);
+            USE_SERIAL.printf("[WSc] get text: %s\n", payload);
 
             // send data to back to Server
             webSocket.sendTXT(payload, lenght);
             break;
         case WStype_BIN:
-            Serial1.printf("[WSc] get binary lenght: %u\n", lenght);
+            USE_SERIAL.printf("[WSc] get binary lenght: %u\n", lenght);
             hexdump(payload, lenght);
 
             // echo data back to Server
@@ -49,19 +51,19 @@ void webSocketEvent(WStype_t type, uint8_t * payload, size_t lenght) {
 
 
 void setup() {
-    Serial.begin(921600);
-    Serial1.begin(921600);
+    // USE_SERIAL.begin(921600);
+    USE_SERIAL.begin(115200);
 
     //Serial.setDebugOutput(true);
-    Serial1.setDebugOutput(true);
+    USE_SERIAL.setDebugOutput(true);
 
-    Serial1.println();
-    Serial1.println();
-    Serial1.println();
+    USE_SERIAL.println();
+    USE_SERIAL.println();
+    USE_SERIAL.println();
 
       for(uint8_t t = 4; t > 0; t--) {
-          Serial1.printf("[SETUP] BOOT WAIT %d...\n", t);
-          Serial1.flush();
+          USE_SERIAL.printf("[SETUP] BOOT WAIT %d...\n", t);
+          USE_SERIAL.flush();
           delay(1000);
       }
 

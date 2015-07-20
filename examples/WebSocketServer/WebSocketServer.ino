@@ -16,20 +16,22 @@ ESP8266WiFiMulti WiFiMulti;
 
 WebSocketsServer webSocket = WebSocketsServer(81);
 
+#define USE_SERIAL Serial1
+
 void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t lenght) {
 
     switch(type) {
         case WStype_DISCONNECTED:
-            Serial1.printf("[%u] Disconnected!\n", num);
+            USE_SERIAL.printf("[%u] Disconnected!\n", num);
             break;
         case WStype_CONNECTED:
             {
                 IPAddress ip = webSocket.remoteIP(num);
-                Serial1.printf("[%u] Connected from %d.%d.%d.%d url: %s\n", num, ip[0], ip[1], ip[2], ip[3], payload);
+                USE_SERIAL.printf("[%u] Connected from %d.%d.%d.%d url: %s\n", num, ip[0], ip[1], ip[2], ip[3], payload);
             }
             break;
         case WStype_TEXT:
-            Serial1.printf("[%u] get Text: %s\n", num, payload);
+            USE_SERIAL.printf("[%u] get Text: %s\n", num, payload);
 
             // echo data back to browser
             webSocket.sendTXT(num, payload, lenght);
@@ -38,7 +40,7 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t lenght
             webSocket.broadcastTXT(payload, lenght);
             break;
         case WStype_BIN:
-            Serial1.printf("[%u] get binary lenght: %u\n", num, lenght);
+            USE_SERIAL.printf("[%u] get binary lenght: %u\n", num, lenght);
             hexdump(payload, lenght);
 
             // echo data back to browser
@@ -49,19 +51,19 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t lenght
 }
 
 void setup() {
-    Serial.begin(921600);
-    Serial1.begin(921600);
+    // USE_SERIAL.begin(921600);
+    USE_SERIAL.begin(115200);
 
     //Serial.setDebugOutput(true);
-    Serial1.setDebugOutput(true);
+    USE_SERIAL.setDebugOutput(true);
 
-    Serial1.println();
-    Serial1.println();
-    Serial1.println();
+    USE_SERIAL.println();
+    USE_SERIAL.println();
+    USE_SERIAL.println();
 
     for(uint8_t t = 4; t > 0; t--) {
-        Serial1.printf("[SETUP] BOOT WAIT %d...\n", t);
-        Serial1.flush();
+        USE_SERIAL.printf("[SETUP] BOOT WAIT %d...\n", t);
+        USE_SERIAL.flush();
         delay(1000);
     }
 
