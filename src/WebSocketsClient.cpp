@@ -317,28 +317,30 @@ void WebSocketsClient::handleHeader(WSclient_t * client) {
         if(headerLine.startsWith("HTTP/1.")) {
             // "HTTP/1.1 101 Switching Protocols"
             client->cCode = headerLine.substring(9, headerLine.indexOf(' ', 9)).toInt();
-        } else if(headerLine == "Connection: Upgrade") {
-            client->cIsUpgrade = true;
-        } else if(headerLine.startsWith("Upgrade: ")) {
-            // 9 = lenght of "Upgrade: "
-            String low = headerLine.substring(9);
-            low.toLowerCase();
-            if(low == "websocket") {
-                client->cIsWebsocket = true;
+        } else if(headerLine.indexOf(':')) {
+            String headerName = headerLine.substring(0, headerLine.indexOf(':'));
+            String headerValue = headerLine.substring(headerLine.indexOf(':') + 2);
+
+            if(headerName.equalsIgnoreCase("Connection")) {
+                if(headerValue.indexOf("Upgrade") >= 0) {
+                    client->cIsUpgrade = true;
+                }
+            } else if(headerName.equalsIgnoreCase("Upgrade")) {
+                if(headerValue.equalsIgnoreCase("websocket")) {
+                    client->cIsWebsocket = true;
+                }
+            } else if(headerName.equalsIgnoreCase("Sec-WebSocket-Accept")) {
+                client->cAccept = headerValue;
+                client->cAccept.trim(); // see rfc6455
+            } else if(headerName.equalsIgnoreCase("Sec-WebSocket-Protocol")) {
+                client->cProtocol = headerValue;
+            } else if(headerName.equalsIgnoreCase("Sec-WebSocket-Extensions")) {
+                client->cExtensions = headerValue;
+            } else if(headerName.equalsIgnoreCase("Sec-WebSocket-Version")) {
+                client->cVersion = headerValue.toInt();
             }
-        } else if(headerLine.startsWith("Sec-WebSocket-Accept: ")) {
-            // 22 = lenght of "Sec-WebSocket-Accept: "
-            client->cAccept = headerLine.substring(22);
-            client->cAccept.trim(); // see rfc6455
-        } else if(headerLine.startsWith("Sec-WebSocket-Protocol: ")) {
-            // 24 = lenght of "Sec-WebSocket-Protocol: "
-            client->cProtocol = headerLine.substring(24);
-        } else if(headerLine.startsWith("Sec-WebSocket-Extensions: ")) {
-            // 26 = lenght of "Sec-WebSocket-Extensions: "
-            client->cExtensions = headerLine.substring(26);
-        } else if(headerLine.startsWith("Sec-WebSocket-Version: ")) {
-            // 23 = lenght of "Sec-WebSocket-Version: "
-            client->cVersion = headerLine.substring(23).toInt();
+        } else {
+            DEBUG_WEBSOCKETS("[WS-Client][handleHeader] Header error (%s)\n", headerLine.c_str());
         }
 
     } else {
