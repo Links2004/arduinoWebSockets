@@ -63,16 +63,21 @@ void WebSockets::clientDisconnect(WSclient_t * client, uint16_t code, char * rea
  */
 void WebSockets::sendFrame(WSclient_t * client, WSopcode_t opcode, uint8_t * payload, size_t length, bool mask, bool fin) {
 
+    if(!client->tcp.connected()) {
+        DEBUG_WEBSOCKETS("[WS][%d][sendFrame] not Connected!?\n", client->num);
+        return;
+    }
+
+    if(client->status != WSC_CONNECTED) {
+        DEBUG_WEBSOCKETS("[WS][%d][sendFrame] not in WSC_CONNECTED state!?\n", client->num);
+        return;
+    }
+
     DEBUG_WEBSOCKETS("[WS][%d][sendFrame] ------- send massage frame -------\n", client->num);
     DEBUG_WEBSOCKETS("[WS][%d][sendFrame] fin: %u opCode: %u mask: %u length: %u\n", client->num, fin, opcode, mask, length);
 
     if(opcode == WSop_text) {
         DEBUG_WEBSOCKETS("[WS][%d][sendFrame] text: %s\n", client->num, payload);
-    }
-
-    if(!client->tcp.connected()) {
-        DEBUG_WEBSOCKETS("[WS][%d][sendFrame] not Connected!?\n", client->num);
-        return;
     }
 
     uint8_t maskKey[4] = { 0 };
