@@ -108,6 +108,24 @@ private:
 
         void handleHeader(WSclient_t * client);
 
+        /**
+         * called if a non Websocket connection is comming in.
+         * Note: can be overrided
+         * @param client WSclient_t *  ptr to the client struct
+         */
+        virtual void handleNonWebsocketConnection(WSclient_t * client) {
+            DEBUG_WEBSOCKETS("[WS-Server][%d][handleHeader] no Websocket connection close.\n", client->num);
+            client->tcp.write("HTTP/1.1 400 Bad Request\r\n"
+                    "Server: arduino-WebSocket-Server\r\n"
+                    "Content-Type: text/plain\r\n"
+                    "Content-Length: 32\r\n"
+                    "Connection: close\r\n"
+                    "Sec-WebSocket-Version: 13\r\n"
+                    "\r\n"
+                    "This is a Websocket server only!");
+            clientDisconnect(client);
+        }
+
 };
 
 

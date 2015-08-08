@@ -489,17 +489,10 @@ void WebSocketsServer::handleHeader(WSclient_t * client) {
             }
 
         } else {
-            DEBUG_WEBSOCKETS("[WS-Server][%d][handleHeader] no Websocket connection close.\n", client->num);
-            client->tcp.write("HTTP/1.1 400 Bad Request\r\n"
-                    "Server: arduino-WebSocket-Server\r\n"
-                    "Content-Type: text/plain\r\n"
-                    "Content-Length: 32\r\n"
-                    "Connection: close\r\n"
-                    "Sec-WebSocket-Version: 13\r\n"
-                    "\r\n"
-                    "This is a Websocket server only!");
-            clientDisconnect(client);
+            handleNonWebsocketConnection(client);
         }
     }
 }
+
+
 
