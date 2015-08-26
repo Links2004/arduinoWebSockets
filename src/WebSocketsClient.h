@@ -65,7 +65,7 @@ class WebSocketsClient: private WebSockets {
 
         void disconnect(void);
 
-    private:
+    protected:
         String _host;
         uint16_t _port;
 

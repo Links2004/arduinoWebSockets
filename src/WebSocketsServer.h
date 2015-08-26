@@ -81,7 +81,7 @@ public:
 
         IPAddress remoteIP(uint8_t num);
 
-private:
+protected:
         uint16_t _port;
 
 #ifdef ESP8266
