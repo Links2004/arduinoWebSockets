@@ -103,13 +103,14 @@ void WebSocketsClient::onEvent(WebSocketClientEvent cbEvent) {
  * @param num uint8_t client id
  * @param payload uint8_t *
  * @param length size_t
+ * @param headerToPayload bool  (see sendFrame for more details)
  */
-void WebSocketsClient::sendTXT(uint8_t * payload, size_t length) {
+void WebSocketsClient::sendTXT(uint8_t * payload, size_t length, bool headerToPayload) {
     if(length == 0) {
         length = strlen((const char *) payload);
     }
     if(clientIsConnected(&_client)) {
-        sendFrame(&_client, WSop_text, payload, length, true);
+        sendFrame(&_client, WSop_text, payload, length, true, true, headerToPayload);
     }
 }
 
@@ -117,8 +118,8 @@ void WebSocketsClient::sendTXT(const uint8_t * payload, size_t length) {
     sendTXT((uint8_t *) payload, length);
 }
 
-void WebSocketsClient::sendTXT(char * payload, size_t length) {
-    sendTXT((uint8_t *) payload, length);
+void WebSocketsClient::sendTXT(char * payload, size_t length, bool headerToPayload) {
+    sendTXT((uint8_t *) payload, length, headerToPayload);
 }
 
 void WebSocketsClient::sendTXT(const char * payload, size_t length) {
@@ -134,10 +135,11 @@ void WebSocketsClient::sendTXT(String payload) {
  * @param num uint8_t client id
  * @param payload uint8_t *
  * @param length size_t
+ * @param headerToPayload bool  (see sendFrame for more details)
  */
-void WebSocketsClient::sendBIN(uint8_t * payload, size_t length) {
+void WebSocketsClient::sendBIN(uint8_t * payload, size_t length, bool headerToPayload) {
     if(clientIsConnected(&_client)) {
-        sendFrame(&_client, WSop_binary, payload, length, true);
+        sendFrame(&_client, WSop_binary, payload, length, true, true, headerToPayload);
     }
 }
 

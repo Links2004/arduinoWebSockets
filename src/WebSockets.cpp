@@ -56,12 +56,15 @@ void WebSockets::clientDisconnect(WSclient_t * client, uint16_t code, char * rea
 
 /**
  *
- * @param client WSclient_t *  ptr to the client struct
+ * @param client WSclient_t *   ptr to the client struct
  * @param opcode WSopcode_t
  * @param payload uint8_t *
  * @param length size_t
+ * @param mask bool             add dummy mask to the frame (needed for web browser)
+ * @param fin bool              can be used to send data in more then one frame (set fin on the last frame)
+ * @param headerToPayload bool  set true if the payload has reserved 14 Byte at the beginning to dynamically add the Header (payload neet to be in RAM!)
  */
-void WebSockets::sendFrame(WSclient_t * client, WSopcode_t opcode, uint8_t * payload, size_t length, bool mask, bool fin) {
+void WebSockets::sendFrame(WSclient_t * client, WSopcode_t opcode, uint8_t * payload, size_t length, bool mask, bool fin, bool headerToPayload) {
 
     if(!client->tcp.connected()) {
         DEBUG_WEBSOCKETS("[WS][%d][sendFrame] not Connected!?\n", client->num);
@@ -74,49 +77,72 @@ void WebSockets::sendFrame(WSclient_t * client, WSopcode_t opcode, uint8_t * pay
     }
 
     DEBUG_WEBSOCKETS("[WS][%d][sendFrame] ------- send massage frame -------\n", client->num);
-    DEBUG_WEBSOCKETS("[WS][%d][sendFrame] fin: %u opCode: %u mask: %u length: %u\n", client->num, fin, opcode, mask, length);
+    DEBUG_WEBSOCKETS("[WS][%d][sendFrame] fin: %u opCode: %u mask: %u length: %u headerToPayload: %u\n", client->num, fin, opcode, mask, length, headerToPayload);
 
     if(opcode == WSop_text) {
-        DEBUG_WEBSOCKETS("[WS][%d][sendFrame] text: %s\n", client->num, payload);
+        DEBUG_WEBSOCKETS("[WS][%d][sendFrame] text: %s\n", client->num, (payload + (headerToPayload ? 14 : 0)));
     }
 
     uint8_t maskKey[4] = { 0 };
-    uint8_t buffer[16] = { 0 };
-    uint8_t i = 0;
+    uint8_t buffer[14] = { 0 };
 
-    //create header
+    uint8_t headerSize;
+    uint8_t * headerPtr;
+
+    // calculate header Size
+    if(length < 126) {
+        headerSize = 2;
+    } else if(length < 0xFFFF) {
+        headerSize = 4;
+    } else {
+        headerSize = 10;
+    }
+
+    if(mask) {
+        headerSize += 4;
+    }
+
+    // set Header Pointer
+    if(headerToPayload) {
+        // calculate offset in payload
+        headerPtr = (payload + (14 - headerSize));
+    } else {
+        headerPtr = &buffer[0];
+    }
+
+    // create header
 
     // byte 0
-    buffer[i] = 0x00;
+    *headerPtr = 0x00;
     if(fin) {
-        buffer[i] |= bit(7);    ///< set Fin
+        *headerPtr |= bit(7);    ///< set Fin
     }
-    buffer[i++] |= opcode;      ///< set opcode
+    *headerPtr |= opcode;      ///< set opcode
+    headerPtr++;
 
     // byte 1
-    buffer[i] = 0x00;
+    *headerPtr = 0x00;
     if(mask) {
-        buffer[i] |= bit(7);    ///< set mask
+        *headerPtr |= bit(7);    ///< set mask
     }
 
     if(length < 126) {
-        buffer[i++] |= length;
-
+        *headerPtr |= length;                   headerPtr++;
     } else if(length < 0xFFFF) {
-        buffer[i++] |= 126;
-        buffer[i++] = ((length >> 8) & 0xFF);
-        buffer[i++] = (length & 0xFF);
+        *headerPtr |= 126;                      headerPtr++;
+        *headerPtr = ((length >> 8) & 0xFF);    headerPtr++;
+        *headerPtr = (length & 0xFF);           headerPtr++;
     } else {
         // normaly we never get here (to less memory)
-        buffer[i++] |= 127;
-        buffer[i++] = 0x00;
-        buffer[i++] = 0x00;
-        buffer[i++] = 0x00;
-        buffer[i++] = 0x00;
-        buffer[i++] = ((length >> 24) & 0xFF);
-        buffer[i++] = ((length >> 16) & 0xFF);
-        buffer[i++] = ((length >> 8) & 0xFF);
-        buffer[i++] = (length & 0xFF);
+        *headerPtr |= 127;                      headerPtr++;
+        *headerPtr = 0x00;                      headerPtr++;
+        *headerPtr = 0x00;                      headerPtr++;
+        *headerPtr = 0x00;                      headerPtr++;
+        *headerPtr = 0x00;                      headerPtr++;
+        *headerPtr = ((length >> 24) & 0xFF);   headerPtr++;
+        *headerPtr = ((length >> 16) & 0xFF);   headerPtr++;
+        *headerPtr = ((length >> 8) & 0xFF);    headerPtr++;
+        *headerPtr = (length & 0xFF);           headerPtr++;
     }
 
     if(mask) {
@@ -124,23 +150,29 @@ void WebSockets::sendFrame(WSclient_t * client, WSopcode_t opcode, uint8_t * pay
         for(uint8_t x = 0; x < sizeof(maskKey); x++) {
             // maskKey[x] = random(0xFF);
             maskKey[x] = 0x00; // fake xor (0x00 0x00 0x00 0x00)
-            buffer[i++] = maskKey[x];
+            *headerPtr = maskKey[x];            headerPtr++;
         }
 
-        // todo encode XOR
+        // todo encode XOR (note: using payload not working for static content from flash)
         //for(size_t x = 0; x < length; x++) {
         //    payload[x] = (payload[x] ^ maskKey[x % 4]);
         //}
     }
 
-    // send header
-    client->tcp.write(&buffer[0], i);
+    if(headerToPayload) {
+        // header has be added to payload
+        // payload is forced to reserved 14 Byte but we may not need all based on the length and mask settings
+        // offset in payload is calculatetd 14 - headerSize
+        client->tcp.write(&payload[(14 - headerSize)], (length + headerSize));
+    } else {
+        // send header
+        client->tcp.write(&buffer[0], headerSize);
 
-    if(payload && length > 0) {
-        // send payload
-        client->tcp.write(&payload[0], length);
+        if(payload && length > 0) {
+            // send payload
+            client->tcp.write(&payload[0], length);
+        }
     }
-
 }
 
 /**

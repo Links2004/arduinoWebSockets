@@ -58,22 +58,22 @@ public:
         void onEvent(WebSocketServerEvent cbEvent);
 
 
-        void sendTXT(uint8_t num, uint8_t * payload, size_t length = 0);
+        void sendTXT(uint8_t num, uint8_t * payload, size_t length = 0, bool headerToPayload = false);
         void sendTXT(uint8_t num, const uint8_t * payload, size_t length = 0);
-        void sendTXT(uint8_t num, char * payload, size_t length = 0);
+        void sendTXT(uint8_t num, char * payload, size_t length = 0, bool headerToPayload = false);
         void sendTXT(uint8_t num, const char * payload, size_t length = 0);
         void sendTXT(uint8_t num, String payload);
 
-        void broadcastTXT(uint8_t * payload, size_t length = 0);
+        void broadcastTXT(uint8_t * payload, size_t length = 0, bool headerToPayload = false);
         void broadcastTXT(const uint8_t * payload, size_t length = 0);
-        void broadcastTXT(char * payload, size_t length = 0);
+        void broadcastTXT(char * payload, size_t length = 0, bool headerToPayload = false);
         void broadcastTXT(const char * payload, size_t length = 0);
         void broadcastTXT(String payload);
 
-        void sendBIN(uint8_t num, uint8_t * payload, size_t length);
+        void sendBIN(uint8_t num, uint8_t * payload, size_t length, bool headerToPayload = false);
         void sendBIN(uint8_t num, const uint8_t * payload, size_t length);
 
-        void broadcastBIN(uint8_t * payload, size_t length);
+        void broadcastBIN(uint8_t * payload, size_t length, bool headerToPayload = false);
         void broadcastBIN(const uint8_t * payload, size_t length);
 
         void disconnect(void);

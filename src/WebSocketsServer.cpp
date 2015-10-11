@@ -85,8 +85,9 @@ void WebSocketsServer::onEvent(WebSocketServerEvent cbEvent) {
  * @param num uint8_t client id
  * @param payload uint8_t *
  * @param length size_t
+ * @param headerToPayload bool  (see sendFrame for more details)
  */
-void WebSocketsServer::sendTXT(uint8_t num, uint8_t * payload, size_t length) {
+void WebSocketsServer::sendTXT(uint8_t num, uint8_t * payload, size_t length, bool headerToPayload) {
     if(num >= WEBSOCKETS_SERVER_CLIENT_MAX) {
         return;
     }
@@ -95,7 +96,7 @@ void WebSocketsServer::sendTXT(uint8_t num, uint8_t * payload, size_t length) {
     }
     WSclient_t * client = &_clients[num];
     if(clientIsConnected(client)) {
-        sendFrame(client, WSop_text, payload, length);
+        sendFrame(client, WSop_text, payload, length, false, true, headerToPayload);
     }
 }
 
@@ -103,8 +104,8 @@ void WebSocketsServer::sendTXT(uint8_t num, const uint8_t * payload, size_t leng
     sendTXT(num, (uint8_t *) payload, length);
 }
 
-void WebSocketsServer::sendTXT(uint8_t num, char * payload, size_t length) {
-    sendTXT(num, (uint8_t *) payload, length);
+void WebSocketsServer::sendTXT(uint8_t num, char * payload, size_t length, bool headerToPayload) {
+    sendTXT(num, (uint8_t *) payload, length, headerToPayload);
 }
 
 void WebSocketsServer::sendTXT(uint8_t num, const char * payload, size_t length) {
@@ -119,8 +120,9 @@ void WebSocketsServer::sendTXT(uint8_t num, String payload) {
  * send text data to client all
  * @param payload uint8_t *
  * @param length size_t
+ * @param headerToPayload bool  (see sendFrame for more details)
  */
-void WebSocketsServer::broadcastTXT(uint8_t * payload, size_t length) {
+void WebSocketsServer::broadcastTXT(uint8_t * payload, size_t length, bool headerToPayload) {
     WSclient_t * client;
     if(length == 0) {
         length = strlen((const char *) payload);
@@ -129,7 +131,7 @@ void WebSocketsServer::broadcastTXT(uint8_t * payload, size_t length) {
     for(uint8_t i = 0; i < WEBSOCKETS_SERVER_CLIENT_MAX; i++) {
         client = &_clients[i];
         if(clientIsConnected(client)) {
-            sendFrame(client, WSop_text, payload, length);
+            sendFrame(client, WSop_text, payload, length, false, true, headerToPayload);
         }
 #ifdef ESP8266
         delay(0);
@@ -141,8 +143,8 @@ void WebSocketsServer::broadcastTXT(const uint8_t * payload, size_t length) {
     broadcastTXT((uint8_t *) payload, length);
 }
 
-void WebSocketsServer::broadcastTXT(char * payload, size_t length) {
-    broadcastTXT((uint8_t *) payload, length);
+void WebSocketsServer::broadcastTXT(char * payload, size_t length, bool headerToPayload) {
+    broadcastTXT((uint8_t *) payload, length, headerToPayload);
 }
 
 void WebSocketsServer::broadcastTXT(const char * payload, size_t length) {
@@ -158,14 +160,15 @@ void WebSocketsServer::broadcastTXT(String payload) {
  * @param num uint8_t client id
  * @param payload uint8_t *
  * @param length size_t
+ * @param headerToPayload bool  (see sendFrame for more details)
  */
-void WebSocketsServer::sendBIN(uint8_t num, uint8_t * payload, size_t length) {
+void WebSocketsServer::sendBIN(uint8_t num, uint8_t * payload, size_t length, bool headerToPayload) {
     if(num >= WEBSOCKETS_SERVER_CLIENT_MAX) {
         return;
     }
     WSclient_t * client = &_clients[num];
     if(clientIsConnected(client)) {
-        sendFrame(client, WSop_binary, payload, length);
+        sendFrame(client, WSop_binary, payload, length, false, true, headerToPayload);
     }
 }
 
@@ -177,13 +180,14 @@ void WebSocketsServer::sendBIN(uint8_t num, const uint8_t * payload, size_t leng
  * send binary data to client all
  * @param payload uint8_t *
  * @param length size_t
+ * @param headerToPayload bool  (see sendFrame for more details)
  */
-void WebSocketsServer::broadcastBIN(uint8_t * payload, size_t length) {
+void WebSocketsServer::broadcastBIN(uint8_t * payload, size_t length, bool headerToPayload) {
     WSclient_t * client;
     for(uint8_t i = 0; i < WEBSOCKETS_SERVER_CLIENT_MAX; i++) {
         client = &_clients[i];
         if(clientIsConnected(client)) {
-            sendFrame(client, WSop_binary, payload, length);
+            sendFrame(client, WSop_binary, payload, length, false, true, headerToPayload);
         }
 #ifdef ESP8266
         delay(0);
