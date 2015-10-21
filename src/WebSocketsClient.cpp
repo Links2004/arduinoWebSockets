@@ -272,33 +272,25 @@ void WebSocketsClient::sendHeader(WSclient_t * client) {
 
     unsigned long start = micros();
 
-    //todo use tcp.write only once
-
-    client->tcp.write("GET ");
-    client->tcp.write(client->cUrl.c_str(), client->cUrl.length());
-    client->tcp.write(" HTTP/1.1\r\n"
-            "Host: ");
-
-    client->tcp.write(_host.c_str(), _host.length());
-    client->tcp.write("\r\n"
-            "Upgrade: websocket\r\n"
-            "Connection: Upgrade\r\n"
-            "User-Agent: arduino-WebSocket-Client\r\n"
-            "Sec-WebSocket-Version: 13\r\n"
-            "Sec-WebSocket-Protocol: arduino\r\n" // todo add api to set Protocol of Server
-            "Sec-WebSocket-Key: ");
-
-    client->tcp.write(client->cKey.c_str(), client->cKey.length());
-    client->tcp.write("\r\n");
-
-    if(client->cExtensions.length() > 0) {
-        client->tcp.write("Sec-WebSocket-Extensions: ");
-        client->tcp.write(client->cExtensions.c_str(), client->cExtensions.length());
-        client->tcp.write("\r\n");
+    String handshake;
+	handshake="GET "+client->cUrl+" HTTP/1.1\r\n";
+    handshake+="Host: "+_host+"\r\n";
+	handshake+="Upgrade: websocket\r\n";
+	handshake+="Connection: Upgrade\r\n";
+	handshake+="User-Agent: arduino-WebSocket-Client\r\n";
+	handshake+="Sec-WebSocket-Version: 13\r\n";
+	handshake+="Sec-WebSocket-Protocol: arduino\r\n";
+	handshake+="Sec-WebSocket-Key: "+client->cKey+"\r\n";
+	
+	if(client->cExtensions.length() > 0) {
+		handshake+="Sec-WebSocket-Extensions: "+client->cExtensions+"\r\n";
     }
+	
+	handshake+="\r\n";
+	client->tcp.write(handshake.c_str(), handshake.length());
 
-    // Header end wait for Server response
-    client->tcp.write("\r\n");
+    DEBUG_WEBSOCKETS("[WS-Client][sendHeader] sending header... Done (%uus).\n", (micros() - start));
+
 
     DEBUG_WEBSOCKETS("[WS-Client][sendHeader] sending header... Done (%uus).\n", (micros() - start));
 
