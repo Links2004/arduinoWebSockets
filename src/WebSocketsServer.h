@@ -126,6 +126,19 @@ protected:
             clientDisconnect(client);
         }
 
+        /**
+         * called for sending a Event to the app
+         * @param num uint8_t
+         * @param type WStype_t
+         * @param payload uint8_t *
+         * @param length size_t
+         */
+        virtual void runCbEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length) {
+            if(_cbEvent) {
+                _cbEvent(num, type, payload, length);
+            }
+        }
+
 };
 
 

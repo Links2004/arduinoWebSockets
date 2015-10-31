@@ -265,9 +265,8 @@ void WebSocketsServer::messageRecived(WSclient_t * client, WSopcode_t opcode, ui
             break;
     }
 
-    if(_cbEvent) {
-        _cbEvent(client->num, type, payload, lenght);
-    }
+    runCbEvent(client->num, type, payload, lenght);
+
 }
 
 /**
@@ -292,9 +291,8 @@ void WebSocketsServer::clientDisconnect(WSclient_t * client) {
 
     DEBUG_WEBSOCKETS("[WS-Server][%d] client disconnected.\n", client->num);
 
-    if(_cbEvent) {
-        _cbEvent(client->num, WStype_DISCONNECTED, NULL, 0);
-    }
+    runCbEvent(client->num, WStype_DISCONNECTED, NULL, 0);
+
 }
 
 /**
@@ -488,9 +486,7 @@ void WebSocketsServer::handleHeader(WSclient_t * client) {
             // send ping
             WebSockets::sendFrame(client, WSop_ping);
 
-            if(_cbEvent) {
-                _cbEvent(client->num, WStype_CONNECTED, (uint8_t *) client->cUrl.c_str(), client->cUrl.length());
-            }
+            runCbEvent(client->num, WStype_CONNECTED, (uint8_t *) client->cUrl.c_str(), client->cUrl.length());
 
         } else {
             handleNonWebsocketConnection(client);

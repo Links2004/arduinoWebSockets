@@ -180,9 +180,8 @@ void WebSocketsClient::messageRecived(WSclient_t * client, WSopcode_t opcode, ui
             break;
     }
 
-    if(_cbEvent) {
-        _cbEvent(type, payload, lenght);
-    }
+    runCbEvent(type, payload, lenght);
+
 }
 
 /**
@@ -208,9 +207,8 @@ void WebSocketsClient::clientDisconnect(WSclient_t * client) {
 
     DEBUG_WEBSOCKETS("[WS-Client] client disconnected.\n");
 
-    if(_cbEvent) {
-        _cbEvent(WStype_DISCONNECTED, NULL, 0);
-    }
+    runCbEvent(WStype_DISCONNECTED, NULL, 0);
+
 }
 
 /**
@@ -386,9 +384,7 @@ void WebSocketsClient::handleHeader(WSclient_t * client) {
 
             client->status = WSC_CONNECTED;
 
-            if(_cbEvent) {
-                _cbEvent(WStype_CONNECTED, (uint8_t *) client->cUrl.c_str(), client->cUrl.length());
-            }
+            runCbEvent(WStype_CONNECTED, (uint8_t *) client->cUrl.c_str(), client->cUrl.length());
 
         } else {
             DEBUG_WEBSOCKETS("[WS-Client][handleHeader] no Websocket connection close.\n");

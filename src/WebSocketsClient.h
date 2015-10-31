@@ -84,6 +84,18 @@ class WebSocketsClient: private WebSockets {
         void sendHeader(WSclient_t * client);
         void handleHeader(WSclient_t * client);
 
+        /**
+         * called for sending a Event to the app
+         * @param type WStype_t
+         * @param payload uint8_t *
+         * @param length size_t
+         */
+        virtual void runCbEvent(WStype_t type, uint8_t * payload, size_t length) {
+            if(_cbEvent) {
+                _cbEvent(type, payload, length);
+            }
+        }
+
 };
 
 #endif /* WEBSOCKETSCLIENT_H_ */
