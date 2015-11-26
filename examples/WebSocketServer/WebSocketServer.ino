@@ -28,23 +28,26 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t lenght
             {
                 IPAddress ip = webSocket.remoteIP(num);
                 USE_SERIAL.printf("[%u] Connected from %d.%d.%d.%d url: %s\n", num, ip[0], ip[1], ip[2], ip[3], payload);
+				
+				// send message to client
+				webSocket.sendTXT(num, "Connected");
             }
             break;
         case WStype_TEXT:
             USE_SERIAL.printf("[%u] get Text: %s\n", num, payload);
 
-            // echo data back to browser
-            webSocket.sendTXT(num, payload, lenght);
+            // send message to client
+            // webSocket.sendTXT(num, "message here");
 
             // send data to all connected clients
-            webSocket.broadcastTXT(payload, lenght);
+            // webSocket.broadcastTXT("message here");
             break;
         case WStype_BIN:
             USE_SERIAL.printf("[%u] get binary lenght: %u\n", num, lenght);
             hexdump(payload, lenght);
 
-            // echo data back to browser
-            webSocket.sendBIN(num, payload, lenght);
+            // send message to client
+            // webSocket.sendBIN(num, payload, lenght);
             break;
     }
 

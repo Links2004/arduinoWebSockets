@@ -30,25 +30,27 @@ void webSocketEvent(WStype_t type, uint8_t * payload, size_t lenght) {
         case WStype_CONNECTED:
             {
                 USE_SERIAL.printf("[WSc] Connected to url: %s\n",  payload);
+				
+			    // send message to server when Connected
+				webSocket.sendTXT(num, "Connected");
             }
             break;
         case WStype_TEXT:
             USE_SERIAL.printf("[WSc] get text: %s\n", payload);
 
-            // send data to back to Server
-            webSocket.sendTXT(payload, lenght);
+			// send message to server
+			// webSocket.sendTXT("message here");
             break;
         case WStype_BIN:
             USE_SERIAL.printf("[WSc] get binary lenght: %u\n", lenght);
             hexdump(payload, lenght);
 
-            // echo data back to Server
-            webSocket.sendBIN(payload, lenght);
+            // send data to server
+            // webSocket.sendBIN(payload, lenght);
             break;
     }
 
 }
-
 
 void setup() {
     // USE_SERIAL.begin(921600);
@@ -78,8 +80,6 @@ void setup() {
     webSocket.onEvent(webSocketEvent);
 
 }
-
-
 
 void loop() {
     webSocket.loop();
