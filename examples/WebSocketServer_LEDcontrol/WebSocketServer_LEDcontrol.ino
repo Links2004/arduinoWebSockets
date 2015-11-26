@@ -60,10 +60,10 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t lenght
 }
 
 void setup() {
-    USE_SERIAL.begin(921600);
-    //USE_SERIAL.begin(115200);
+    //USE_SERIAL.begin(921600);
+    USE_SERIAL.begin(115200);
 
-    USE_SERIAL.setDebugOutput(true);
+    //USE_SERIAL.setDebugOutput(true);
 
     USE_SERIAL.println();
     USE_SERIAL.println();
@@ -94,7 +94,7 @@ void setup() {
     webSocket.onEvent(webSocketEvent);
 
     if(MDNS.begin("esp8266")) {
-        Serial.println("MDNS responder started");
+        USE_SERIAL.println("MDNS responder started");
     }
 
     // handle index
