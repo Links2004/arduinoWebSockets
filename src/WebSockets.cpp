@@ -24,8 +24,16 @@
 
 #include "WebSockets.h"
 
+#ifdef ESP8266
+#include <core_esp8266_features.h>
+#endif
+
 extern "C" {
-#include "libb64/cencode.h"
+#ifdef CORE_HAS_LIBB64
+    #include <libb64/cencode.h>
+#else
+    #include "libb64/cencode_inc.h"
+#endif
 }
 
 #ifdef ESP8266
