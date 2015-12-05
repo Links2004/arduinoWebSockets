@@ -44,7 +44,7 @@
 #endif
 
 #define WEBSOCKETS_MAX_DATA_SIZE  (15*1024)
-#define WEBSOCKETS_TCP_TIMEOUT    (1000)
+#define WEBSOCKETS_TCP_TIMEOUT    (1500)
 
 typedef enum {
     WSC_NOT_CONNECTED,

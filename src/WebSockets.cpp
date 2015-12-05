@@ -254,7 +254,11 @@ void WebSockets::handleWebsocket(WSclient_t * client) {
     }
 
     if(mask) {
-        client->tcp.read(maskKey, 4);
+        if(!readWait(client, maskKey, 4)) {
+            //timeout
+            clientDisconnect(client, 1002);
+            return;
+        }
     }
 
     if(payloadLen > 0) {

@@ -218,13 +218,17 @@ void WebSocketsClient::clientDisconnect(WSclient_t * client) {
  */
 bool WebSocketsClient::clientIsConnected(WSclient_t * client) {
 
-    if(client->status != WSC_NOT_CONNECTED && client->tcp.connected()) {
-        return true;
-    }
-
-    if(client->status != WSC_NOT_CONNECTED) {
-        // cleanup
-        clientDisconnect(&_client);
+    if(client->tcp.connected()) {
+        if(client->status != WSC_NOT_CONNECTED) {
+            return true;
+        }
+    } else {
+        // client lost
+        if(client->status != WSC_NOT_CONNECTED) {
+            DEBUG_WEBSOCKETS("[WS-Client] connection lost.\n");
+            // do cleanup
+            clientDisconnect(client);
+        }
     }
     return false;
 }
