@@ -26,17 +26,6 @@
 #define WEBSOCKETSSERVER_H_
 
 #include <Arduino.h>
-
-#ifdef ESP8266
-#include <ESP8266WiFi.h>
-#else
-#include <UIPEthernet.h>
-#ifndef UIPETHERNET_H
-#include <Ethernet.h>
-#include <SPI.h>
-#endif
-#endif
-
 #include "WebSockets.h"
 
 #define WEBSOCKETS_SERVER_CLIENT_MAX  (5)
@@ -115,7 +104,7 @@ protected:
          */
         virtual void handleNonWebsocketConnection(WSclient_t * client) {
             DEBUG_WEBSOCKETS("[WS-Server][%d][handleHeader] no Websocket connection close.\n", client->num);
-            client->tcp.write("HTTP/1.1 400 Bad Request\r\n"
+            client->tcp->write("HTTP/1.1 400 Bad Request\r\n"
                     "Server: arduino-WebSocket-Server\r\n"
                     "Content-Type: text/plain\r\n"
                     "Content-Length: 32\r\n"
