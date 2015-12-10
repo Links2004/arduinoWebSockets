@@ -1,7 +1,9 @@
 /*
- * WebSocketClient.ino
+ * WebSocketClientSSL.ino
  *
- *  Created on: 24.05.2015
+ *  Created on: 10.12.2015
+ *
+ *  note SSL is only possible with the ESP8266
  *
  */
 
@@ -76,7 +78,7 @@ void setup() {
         delay(100);
     }
 
-    webSocket.begin("192.168.0.123", 81);
+    webSocket.beginSSL("192.168.0.123", 81);
     webSocket.onEvent(webSocketEvent);
 
 }

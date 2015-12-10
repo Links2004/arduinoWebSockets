@@ -50,6 +50,11 @@ class WebSocketsClient: private WebSockets {
         void begin(const char *host, uint16_t port, const char * url = "/");
         void begin(String host, uint16_t port, String url = "/");
 
+#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
+        void beginSSL(const char *host, uint16_t port, const char * url = "/");
+        void beginSSL(String host, uint16_t port, String url = "/");
+#endif
+
         void loop(void);
 
         void onEvent(WebSocketClientEvent cbEvent);

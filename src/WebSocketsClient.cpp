@@ -70,6 +70,17 @@ void WebSocketsClient::begin(String host, uint16_t port, String url) {
     begin(host.c_str(), port, url.c_str());
 }
 
+#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
+void WebSocketsClient::beginSSL(const char *host, uint16_t port, const char * url) {
+    begin(host, port, url);
+    _client.isSSL = true;
+}
+
+void WebSocketsClient::beginSSL(String host, uint16_t port, String url) {
+    beginSSL(host.c_str(), port, url.c_str());
+}
+#endif
+
 /**
  * called in arduino loop
  */
