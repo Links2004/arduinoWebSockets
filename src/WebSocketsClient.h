@@ -26,17 +26,6 @@
 #define WEBSOCKETSCLIENT_H_
 
 #include <Arduino.h>
-
-#ifdef ESP8266
-#include <ESP8266WiFi.h>
-#else
-#include <UIPEthernet.h>
-#ifndef UIPETHERNET_H
-#include <Ethernet.h>
-#include <SPI.h>
-#endif
-#endif
-
 #include "WebSockets.h"
 
 class WebSocketsClient: private WebSockets {

@@ -68,20 +68,14 @@ public:
         void disconnect(void);
         void disconnect(uint8_t num);
 
+#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
         IPAddress remoteIP(uint8_t num);
+#endif
 
 protected:
         uint16_t _port;
 
-#ifdef ESP8266
-        WiFiServer * _server;
-#else
-#ifdef UIPETHERNET_H
-        UIPServer * _server;
-#else
-        EthernetServer * _server;
-#endif
-#endif
+        WEBSOCKETS_NETWORK_SERVER_CLASS * _server;
 
         WSclient_t _clients[WEBSOCKETS_SERVER_CLIENT_MAX];
 

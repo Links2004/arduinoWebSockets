@@ -27,7 +27,7 @@
 
 WebSocketsServer::WebSocketsServer(uint16_t port) {
     _port = port;
-    _server = new WiFiServer(port);
+    _server = new WEBSOCKETS_NETWORK_SERVER_CLASS(port);
 
     _cbEvent = NULL;
 
@@ -240,6 +240,7 @@ void WebSocketsServer::disconnect(uint8_t num) {
     }
 }
 
+#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
 /**
  * get an IP for a client
  * @param num uint8_t client id
@@ -255,6 +256,7 @@ IPAddress WebSocketsServer::remoteIP(uint8_t num) {
 
     return IPAddress();
 }
+#endif
 
 //#################################################################################
 //#################################################################################
@@ -363,7 +365,9 @@ bool WebSocketsServer::clientIsConnected(WSclient_t * client) {
  */
 void WebSocketsServer::handleNewClients(void) {
     WSclient_t * client;
+#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
     while(_server->hasClient()) {
+#endif
         bool ok = false;
         // search free list entry for client
         for(uint8_t i = 0; i < WEBSOCKETS_SERVER_CLIENT_MAX; i++) {
@@ -371,10 +375,12 @@ void WebSocketsServer::handleNewClients(void) {
 
             // state is not connected or tcp connection is lost
             if(!clientIsConnected(client)) {
-
+#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
                 // store new connection
                 client->tcp = new WEBSOCKETS_NETWORK_CLASS(_server->available());
-
+#else
+                client->tcp = new WEBSOCKETS_NETWORK_CLASS(_server->available());
+#endif
                 if(!client->tcp) {
                     DEBUG_WEBSOCKETS("[WS-Client] creating Network class failed!");
                     return;
@@ -387,9 +393,12 @@ void WebSocketsServer::handleNewClients(void) {
                 // set Timeout for readBytesUntil and readStringUntil
                 client->tcp->setTimeout(WEBSOCKETS_TCP_TIMEOUT);
                 client->status = WSC_HEADER;
-
+#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
                 IPAddress ip = client->tcp->remoteIP();
                 DEBUG_WEBSOCKETS("[WS-Server][%d] new client from %d.%d.%d.%d\n", client->num, ip[0], ip[1], ip[2], ip[3]);
+#else
+                DEBUG_WEBSOCKETS("[WS-Server][%d] new client\n", client->num);
+#endif
                 ok = true;
                 break;
             }
@@ -398,15 +407,21 @@ void WebSocketsServer::handleNewClients(void) {
         if(!ok) {
             // no free space to handle client
             WEBSOCKETS_NETWORK_CLASS tcpClient = _server->available();
-            IPAddress ip = tcpClient.remoteIP();
+#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
+            IPAddress ip = client->tcp->remoteIP();
             DEBUG_WEBSOCKETS("[WS-Server] no free space new client from %d.%d.%d.%d\n", ip[0], ip[1], ip[2], ip[3]);
+#else
+            DEBUG_WEBSOCKETS("[WS-Server] no free space new client\n");
+#endif
             tcpClient.stop();
         }
 
 #ifdef ESP8266
         delay(0);
 #endif
+#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
     }
+#endif
 }
 
 /**

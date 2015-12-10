@@ -38,6 +38,12 @@ extern "C" {
 
 #ifdef ESP8266
 #include <Hash.h>
+#else
+
+extern "C" {
+#include "libsha1/libsha1.h"
+}
+
 #endif
 
 /**
@@ -343,8 +349,13 @@ String WebSockets::acceptKey(String clientKey) {
 #ifdef ESP8266
     sha1(clientKey + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11", &sha1HashBin[0]);
 #else
-#error todo implement sha1 for AVR
+    clientKey =+ "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
+    SHA1_CTX ctx;
+    SHA1Init(&ctx);
+    SHA1Update(&ctx, (const unsigned char*)clientKey.c_str(), clientKey.length());
+    SHA1Final(&sha1HashBin[0], &ctx);
 #endif
+
     String key = base64_encode(sha1HashBin, 20);
     key.trim();
 

@@ -27,7 +27,7 @@
 
 #include <Arduino.h>
 
-#define DEBUG_WEBSOCKETS(...) Serial1.printf( __VA_ARGS__ )
+//#define DEBUG_WEBSOCKETS(...) Serial1.printf( __VA_ARGS__ )
 
 #ifndef DEBUG_WEBSOCKETS
 #define DEBUG_WEBSOCKETS(...)
@@ -63,17 +63,20 @@
 
 #include <ESP8266WiFi.h>
 #define WEBSOCKETS_NETWORK_CLASS WiFiClient
+#define WEBSOCKETS_NETWORK_SERVER_CLASS WiFiServer
 
 #elif (WEBSOCKETS_NETWORK_TYPE == NETWORK_W5100)
 
 #include <Ethernet.h>
 #include <SPI.h>
 #define WEBSOCKETS_NETWORK_CLASS EthernetClient
+#define WEBSOCKETS_NETWORK_SERVER_CLASS EthernetServer
 
 #elif (WEBSOCKETS_NETWORK_TYPE == NETWORK_ENC28J60)
 
 #include <UIPEthernet.h>
 #define WEBSOCKETS_NETWORK_CLASS UIPClient
+#define WEBSOCKETS_NETWORK_SERVER_CLASS UIPServer
 
 #else
 #error "no network type selected!"
