@@ -118,7 +118,6 @@ typedef struct {
 #if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
         bool isSSL;             ///< run in ssl mode
         WiFiClientSecure * ssl;
-        const char * fingerprint;
 #endif
 
         String cUrl;        ///< http url

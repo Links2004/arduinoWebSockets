@@ -40,10 +40,8 @@ class WebSocketsClient: private WebSockets {
         void begin(String host, uint16_t port, String url = "/");
 
 #if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
-        void beginSSL(const char *host, uint16_t port, const char * url = "/");
-        void beginSSL(String host, uint16_t port, String url = "/");
-        void beginSSL(const char *host, uint16_t port, const char * url, const char * fingerprint);
-        void beginSSL(String host, uint16_t port, String url, const char * fingerprint);
+        void beginSSL(const char *host, uint16_t port, const char * url = "/", const char * = "");
+        void beginSSL(String host, uint16_t port, String url = "/", String fingerprint = "");
 #endif
 
         void loop(void);
@@ -65,6 +63,9 @@ class WebSocketsClient: private WebSockets {
         String _host;
         uint16_t _port;
 
+#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
+        String _fingerprint;
+#endif
         WSclient_t _client;
 
         WebSocketClientEvent _cbEvent;

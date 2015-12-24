@@ -40,6 +40,7 @@ WebSocketsClient::~WebSocketsClient() {
 void WebSocketsClient::begin(const char *host, uint16_t port, const char * url) {
     _host = host;
     _port = port;
+    _fingerprint = "";
 
     _client.num = 0;
     _client.status = WSC_NOT_CONNECTED;
@@ -47,7 +48,6 @@ void WebSocketsClient::begin(const char *host, uint16_t port, const char * url) 
 #if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
     _client.isSSL = false;
     _client.ssl = NULL;
-    _client.fingerprint = NULL;
 #endif
     _client.cUrl = url;
     _client.cCode = 0;
@@ -72,24 +72,14 @@ void WebSocketsClient::begin(String host, uint16_t port, String url) {
 }
 
 #if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
-void WebSocketsClient::beginSSL(const char *host, uint16_t port, const char * url) {
-    begin(host, port, url);
-    _client.isSSL = true;
-}
-
-void WebSocketsClient::beginSSL(String host, uint16_t port, String url) {
-    beginSSL(host.c_str(), port, url.c_str());
-}
-
 void WebSocketsClient::beginSSL(const char *host, uint16_t port, const char * url, const char * fingerprint) {
     begin(host, port, url);
     _client.isSSL = true;
-    _client.fingerprint = fingerprint;
+    _fingerprint = fingerprint;
 }
 
-void WebSocketsClient::beginSSL(String host, uint16_t port, String url, const char * fingerprint) {
-    beginSSL(host.c_str(), port, url.c_str());
-    _client.fingerprint = fingerprint;
+void WebSocketsClient::beginSSL(String host, uint16_t port, String url, String fingerprint) {
+    beginSSL(host.c_str(), port, url.c_str(), fingerprint.c_str());
 }
 #endif
 
@@ -136,9 +126,9 @@ void WebSocketsClient::loop(void) {
 
 #if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
             _client.tcp->setNoDelay(true);
-            
-            if (_client.isSSL && _client.fingerprint != NULL) {
-                if (!(((WiFiClientSecure*)_client.tcp)->verify(_client.fingerprint, _host.c_str()))) {
+
+            if(_client.isSSL && _fingerprint.length()) {
+                if(!_client.ssl->verify(_fingerprint.c_str(), _host.c_str())) {
                     DEBUG_WEBSOCKETS("[WS-Client] certificate mismatch\n");
                     WebSockets::clientDisconnect(&_client, 1000);
                     return;
