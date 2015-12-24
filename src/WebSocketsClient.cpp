@@ -140,6 +140,7 @@ void WebSocketsClient::loop(void) {
             if (_client.isSSL && _client.fingerprint != NULL) {
                 if (!(((WiFiClientSecure*)_client.tcp)->verify(_client.fingerprint, _host.c_str()))) {
                     DEBUG_WEBSOCKETS("[WS-Client] certificate mismatch\n");
+                    WebSockets::clientDisconnect(&_client, 1000);
                     return;
                 }
             }
