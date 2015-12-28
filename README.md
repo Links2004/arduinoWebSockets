@@ -17,7 +17,7 @@ a WebSocket Server and Client for Arduino based on RFC6455.
 ##### Limitations #####
  - max input length is limited to the ram size and the ```WEBSOCKETS_MAX_DATA_SIZE``` define
  - max output length has no limit (the hardware is the limit)
- - Client send masked send big frames with mask 0x00000000 (on AVR all frames)
+ - Client send big frames with mask 0x00000000 (on AVR all frames)
 
 ##### Supported Hardware #####
  - ESP8266 [Arduino for ESP8266](https://github.com/Links2004/Arduino)
