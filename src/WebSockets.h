@@ -35,6 +35,7 @@
 
 #ifdef ESP8266
 #define WEBSOCKETS_MAX_DATA_SIZE  (15*1024)
+#define WEBSOCKETS_USE_BIG_MEM
 #else
 //atmega328p has only 2KB ram!
 #define WEBSOCKETS_MAX_DATA_SIZE  (1024)

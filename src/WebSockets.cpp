@@ -46,6 +46,8 @@ extern "C" {
 
 #endif
 
+#define WEBSOCKETS_MAX_HEADER_SIZE  (14)
+
 /**
  *
  * @param client WSclient_t *  ptr to the client struct
@@ -97,11 +99,13 @@ void WebSockets::sendFrame(WSclient_t * client, WSopcode_t opcode, uint8_t * pay
         DEBUG_WEBSOCKETS("[WS][%d][sendFrame] text: %s\n", client->num, (payload + (headerToPayload ? 14 : 0)));
     }
 
-    uint8_t maskKey[4] = { 0 };
-    uint8_t buffer[14] = { 0 };
+    uint8_t maskKey[4] = { 0x00, 0x00, 0x00, 0x00 };
+    uint8_t buffer[WEBSOCKETS_MAX_HEADER_SIZE] = { 0 };
 
     uint8_t headerSize;
     uint8_t * headerPtr;
+    uint8_t * payloadPtr = payload;
+    bool useInternBuffer = false;
 
     // calculate header Size
     if(length < 126) {
@@ -116,10 +120,26 @@ void WebSockets::sendFrame(WSclient_t * client, WSopcode_t opcode, uint8_t * pay
         headerSize += 4;
     }
 
+
+#ifdef WEBSOCKETS_USE_BIG_MEM
+    // only for ESP since AVR has less HEAP
+    // try to send data in one TCP package (only if some free Heap is there)
+    if(!headerToPayload && ((length > 0) && (length < 1400)) && (ESP.getFreeHeap() > 6000)) {
+        DEBUG_WEBSOCKETS("[WS][%d][sendFrame] pack to one TCP package...\n", client->num);
+        uint8_t * dataPtr = (uint8_t *) malloc(length + WEBSOCKETS_MAX_HEADER_SIZE);
+        if(dataPtr) {
+            memcpy((dataPtr + WEBSOCKETS_MAX_HEADER_SIZE), payload, length);
+            headerToPayload = true;
+            useInternBuffer = true;
+            payloadPtr = dataPtr;
+        }
+    }
+#endif
+
     // set Header Pointer
     if(headerToPayload) {
         // calculate offset in payload
-        headerPtr = (payload + (14 - headerSize));
+        headerPtr = (payloadPtr + (WEBSOCKETS_MAX_HEADER_SIZE - headerSize));
     } else {
         headerPtr = &buffer[0];
     }
@@ -160,33 +180,53 @@ void WebSockets::sendFrame(WSclient_t * client, WSopcode_t opcode, uint8_t * pay
     }
 
     if(mask) {
-        // todo generate random mask key
-        for(uint8_t x = 0; x < sizeof(maskKey); x++) {
-            // maskKey[x] = random(0xFF);
-            maskKey[x] = 0x00; // fake xor (0x00 0x00 0x00 0x00)
-            *headerPtr = maskKey[x];            headerPtr++;
-        }
+        if(useInternBuffer) {
+            for(uint8_t x = 0; x < sizeof(maskKey); x++) {
+                maskKey[x] = random(0xFF);
+                *headerPtr = maskKey[x];       headerPtr++;
+            }
 
-        // todo encode XOR (note: using payload not working for static content from flash)
-        //for(size_t x = 0; x < length; x++) {
-        //    payload[x] = (payload[x] ^ maskKey[x % 4]);
-        //}
+            uint8_t * dataMaskPtr;
+
+            if(headerToPayload) {
+                dataMaskPtr = (payloadPtr + WEBSOCKETS_MAX_HEADER_SIZE);
+            } else {
+                dataMaskPtr = payloadPtr;
+            }
+
+            for(size_t x = 0; x < length; x++) {
+                dataMaskPtr[x] = (dataMaskPtr[x] ^ maskKey[x % 4]);
+            }
+
+        } else {
+            *headerPtr = maskKey[0];          headerPtr++;
+            *headerPtr = maskKey[1];          headerPtr++;
+            *headerPtr = maskKey[2];          headerPtr++;
+            *headerPtr = maskKey[3];          headerPtr++;
+        }
     }
 
     if(headerToPayload) {
         // header has be added to payload
         // payload is forced to reserved 14 Byte but we may not need all based on the length and mask settings
         // offset in payload is calculatetd 14 - headerSize
-        client->tcp->write(&payload[(14 - headerSize)], (length + headerSize));
+        client->tcp->write(&payloadPtr[(WEBSOCKETS_MAX_HEADER_SIZE - headerSize)], (length + headerSize));
     } else {
         // send header
         client->tcp->write(&buffer[0], headerSize);
 
-        if(payload && length > 0) {
+        if(payloadPtr && length > 0) {
             // send payload
-            client->tcp->write(&payload[0], length);
+            client->tcp->write(&payloadPtr[0], length);
         }
     }
+
+#ifdef WEBSOCKETS_USE_BIG_MEM
+    if(useInternBuffer && payloadPtr) {
+        free(payloadPtr);
+    }
+#endif
+
 }
 
 /**
