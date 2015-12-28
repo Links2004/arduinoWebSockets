@@ -356,7 +356,9 @@ void WebSocketsClient::sendHeader(WSclient_t * client) {
 
     client->cKey = base64_encode(&randomKey[0], 16);
 
+#ifndef NODEBUG_WEBSOCKETS
     unsigned long start = micros();
+#endif
 
     String handshake =  "GET " + client->cUrl + " HTTP/1.1\r\n"
                         "Host: " + _host + "\r\n"
@@ -448,7 +450,7 @@ void WebSocketsClient::handleHeader(WSclient_t * client) {
                 default:   ///< Server dont unterstand requrst
                     ok = false;
                     DEBUG_WEBSOCKETS("[WS-Client][handleHeader] serverCode is not 101 (%d)\n", client->cCode);
-                    clientDisconnect(&_client);
+                    clientDisconnect(client);
                     break;
             }
         }

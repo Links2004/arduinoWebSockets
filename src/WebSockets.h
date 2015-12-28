@@ -31,6 +31,7 @@
 
 #ifndef DEBUG_WEBSOCKETS
 #define DEBUG_WEBSOCKETS(...)
+#define NODEBUG_WEBSOCKETS
 #endif
 
 #ifdef ESP8266

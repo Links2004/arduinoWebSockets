@@ -151,7 +151,7 @@ void WebSockets::sendFrame(WSclient_t * client, WSopcode_t opcode, uint8_t * pay
     if(fin) {
         *headerPtr |= bit(7);    ///< set Fin
     }
-    *headerPtr |= opcode;      ///< set opcode
+    *headerPtr |= opcode;        ///< set opcode
     headerPtr++;
 
     // byte 1
@@ -167,7 +167,7 @@ void WebSockets::sendFrame(WSclient_t * client, WSopcode_t opcode, uint8_t * pay
         *headerPtr = ((length >> 8) & 0xFF);    headerPtr++;
         *headerPtr = (length & 0xFF);           headerPtr++;
     } else {
-        // normaly we never get here (to less memory)
+        // Normally we never get here (to less memory)
         *headerPtr |= 127;                      headerPtr++;
         *headerPtr = 0x00;                      headerPtr++;
         *headerPtr = 0x00;                      headerPtr++;
@@ -181,6 +181,8 @@ void WebSockets::sendFrame(WSclient_t * client, WSopcode_t opcode, uint8_t * pay
 
     if(mask) {
         if(useInternBuffer) {
+            // if we use a Intern Buffer we can modify the data
+            // by this fact its possible the do the masking
             for(uint8_t x = 0; x < sizeof(maskKey); x++) {
                 maskKey[x] = random(0xFF);
                 *headerPtr = maskKey[x];       headerPtr++;
@@ -206,6 +208,10 @@ void WebSockets::sendFrame(WSclient_t * client, WSopcode_t opcode, uint8_t * pay
         }
     }
 
+#ifndef NODEBUG_WEBSOCKETS
+    unsigned long start = micros();
+#endif
+
     if(headerToPayload) {
         // header has be added to payload
         // payload is forced to reserved 14 Byte but we may not need all based on the length and mask settings
@@ -220,6 +226,8 @@ void WebSockets::sendFrame(WSclient_t * client, WSopcode_t opcode, uint8_t * pay
             client->tcp->write(&payloadPtr[0], length);
         }
     }
+
+    DEBUG_WEBSOCKETS("[WS][%d][sendFrame] sending Frame Done (%uus).\n", client->num, (micros() - start));
 
 #ifdef WEBSOCKETS_USE_BIG_MEM
     if(useInternBuffer && payloadPtr) {
@@ -275,7 +283,7 @@ void WebSockets::handleWebsocket(WSclient_t * client) {
         }
         payloadLen = buffer[0] << 8 | buffer[1];
     } else if(payloadLen == 127) {
-        // read 64bit inteager as length
+        // read 64bit integer as length
         if(!readWait(client, buffer, 8)) {
             //timeout
             clientDisconnect(client, 1002);
@@ -436,7 +444,12 @@ bool WebSockets::readWait(WSclient_t * client, uint8_t *out, size_t n) {
     size_t len;
 
     while(n > 0) {
-        if(client->tcp && !client->tcp->connected()) {
+        if(!client->tcp) {
+            DEBUG_WEBSOCKETS("[readWait] tcp is null!\n");
+            return false;
+        }
+
+        if(!client->tcp->connected()) {
             DEBUG_WEBSOCKETS("[readWait] not connected!\n");
             return false;
         }
