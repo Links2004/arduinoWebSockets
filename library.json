@@ -1,0 +1,13 @@
+{
+  "name": "WebSockets",
+  "keywords": "wifi, http, web, server, websocket",
+  "description": "WebSocket Server and Client for Arduino based on RFC6455",
+  "repository":
+  {
+    "type": "git",
+    "url": "https://github.com/Links2004/arduinoWebSockets.git"
+  },
+  "exclude": "tests",
+  "frameworks": "arduino",
+  "platforms": "*"
+}
