@@ -1,6 +1,6 @@
 {
   "name": "WebSockets",
-  "keywords": "wifi, http, web, server, websocket",
+  "keywords": "wifi, http, web, server, client, websocket",
   "description": "WebSocket Server and Client for Arduino based on RFC6455",
   "repository":
   {
@@ -9,5 +9,11 @@
   },
   "exclude": "tests",
   "frameworks": "arduino",
-  "platforms": "*"
+  "platforms": "*",
+  "authors":
+  {
+    "name": "Markus Sattler",
+    "url": "https://github.com/Links2004",
+    "maintainer": true
+  }
 }
