@@ -397,7 +397,7 @@ String WebSockets::acceptKey(String clientKey) {
 #ifdef ESP8266
     sha1(clientKey + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11", &sha1HashBin[0]);
 #else
-    clientKey =+ "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
+    clientKey += "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
     SHA1_CTX ctx;
     SHA1Init(&ctx);
     SHA1Update(&ctx, (const unsigned char*)clientKey.c_str(), clientKey.length());
