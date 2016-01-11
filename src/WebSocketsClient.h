@@ -31,7 +31,7 @@
 class WebSocketsClient: private WebSockets {
     public:
 
-        typedef void (*WebSocketClientEvent)(WStype_t type, uint8_t * payload, size_t length);
+        typedef std::function<void (WStype_t type, uint8_t * payload, size_t length)> WebSocketClientEvent;
 
         WebSocketsClient(void);
         ~WebSocketsClient(void);
