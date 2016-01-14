@@ -25,8 +25,11 @@
 #include "WebSockets.h"
 #include "WebSocketsServer.h"
 
-WebSocketsServer::WebSocketsServer(uint16_t port) {
+WebSocketsServer::WebSocketsServer(uint16_t port, String origin, String protocol) {
     _port = port;
+    _origin = origin;
+    _protocol = protocol;
+
     _server = new WEBSOCKETS_NETWORK_SERVER_CLASS(port);
 
     _cbEvent = NULL;
@@ -37,7 +40,12 @@ WebSocketsServer::~WebSocketsServer() {
     // disconnect all clients
     disconnect();
 
+#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
+    _server->close();
+#else
     // TODO how to close server?
+#endif
+
 }
 
 /**
@@ -540,11 +548,21 @@ void WebSocketsServer::handleHeader(WSclient_t * client) {
                     "Sec-WebSocket-Version: 13\r\n"
                     "Sec-WebSocket-Accept: ");
             client->tcp->write(sKey.c_str(), sKey.length());
-            client->tcp->write("\r\n");
+
+            if(_origin.length() > 0) {
+                String origin = "\r\nAccess-Control-Allow-Origin: ";
+                origin += _origin;
+                origin += "\r\n";
+                client->tcp->write(origin.c_str(), origin.length());
+            }
 
             if(client->cProtocol.length() > 0) {
-                // TODO add api to set Protocol of Server
-                client->tcp->write("Sec-WebSocket-Protocol: arduino\r\n");
+                String protocol = "\r\nSec-WebSocket-Protocol: ";
+                protocol += _protocol;
+                protocol += "\r\n";
+                client->tcp->write(protocol.c_str(), protocol.length());
+            } else {
+                client->tcp->write("\r\n");
             }
 
             // header end

@@ -38,7 +38,7 @@ public:
 
         typedef std::function<void (uint8_t num, WStype_t type, uint8_t * payload, size_t length)> WebSocketServerEvent;
 
-        WebSocketsServer(uint16_t port);
+        WebSocketsServer(uint16_t port, String origin = "", String protocol = "arduino");
         ~WebSocketsServer(void);
 
         void begin(void);
@@ -74,6 +74,8 @@ public:
 
 protected:
         uint16_t _port;
+        String _origin;
+        String _protocol;
 
         WEBSOCKETS_NETWORK_SERVER_CLASS * _server;
 
