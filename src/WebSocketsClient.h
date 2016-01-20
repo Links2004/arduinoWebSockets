@@ -36,8 +36,8 @@ class WebSocketsClient: private WebSockets {
         WebSocketsClient(void);
         ~WebSocketsClient(void);
 
-        void begin(const char *host, uint16_t port, const char * url = "/");
-        void begin(String host, uint16_t port, String url = "/");
+        void begin(const char *host, uint16_t port, const char * url = "/", const char * Protocol = "arduino");
+        void begin(String host, uint16_t port, String url = "/", String Protocol = "arduino");
 
 #if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
         void beginSSL(const char *host, uint16_t port, const char * url = "/", const char * = "");
