@@ -40,7 +40,9 @@ WebSocketsClient::~WebSocketsClient() {
 void WebSocketsClient::begin(const char *host, uint16_t port, const char * url) {
     _host = host;
     _port = port;
+#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
     _fingerprint = "";
+#endif
 
     _client.num = 0;
     _client.status = WSC_NOT_CONNECTED;
@@ -141,10 +143,12 @@ void WebSocketsClient::loop(void) {
 
         } else {
             DEBUG_WEBSOCKETS("[WS-Client] connection to %s:%u Faild\n", _host.c_str(), _port);
-            delay(10); //some litle delay to not flood the server
+            delay(10); //some little delay to not flood the server
         }
     } else {
+#if (WEBSOCKETS_NETWORK_TYPE != NETWORK_ESP8266_ASYNC)
         handleClientData();
+#endif
     }
 }
 
@@ -248,12 +252,15 @@ void WebSocketsClient::messageRecived(WSclient_t * client, WSopcode_t opcode, ui
  */
 void WebSocketsClient::clientDisconnect(WSclient_t * client) {
 
+    bool event = false;
+
 #if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
     if(client->isSSL && client->ssl) {
         if(client->ssl->connected()) {
             client->ssl->flush();
             client->ssl->stop();
         }
+        event = true;
         delete client->ssl;
         client->ssl = NULL;
         client->tcp = NULL;
@@ -265,6 +272,7 @@ void WebSocketsClient::clientDisconnect(WSclient_t * client) {
             client->tcp->flush();
             client->tcp->stop();
         }
+        event = true;
         delete client->tcp;
         client->tcp = NULL;
     }
@@ -280,9 +288,9 @@ void WebSocketsClient::clientDisconnect(WSclient_t * client) {
     client->status = WSC_NOT_CONNECTED;
 
     DEBUG_WEBSOCKETS("[WS-Client] client disconnected.\n");
-
-    runCbEvent(WStype_DISCONNECTED, NULL, 0);
-
+    if(event) {
+        runCbEvent(WStype_DISCONNECTED, NULL, 0);
+    }
 }
 
 /**
@@ -316,7 +324,7 @@ bool WebSocketsClient::clientIsConnected(WSclient_t * client) {
 
     return false;
 }
-
+#if (WEBSOCKETS_NETWORK_TYPE != NETWORK_ESP8266_ASYNC)
 /**
  * Handel incomming data from Client
  */
@@ -325,7 +333,10 @@ void WebSocketsClient::handleClientData(void) {
     if(len > 0) {
         switch(_client.status) {
             case WSC_HEADER:
-                handleHeader(&_client);
+            {
+                String headerLine = _client->tcp->readStringUntil('\n');
+                handleHeader(&_client, &headerLine);
+            }
                 break;
             case WSC_CONNECTED:
                 WebSockets::handleWebsocket(&_client);
@@ -335,10 +346,11 @@ void WebSocketsClient::handleClientData(void) {
                 break;
         }
     }
-#ifdef ESP8266
+#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
     delay(0);
 #endif
 }
+#endif
 
 /**
  * send the WebSocket header to Server
@@ -377,6 +389,10 @@ void WebSocketsClient::sendHeader(WSclient_t * client) {
 
     client->tcp->write(handshake.c_str(), handshake.length());
 
+#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266_ASYNC)
+        client->tcp->readStringUntil('\n', &(client->cHttpLine), std::bind(&WebSocketsClient::handleHeader, this, client, &(client->cHttpLine)));
+#endif
+
     DEBUG_WEBSOCKETS("[WS-Client][sendHeader] sending header... Done (%uus).\n", (micros() - start));
 
 }
@@ -385,20 +401,19 @@ void WebSocketsClient::sendHeader(WSclient_t * client) {
  * handle the WebSocket header reading
  * @param client WSclient_t *  ptr to the client struct
  */
-void WebSocketsClient::handleHeader(WSclient_t * client) {
+void WebSocketsClient::handleHeader(WSclient_t * client, String * headerLine) {
 
-    String headerLine = client->tcp->readStringUntil('\n');
-    headerLine.trim(); // remove \r
+    headerLine->trim(); // remove \r
 
-    if(headerLine.length() > 0) {
-        DEBUG_WEBSOCKETS("[WS-Client][handleHeader] RX: %s\n", headerLine.c_str());
+    if(headerLine->length() > 0) {
+        DEBUG_WEBSOCKETS("[WS-Client][handleHeader] RX: %s\n", headerLine->c_str());
 
-        if(headerLine.startsWith("HTTP/1.")) {
+        if(headerLine->startsWith("HTTP/1.")) {
             // "HTTP/1.1 101 Switching Protocols"
-            client->cCode = headerLine.substring(9, headerLine.indexOf(' ', 9)).toInt();
-        } else if(headerLine.indexOf(':')) {
-            String headerName = headerLine.substring(0, headerLine.indexOf(':'));
-            String headerValue = headerLine.substring(headerLine.indexOf(':') + 2);
+            client->cCode = headerLine->substring(9, headerLine->indexOf(' ', 9)).toInt();
+        } else if(headerLine->indexOf(':')) {
+            String headerName = headerLine->substring(0, headerLine->indexOf(':'));
+            String headerValue = headerLine->substring(headerLine->indexOf(':') + 2);
 
             if(headerName.equalsIgnoreCase("Connection")) {
                 if(headerValue.indexOf("Upgrade") >= 0) {
@@ -419,8 +434,13 @@ void WebSocketsClient::handleHeader(WSclient_t * client) {
                 client->cVersion = headerValue.toInt();
             }
         } else {
-            DEBUG_WEBSOCKETS("[WS-Client][handleHeader] Header error (%s)\n", headerLine.c_str());
+            DEBUG_WEBSOCKETS("[WS-Client][handleHeader] Header error (%s)\n", headerLine->c_str());
         }
+
+        (*headerLine) = "";
+#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266_ASYNC)
+        client->tcp->readStringUntil('\n', &(client->cHttpLine), std::bind(&WebSocketsClient::handleHeader, this, client, &(client->cHttpLine)));
+#endif
 
     } else {
         DEBUG_WEBSOCKETS("[WS-Client][handleHeader] Header read fin.\n");
@@ -456,6 +476,7 @@ void WebSocketsClient::handleHeader(WSclient_t * client) {
         }
 
         if(ok) {
+
             if(client->cAccept.length() == 0) {
                 ok = false;
             } else {
@@ -471,8 +492,8 @@ void WebSocketsClient::handleHeader(WSclient_t * client) {
         if(ok) {
 
             DEBUG_WEBSOCKETS("[WS-Client][handleHeader] Websocket connection init done.\n");
+            headerDone(client);
 
-            client->status = WSC_CONNECTED;
 
             runCbEvent(WStype_CONNECTED, (uint8_t *) client->cUrl.c_str(), client->cUrl.length());
 

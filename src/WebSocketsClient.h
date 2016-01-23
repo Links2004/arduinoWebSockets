@@ -75,11 +75,12 @@ class WebSocketsClient: private WebSockets {
         void clientDisconnect(WSclient_t * client);
         bool clientIsConnected(WSclient_t * client);
 
-        void handleNewClients(void);
+#if (WEBSOCKETS_NETWORK_TYPE != NETWORK_ESP8266_ASYNC)
         void handleClientData(void);
+#endif
 
         void sendHeader(WSclient_t * client);
-        void handleHeader(WSclient_t * client);
+        void handleHeader(WSclient_t * client, String * headerLine);
 
         /**
          * called for sending a Event to the app

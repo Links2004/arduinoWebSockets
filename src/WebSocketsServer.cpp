@@ -32,9 +32,16 @@ WebSocketsServer::WebSocketsServer(uint16_t port, String origin, String protocol
 
     _server = new WEBSOCKETS_NETWORK_SERVER_CLASS(port);
 
+#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266_ASYNC)
+    _server->onClient([](void *s, AsyncClient* c){
+        ((WebSocketsServer*)s)->newClient(new AsyncTCPbuffer(c));
+    }, this);
+#endif
+
     _cbEvent = NULL;
 
 }
+
 
 WebSocketsServer::~WebSocketsServer() {
     // disconnect all clients
@@ -72,6 +79,11 @@ void WebSocketsServer::begin(void) {
         client->cVersion = 0;
         client->cIsUpgrade = false;
         client->cIsWebsocket = false;
+
+        client->cWsRXsize = 0;
+#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266_ASYNC)
+        client->cHttpLine = "";
+#endif
     }
 
 #ifdef ESP8266
@@ -90,8 +102,10 @@ void WebSocketsServer::begin(void) {
  * called in arduino loop
  */
 void WebSocketsServer::loop(void) {
+#if (WEBSOCKETS_NETWORK_TYPE != NETWORK_ESP8266_ASYNC)
     handleNewClients();
     handleClientData();
+#endif
 }
 
 /**
@@ -155,7 +169,7 @@ void WebSocketsServer::broadcastTXT(uint8_t * payload, size_t length, bool heade
         if(clientIsConnected(client)) {
             sendFrame(client, WSop_text, payload, length, false, true, headerToPayload);
         }
-#ifdef ESP8266
+#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
         delay(0);
 #endif
     }
@@ -211,7 +225,7 @@ void WebSocketsServer::broadcastBIN(uint8_t * payload, size_t length, bool heade
         if(clientIsConnected(client)) {
             sendFrame(client, WSop_binary, payload, length, false, true, headerToPayload);
         }
-#ifdef ESP8266
+#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
         delay(0);
 #endif
     }
@@ -248,7 +262,7 @@ void WebSocketsServer::disconnect(uint8_t num) {
     }
 }
 
-#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
+#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266_ASYNC)
 /**
  * get an IP for a client
  * @param num uint8_t client id
@@ -269,6 +283,48 @@ IPAddress WebSocketsServer::remoteIP(uint8_t num) {
 //#################################################################################
 //#################################################################################
 //#################################################################################
+
+/**
+ * handle new client connection
+ * @param client
+ */
+bool WebSocketsServer::newClient(WEBSOCKETS_NETWORK_CLASS * TCPclient) {
+    WSclient_t * client;
+    // search free list entry for client
+    for(uint8_t i = 0; i < WEBSOCKETS_SERVER_CLIENT_MAX; i++) {
+        client = &_clients[i];
+
+        // state is not connected or tcp connection is lost
+        if(!clientIsConnected(client)) {
+            client->tcp = TCPclient;
+
+#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
+            client->isSSL = false;
+            client->tcp->setNoDelay(true);
+#endif
+#if (WEBSOCKETS_NETWORK_TYPE != NETWORK_ESP8266_ASYNC)
+            // set Timeout for readBytesUntil and readStringUntil
+            client->tcp->setTimeout(WEBSOCKETS_TCP_TIMEOUT);
+#endif
+            client->status = WSC_HEADER;
+#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266_ASYNC)
+            IPAddress ip = client->tcp->remoteIP();
+            DEBUG_WEBSOCKETS("[WS-Server][%d] new client from %d.%d.%d.%d\n", client->num, ip[0], ip[1], ip[2], ip[3]);
+#else
+            DEBUG_WEBSOCKETS("[WS-Server][%d] new client\n", client->num);
+#endif
+
+
+#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266_ASYNC)
+            client->tcp->readStringUntil('\n', &(client->cHttpLine), std::bind(&WebSocketsServer::handleHeader, this, client, &(client->cHttpLine)));
+#endif
+
+            return true;
+            break;
+        }
+    }
+    return false;
+}
 
 /**
  *
@@ -314,7 +370,9 @@ void WebSocketsServer::clientDisconnect(WSclient_t * client) {
 
     if(client->tcp) {
         if(client->tcp->connected()) {
+#if (WEBSOCKETS_NETWORK_TYPE != NETWORK_ESP8266_ASYNC)
             client->tcp->flush();
+#endif
             client->tcp->stop();
         }
         delete client->tcp;
@@ -327,6 +385,11 @@ void WebSocketsServer::clientDisconnect(WSclient_t * client) {
     client->cVersion = 0;
     client->cIsUpgrade = false;
     client->cIsWebsocket = false;
+
+    client->cWsRXsize = 0;
+#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266_ASYNC)
+    client->cHttpLine = "";
+#endif
 
     client->status = WSC_NOT_CONNECTED;
 
@@ -367,70 +430,49 @@ bool WebSocketsServer::clientIsConnected(WSclient_t * client) {
 
     return false;
 }
-
+#if (WEBSOCKETS_NETWORK_TYPE != NETWORK_ESP8266_ASYNC)
 /**
  * Handle incomming Connection Request
  */
 void WebSocketsServer::handleNewClients(void) {
-    WSclient_t * client;
+
 #if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
     while(_server->hasClient()) {
 #endif
         bool ok = false;
-        // search free list entry for client
-        for(uint8_t i = 0; i < WEBSOCKETS_SERVER_CLIENT_MAX; i++) {
-            client = &_clients[i];
-
-            // state is not connected or tcp connection is lost
-            if(!clientIsConnected(client)) {
-#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
-                // store new connection
-                client->tcp = new WEBSOCKETS_NETWORK_CLASS(_server->available());
-#else
-                client->tcp = new WEBSOCKETS_NETWORK_CLASS(_server->available());
-#endif
-                if(!client->tcp) {
-                    DEBUG_WEBSOCKETS("[WS-Client] creating Network class failed!");
-                    return;
-                }
 
 #if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
-                client->isSSL = false;
-                client->tcp->setNoDelay(true);
-#endif
-                // set Timeout for readBytesUntil and readStringUntil
-                client->tcp->setTimeout(WEBSOCKETS_TCP_TIMEOUT);
-                client->status = WSC_HEADER;
-#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
-                IPAddress ip = client->tcp->remoteIP();
-                DEBUG_WEBSOCKETS("[WS-Server][%d] new client from %d.%d.%d.%d\n", client->num, ip[0], ip[1], ip[2], ip[3]);
+        // store new connection
+        WEBSOCKETS_NETWORK_CLASS * tcpClient = new WEBSOCKETS_NETWORK_CLASS(_server->available());
 #else
-                DEBUG_WEBSOCKETS("[WS-Server][%d] new client\n", client->num);
+        WEBSOCKETS_NETWORK_CLASS * tcpClient = new WEBSOCKETS_NETWORK_CLASS(_server->available());
 #endif
-                ok = true;
-                break;
-            }
+
+        if(!tcpClient) {
+            DEBUG_WEBSOCKETS("[WS-Client] creating Network class failed!");
+            return;
         }
+
+        ok = newClient(tcpClient);
 
         if(!ok) {
             // no free space to handle client
-            WEBSOCKETS_NETWORK_CLASS tcpClient = _server->available();
 #if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
-            IPAddress ip = client->tcp->remoteIP();
+            IPAddress ip = tcpClient->remoteIP();
             DEBUG_WEBSOCKETS("[WS-Server] no free space new client from %d.%d.%d.%d\n", ip[0], ip[1], ip[2], ip[3]);
 #else
             DEBUG_WEBSOCKETS("[WS-Server] no free space new client\n");
 #endif
-            tcpClient.stop();
+            tcpClient->stop();
         }
 
-#ifdef ESP8266
-        delay(0);
-#endif
 #if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
+        delay(0);
     }
 #endif
+
 }
+
 
 /**
  * Handel incomming data from Client
@@ -443,10 +485,13 @@ void WebSocketsServer::handleClientData(void) {
         if(clientIsConnected(client)) {
             int len = client->tcp->available();
             if(len > 0) {
-
+                //DEBUG_WEBSOCKETS("[WS-Server][%d][handleClientData] len: %d\n", client->num, len);
                 switch(client->status) {
                     case WSC_HEADER:
-                        handleHeader(client);
+                    {
+                        String headerLine = client->tcp->readStringUntil('\n');
+                        handleHeader(client, &headerLine);
+                    }
                         break;
                     case WSC_CONNECTED:
                         WebSockets::handleWebsocket(client);
@@ -457,31 +502,32 @@ void WebSocketsServer::handleClientData(void) {
                 }
             }
         }
-#ifdef ESP8266
+#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
         delay(0);
 #endif
     }
 }
+#endif
+
 
 /**
  * handle the WebSocket header reading
  * @param client WSclient_t *  ptr to the client struct
  */
-void WebSocketsServer::handleHeader(WSclient_t * client) {
+void WebSocketsServer::handleHeader(WSclient_t * client, String * headerLine) {
 
-    String headerLine = client->tcp->readStringUntil('\n');
-    headerLine.trim(); // remove \r
+    headerLine->trim(); // remove \r
 
-    if(headerLine.length() > 0) {
-        DEBUG_WEBSOCKETS("[WS-Server][%d][handleHeader] RX: %s\n", client->num, headerLine.c_str());
+    if(headerLine->length() > 0) {
+        DEBUG_WEBSOCKETS("[WS-Server][%d][handleHeader] RX: %s\n", client->num, headerLine->c_str());
 
         // websocket request starts allways with GET see rfc6455
-        if(headerLine.startsWith("GET ")) {
+        if(headerLine->startsWith("GET ")) {
             // cut URL out
-            client->cUrl = headerLine.substring(4, headerLine.indexOf(' ', 4));
-        } else if(headerLine.indexOf(':')) {
-            String headerName = headerLine.substring(0, headerLine.indexOf(':'));
-            String headerValue = headerLine.substring(headerLine.indexOf(':') + 2);
+            client->cUrl = headerLine->substring(4, headerLine->indexOf(' ', 4));
+        } else if(headerLine->indexOf(':')) {
+            String headerName = headerLine->substring(0, headerLine->indexOf(':'));
+            String headerValue = headerLine->substring(headerLine->indexOf(':') + 2);
 
             if(headerName.equalsIgnoreCase("Connection")) {
                 if(headerValue.indexOf("Upgrade") >= 0) {
@@ -502,9 +548,13 @@ void WebSocketsServer::handleHeader(WSclient_t * client) {
                 client->cExtensions = headerValue;
             }
         } else {
-            DEBUG_WEBSOCKETS("[WS-Client][handleHeader] Header error (%s)\n", headerLine.c_str());
+            DEBUG_WEBSOCKETS("[WS-Client][handleHeader] Header error (%s)\n", headerLine->c_str());
         }
 
+        (*headerLine) = "";
+#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266_ASYNC)
+        client->tcp->readStringUntil('\n', &(client->cHttpLine), std::bind(&WebSocketsServer::handleHeader, this, client, &(client->cHttpLine)));
+#endif
     } else {
         DEBUG_WEBSOCKETS("[WS-Server][%d][handleHeader] Header read fin.\n", client->num);
 
@@ -532,7 +582,7 @@ void WebSocketsServer::handleHeader(WSclient_t * client) {
 
         if(ok) {
 
-            DEBUG_WEBSOCKETS("[WS-Server][%d][handleHeader] Websocket connection incomming.\n", client->num);
+            DEBUG_WEBSOCKETS("[WS-Server][%d][handleHeader] Websocket connection incoming.\n", client->num);
 
             // generate Sec-WebSocket-Accept key
             String sKey = acceptKey(client->cKey);
@@ -567,6 +617,8 @@ void WebSocketsServer::handleHeader(WSclient_t * client) {
 
             // header end
             client->tcp->write("\r\n");
+
+            headerDone(client);
 
             // send ping
             WebSockets::sendFrame(client, WSop_ping);

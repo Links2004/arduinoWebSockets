@@ -68,7 +68,7 @@ public:
         void disconnect(void);
         void disconnect(uint8_t num);
 
-#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
+#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266_ASYNC)
         IPAddress remoteIP(uint8_t num);
 #endif
 
@@ -83,15 +83,20 @@ protected:
 
         WebSocketServerEvent _cbEvent;
 
+        bool newClient(WEBSOCKETS_NETWORK_CLASS * TCPclient);
+
         void messageRecived(WSclient_t * client, WSopcode_t opcode, uint8_t * payload, size_t length);
 
         void clientDisconnect(WSclient_t * client);
         bool clientIsConnected(WSclient_t * client);
 
+#if (WEBSOCKETS_NETWORK_TYPE != NETWORK_ESP8266_ASYNC)
         void handleNewClients(void);
         void handleClientData(void);
+#endif
 
-        void handleHeader(WSclient_t * client);
+        void handleHeader(WSclient_t * client, String * headerLine);
+
 
         /**
          * called if a non Websocket connection is comming in.
