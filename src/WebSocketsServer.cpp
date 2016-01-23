@@ -98,15 +98,15 @@ void WebSocketsServer::begin(void) {
     DEBUG_WEBSOCKETS("[WS-Server] Server Started.\n");
 }
 
+#if (WEBSOCKETS_NETWORK_TYPE != NETWORK_ESP8266_ASYNC)
 /**
  * called in arduino loop
  */
 void WebSocketsServer::loop(void) {
-#if (WEBSOCKETS_NETWORK_TYPE != NETWORK_ESP8266_ASYNC)
     handleNewClients();
     handleClientData();
-#endif
 }
+#endif
 
 /**
  * set callback function

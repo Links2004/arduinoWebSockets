@@ -340,7 +340,7 @@ void WebSocketsClient::handleClientData(void) {
         switch(_client.status) {
             case WSC_HEADER:
             {
-                String headerLine = _client->tcp->readStringUntil('\n');
+                String headerLine = _client.tcp->readStringUntil('\n');
                 handleHeader(&_client, &headerLine);
             }
                 break;
