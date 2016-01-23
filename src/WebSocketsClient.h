@@ -44,7 +44,12 @@ class WebSocketsClient: private WebSockets {
         void beginSSL(String host, uint16_t port, String url = "/", String fingerprint = "");
 #endif
 
+#if (WEBSOCKETS_NETWORK_TYPE != NETWORK_ESP8266_ASYNC)
         void loop(void);
+#else
+        // Async interface not need a loop call
+        void loop(void) __attribute__ ((deprecated)) {}
+#endif
 
         void onEvent(WebSocketClientEvent cbEvent);
 
@@ -81,6 +86,13 @@ class WebSocketsClient: private WebSockets {
 
         void sendHeader(WSclient_t * client);
         void handleHeader(WSclient_t * client, String * headerLine);
+
+        void connectedCb();
+        void connectFailedCb();
+
+#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266_ASYNC)
+        void asyncConnect();
+#endif
 
         /**
          * called for sending a Event to the app

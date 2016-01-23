@@ -42,13 +42,12 @@ public:
         ~WebSocketsServer(void);
 
         void begin(void);
+
 #if (WEBSOCKETS_NETWORK_TYPE != NETWORK_ESP8266_ASYNC)
         void loop(void);
 #else
         // Async interface not need a loop call
-        void loop(void) __attribute__ ((deprecated)) {
-
-        }
+        void loop(void) __attribute__ ((deprecated)) {}
 #endif
 
         void onEvent(WebSocketServerEvent cbEvent);
