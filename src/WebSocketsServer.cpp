@@ -296,6 +296,7 @@ bool WebSocketsServer::newClient(WEBSOCKETS_NETWORK_CLASS * TCPclient) {
 
         // state is not connected or tcp connection is lost
         if(!clientIsConnected(client)) {
+
             client->tcp = TCPclient;
 
 #if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
@@ -316,6 +317,18 @@ bool WebSocketsServer::newClient(WEBSOCKETS_NETWORK_CLASS * TCPclient) {
 
 
 #if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266_ASYNC)
+            client->tcp->onDisconnect(std::bind([](WebSocketsServer * server, AsyncTCPbuffer * obj, WSclient_t * client) -> bool {
+                DEBUG_WEBSOCKETS("[WS-Server][%d] Disconnect client\n", client->num);
+
+                AsyncTCPbuffer ** sl = &server->_clients[client->num].tcp;
+                if(*sl == obj) {
+                    client->status = WSC_NOT_CONNECTED;
+                    *sl = NULL;
+                }
+                return true;
+            },  this, std::placeholders::_1, client));
+
+
             client->tcp->readStringUntil('\n', &(client->cHttpLine), std::bind(&WebSocketsServer::handleHeader, this, client, &(client->cHttpLine)));
 #endif
 
@@ -375,7 +388,11 @@ void WebSocketsServer::clientDisconnect(WSclient_t * client) {
 #endif
             client->tcp->stop();
         }
+#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266_ASYNC)
+        client->status = WSC_NOT_CONNECTED;
+#else
         delete client->tcp;
+#endif
         client->tcp = NULL;
     }
 
@@ -425,6 +442,7 @@ bool WebSocketsServer::clientIsConnected(WSclient_t * client) {
 
     if(client->tcp) {
         // do cleanup
+        DEBUG_WEBSOCKETS("[WS-Server][%d] client list cleanup.\n", client->num);
         clientDisconnect(client);
     }
 

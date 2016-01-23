@@ -89,6 +89,7 @@ void WebSocketsClient::beginSSL(String host, uint16_t port, String url, String f
  * called in arduino loop
  */
 void WebSocketsClient::loop(void) {
+#if (WEBSOCKETS_NETWORK_TYPE != NETWORK_ESP8266_ASYNC)
     if(!clientIsConnected(&_client)) {
 
 #if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
@@ -146,10 +147,9 @@ void WebSocketsClient::loop(void) {
             delay(10); //some little delay to not flood the server
         }
     } else {
-#if (WEBSOCKETS_NETWORK_TYPE != NETWORK_ESP8266_ASYNC)
         handleClientData();
-#endif
     }
+#endif
 }
 
 /**
@@ -269,11 +269,17 @@ void WebSocketsClient::clientDisconnect(WSclient_t * client) {
 
     if(client->tcp) {
         if(client->tcp->connected()) {
+#if (WEBSOCKETS_NETWORK_TYPE != NETWORK_ESP8266_ASYNC)
             client->tcp->flush();
+#endif
             client->tcp->stop();
         }
         event = true;
+#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266_ASYNC)
+        client->status = WSC_NOT_CONNECTED;
+#else
         delete client->tcp;
+#endif
         client->tcp = NULL;
     }
 

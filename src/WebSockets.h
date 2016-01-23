@@ -27,7 +27,7 @@
 
 #include <Arduino.h>
 
-//#define DEBUG_WEBSOCKETS(...) os_printf( __VA_ARGS__ )
+#define DEBUG_WEBSOCKETS(...) os_printf( __VA_ARGS__ )
 
 #ifndef DEBUG_WEBSOCKETS
 #define DEBUG_WEBSOCKETS(...)

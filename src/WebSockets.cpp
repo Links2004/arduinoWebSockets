@@ -282,6 +282,10 @@ void WebSockets::handleWebsocket(WSclient_t * client) {
  * @param size
  */
 bool WebSockets::handleWebsocketWaitFor(WSclient_t * client, size_t size) {
+    if(!client->tcp || !client->tcp->connected()) {
+        return false;
+    }
+
     if(size > WEBSOCKETS_MAX_HEADER_SIZE) {
         DEBUG_WEBSOCKETS("[WS][%d][handleWebsocketWaitFor] size: %d to big!\n", client->num, size);
         return false;
@@ -308,6 +312,10 @@ bool WebSockets::handleWebsocketWaitFor(WSclient_t * client, size_t size) {
 }
 
 void WebSockets::handleWebsocketCb(WSclient_t * client) {
+
+    if(!client->tcp || !client->tcp->connected()) {
+        return;
+    }
 
     uint8_t * buffer = client->cWsHeader;
 
@@ -390,6 +398,7 @@ void WebSockets::handleWebsocketCb(WSclient_t * client) {
 }
 
 void WebSockets::handleWebsocketPayloadCb(WSclient_t * client, bool ok, uint8_t * payload) {
+
     WSMessageHeader_t * header = &client->cWsHeaderDecode;
     if(ok) {
         if(header->payloadLen > 0) {
@@ -513,6 +522,9 @@ String WebSockets::base64_encode(uint8_t * data, size_t length) {
  */
 bool WebSockets::readCb(WSclient_t * client, uint8_t * out, size_t n, WSreadWaitCb cb) {
 #if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266_ASYNC)
+    if(!client->tcp || !client->tcp->connected()) {
+        return false;
+    }
 
     client->tcp->readBytes(out, n, std::bind([](WSclient_t * client, bool ok, WSreadWaitCb cb) {
         if(cb) {
