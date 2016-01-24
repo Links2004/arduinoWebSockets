@@ -72,14 +72,14 @@ void WebSocketsClient::begin(String host, uint16_t port, String url, String Prot
 }
 
 #if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
-void WebSocketsClient::beginSSL(const char *host, uint16_t port, const char * url, const char * fingerprint) {
-    begin(host, port, url);
+void WebSocketsClient::beginSSL(const char *host, uint16_t port, const char * url, const char * fingerprint, const char * Protocol) {
+    begin(host, port, url, Protocol);
     _client.isSSL = true;
     _fingerprint = fingerprint;
 }
 
-void WebSocketsClient::beginSSL(String host, uint16_t port, String url, String fingerprint) {
-    beginSSL(host.c_str(), port, url.c_str(), fingerprint.c_str());
+void WebSocketsClient::beginSSL(String host, uint16_t port, String url, String fingerprint, String Protocol) {
+    beginSSL(host.c_str(), port, url.c_str(), fingerprint.c_str(), Protocol.c_str());
 }
 #endif
 

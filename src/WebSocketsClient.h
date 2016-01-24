@@ -40,8 +40,8 @@ class WebSocketsClient: private WebSockets {
         void begin(String host, uint16_t port, String url = "/", String Protocol = "arduino");
 
 #if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
-        void beginSSL(const char *host, uint16_t port, const char * url = "/", const char * = "");
-        void beginSSL(String host, uint16_t port, String url = "/", String fingerprint = "");
+        void beginSSL(const char *host, uint16_t port, const char * url = "/", const char * = "", const char * Protocol = "arduino");
+        void beginSSL(String host, uint16_t port, String url = "/", String fingerprint = "", String Protocol = "arduino");
 #endif
 
         void loop(void);
