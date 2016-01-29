@@ -67,8 +67,9 @@ void WebSocketsClient::begin(const char *host, uint16_t port, const char * url) 
     // todo find better seed
     randomSeed(millis());
 #endif
-
+#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266_ASYNC)
     asyncConnect();
+#endif
 }
 
 void WebSocketsClient::begin(String host, uint16_t port, String url) {
@@ -504,7 +505,7 @@ void WebSocketsClient::connectedCb() {
         client->tcp = NULL;
 
         // reconnect
-       // c->asyncConnect();
+        c->asyncConnect();
 
         return true;
     }, this, std::placeholders::_1, &_client));
@@ -543,18 +544,24 @@ void WebSocketsClient::connectFailedCb() {
 
 void WebSocketsClient::asyncConnect() {
 
+    DEBUG_WEBSOCKETS("[WS-Client] asyncConnect...\n");
+
     AsyncClient * tcpclient = new AsyncClient();
 
-
     if(!tcpclient) {
-        DEBUG_WEBSOCKETS("[WS-Client] creating AsyncClient class failed!");
+        DEBUG_WEBSOCKETS("[WS-Client] creating AsyncClient class failed!\n");
         return;
     }
+
+    tcpclient->onDisconnect([](void *obj, AsyncClient* c) {
+        c->free();
+        delete c;
+    });
 
     tcpclient->onConnect(std::bind([](WebSocketsClient * ws , AsyncClient * tcp) {
         ws->_client.tcp = new AsyncTCPbuffer(tcp);
         if(!ws->_client.tcp) {
-            DEBUG_WEBSOCKETS("[WS-Client] creating Network class failed!");
+            DEBUG_WEBSOCKETS("[WS-Client] creating Network class failed!\n");
             ws->connectFailedCb();
             return;
         }
