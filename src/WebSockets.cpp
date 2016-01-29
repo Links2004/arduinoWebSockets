@@ -341,7 +341,7 @@ void WebSockets::handleWebsocketCb(WSclient_t * client) {
     buffer++;
 
     if(header->payloadLen == 126) {
-        headerLen += 4;
+        headerLen += 2;
         if(!handleWebsocketWaitFor(client, headerLen)) {
             return;
         }
