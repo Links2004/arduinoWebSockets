@@ -36,7 +36,11 @@
 class WebSocketsServer: private WebSockets {
 public:
 
+#ifdef __AVR__
+        typedef void (*WebSocketServerEvent)(uint8_t num, WStype_t type, uint8_t * payload, size_t length);
+#else
         typedef std::function<void (uint8_t num, WStype_t type, uint8_t * payload, size_t length)> WebSocketServerEvent;
+#endif
 
         WebSocketsServer(uint16_t port, String origin = "", String protocol = "arduino");
         ~WebSocketsServer(void);
