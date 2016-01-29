@@ -30,6 +30,13 @@ a WebSocket Server and Client for Arduino based on RFC6455.
  supported for:
  - wss client on the ESP8266
  
+### ESP Async TCP ###
+
+this libary can run in Async TCP mode on the ESP8266.
+the mode can be aktivated in the ```WebSockets.h``` (see WEBSOCKETS_NETWORK_TYPE define).
+the ```ESPAsyncTCP``` libary is required.
+Note: in this mode wss / SSL is not posible.
+
 ### Issues ###
 Submit issues to: https://github.com/Links2004/arduinoWebSockets/issues
 
