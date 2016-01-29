@@ -36,12 +36,12 @@ class WebSocketsClient: private WebSockets {
         WebSocketsClient(void);
         ~WebSocketsClient(void);
 
-        void begin(const char *host, uint16_t port, const char * url = "/");
-        void begin(String host, uint16_t port, String url = "/");
+        void begin(const char *host, uint16_t port, const char * url = "/", const char * protocol = "arduino");
+        void begin(String host, uint16_t port, String url = "/", String protocol = "arduino");
 
 #if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
-        void beginSSL(const char *host, uint16_t port, const char * url = "/", const char * = "");
-        void beginSSL(String host, uint16_t port, String url = "/", String fingerprint = "");
+        void beginSSL(const char *host, uint16_t port, const char * url = "/", const char * = "", const char * protocol = "arduino");
+        void beginSSL(String host, uint16_t port, String url = "/", String fingerprint = "", String protocol = "arduino");
 #endif
 
 #if (WEBSOCKETS_NETWORK_TYPE != NETWORK_ESP8266_ASYNC)

@@ -37,7 +37,7 @@ WebSocketsClient::~WebSocketsClient() {
 /**
  * calles to init the Websockets server
  */
-void WebSocketsClient::begin(const char *host, uint16_t port, const char * url) {
+void WebSocketsClient::begin(const char *host, uint16_t port, const char * url, const char * protocol) {
     _host = host;
     _port = port;
 #if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
@@ -57,7 +57,7 @@ void WebSocketsClient::begin(const char *host, uint16_t port, const char * url) 
     _client.cIsWebsocket = true;
     _client.cKey = "";
     _client.cAccept = "";
-    _client.cProtocol = "";
+    _client.cProtocol = protocol;
     _client.cExtensions = "";
     _client.cVersion = 0;
 
@@ -72,19 +72,19 @@ void WebSocketsClient::begin(const char *host, uint16_t port, const char * url) 
 #endif
 }
 
-void WebSocketsClient::begin(String host, uint16_t port, String url) {
-    begin(host.c_str(), port, url.c_str());
+void WebSocketsClient::begin(String host, uint16_t port, String url, String protocol) {
+    begin(host.c_str(), port, url.c_str(), protocol.c_str());
 }
 
 #if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
-void WebSocketsClient::beginSSL(const char *host, uint16_t port, const char * url, const char * fingerprint) {
-    begin(host, port, url);
+void WebSocketsClient::beginSSL(const char *host, uint16_t port, const char * url, const char * fingerprint, const char * protocol) {
+    begin(host, port, url, protocol);
     _client.isSSL = true;
     _fingerprint = fingerprint;
 }
 
-void WebSocketsClient::beginSSL(String host, uint16_t port, String url, String fingerprint) {
-    beginSSL(host.c_str(), port, url.c_str(), fingerprint.c_str());
+void WebSocketsClient::beginSSL(String host, uint16_t port, String url, String fingerprint, String protocol) {
+    beginSSL(host.c_str(), port, url.c_str(), fingerprint.c_str(), protocol.c_str());
 }
 #endif
 
@@ -367,7 +367,7 @@ void WebSocketsClient::sendHeader(WSclient_t * client) {
                         "Connection: Upgrade\r\n"
                         "User-Agent: arduino-WebSocket-Client\r\n"
                         "Sec-WebSocket-Version: 13\r\n"
-                        "Sec-WebSocket-Protocol: arduino\r\n"
+                        "Sec-WebSocket-Protocol: " + client->cProtocol +"\r\n"
                         "Sec-WebSocket-Key: " + client->cKey + "\r\n";
 
     if(client->cExtensions.length() > 0) {
