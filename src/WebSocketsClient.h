@@ -30,21 +30,30 @@
 
 class WebSocketsClient: private WebSockets {
     public:
-
+#ifdef __AVR__
+        typedef void (*WebSocketClientEvent)(WStype_t type, uint8_t * payload, size_t length);
+#else
         typedef std::function<void (WStype_t type, uint8_t * payload, size_t length)> WebSocketClientEvent;
+#endif
+
 
         WebSocketsClient(void);
         ~WebSocketsClient(void);
 
-        void begin(const char *host, uint16_t port, const char * url = "/", const char * Protocol = "arduino");
-        void begin(String host, uint16_t port, String url = "/", String Protocol = "arduino");
+        void begin(const char *host, uint16_t port, const char * url = "/", const char * protocol = "arduino");
+        void begin(String host, uint16_t port, String url = "/", String protocol = "arduino");
 
 #if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
-        void beginSSL(const char *host, uint16_t port, const char * url = "/", const char * = "", const char * Protocol = "arduino");
-        void beginSSL(String host, uint16_t port, String url = "/", String fingerprint = "", String Protocol = "arduino");
+        void beginSSL(const char *host, uint16_t port, const char * url = "/", const char * = "", const char * protocol = "arduino");
+        void beginSSL(String host, uint16_t port, String url = "/", String fingerprint = "", String protocol = "arduino");
 #endif
 
+#if (WEBSOCKETS_NETWORK_TYPE != NETWORK_ESP8266_ASYNC)
         void loop(void);
+#else
+        // Async interface not need a loop call
+        void loop(void) __attribute__ ((deprecated)) {}
+#endif
 
         void onEvent(WebSocketClientEvent cbEvent);
 
@@ -75,11 +84,19 @@ class WebSocketsClient: private WebSockets {
         void clientDisconnect(WSclient_t * client);
         bool clientIsConnected(WSclient_t * client);
 
-        void handleNewClients(void);
+#if (WEBSOCKETS_NETWORK_TYPE != NETWORK_ESP8266_ASYNC)
         void handleClientData(void);
+#endif
 
         void sendHeader(WSclient_t * client);
-        void handleHeader(WSclient_t * client);
+        void handleHeader(WSclient_t * client, String * headerLine);
+
+        void connectedCb();
+        void connectFailedCb();
+
+#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266_ASYNC)
+        void asyncConnect();
+#endif
 
         /**
          * called for sending a Event to the app

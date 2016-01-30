@@ -36,13 +36,23 @@
 class WebSocketsServer: private WebSockets {
 public:
 
+#ifdef __AVR__
+        typedef void (*WebSocketServerEvent)(uint8_t num, WStype_t type, uint8_t * payload, size_t length);
+#else
         typedef std::function<void (uint8_t num, WStype_t type, uint8_t * payload, size_t length)> WebSocketServerEvent;
+#endif
 
         WebSocketsServer(uint16_t port, String origin = "", String protocol = "arduino");
         ~WebSocketsServer(void);
 
         void begin(void);
+
+#if (WEBSOCKETS_NETWORK_TYPE != NETWORK_ESP8266_ASYNC)
         void loop(void);
+#else
+        // Async interface not need a loop call
+        void loop(void) __attribute__ ((deprecated)) {}
+#endif
 
         void onEvent(WebSocketServerEvent cbEvent);
 
@@ -68,7 +78,7 @@ public:
         void disconnect(void);
         void disconnect(uint8_t num);
 
-#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
+#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266_ASYNC)
         IPAddress remoteIP(uint8_t num);
 #endif
 
@@ -83,15 +93,20 @@ protected:
 
         WebSocketServerEvent _cbEvent;
 
+        bool newClient(WEBSOCKETS_NETWORK_CLASS * TCPclient);
+
         void messageRecived(WSclient_t * client, WSopcode_t opcode, uint8_t * payload, size_t length);
 
         void clientDisconnect(WSclient_t * client);
         bool clientIsConnected(WSclient_t * client);
 
+#if (WEBSOCKETS_NETWORK_TYPE != NETWORK_ESP8266_ASYNC)
         void handleNewClients(void);
         void handleClientData(void);
+#endif
 
-        void handleHeader(WSclient_t * client);
+        void handleHeader(WSclient_t * client, String * headerLine);
+
 
         /**
          * called if a non Websocket connection is comming in.

@@ -8,10 +8,11 @@ connection.onopen = function () {
 	connection.send('Message from Browser to ESP8266 yay its Working!! ' + new Date()); 
 	connection.send('ping');
 	
-	setInterval(function() {
+/*	setInterval(function() {
 		connection.send('Time: ' + new Date()); 
 	}, 20);
-
+*/
+connection.send('Time: ' + new Date()); 
 };
 
 connection.onerror = function (error) {
@@ -20,6 +21,7 @@ connection.onerror = function (error) {
 
 connection.onmessage = function (e) {
 	console.log('Server: ', e.data);
+	connection.send('Time: ' + new Date()); 
 };
 
 function sendRGB() {

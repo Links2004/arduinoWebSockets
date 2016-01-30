@@ -27,7 +27,7 @@
 
 #include <Arduino.h>
 
-//#define DEBUG_WEBSOCKETS(...) Serial.printf( __VA_ARGS__ )
+//#define DEBUG_WEBSOCKETS(...) os_printf( __VA_ARGS__ )
 
 #ifndef DEBUG_WEBSOCKETS
 #define DEBUG_WEBSOCKETS(...)
@@ -44,26 +44,53 @@
 
 #define WEBSOCKETS_TCP_TIMEOUT    (1500)
 
-#define NETWORK_ESP8266     (1)
-#define NETWORK_W5100       (2)
-#define NETWORK_ENC28J60    (3)
+#define NETWORK_ESP8266_ASYNC   (0)
+#define NETWORK_ESP8266         (1)
+#define NETWORK_W5100           (2)
+#define NETWORK_ENC28J60        (3)
 
+// max size of the WS Message Header
+#define WEBSOCKETS_MAX_HEADER_SIZE  (14)
 
 // select Network type based
-#ifdef ESP8266
-#define WEBSOCKETS_NETWORK_TYPE NETWORK_ESP8266
+#if defined(ESP8266) || defined(ESP31B)
+//#define WEBSOCKETS_NETWORK_TYPE NETWORK_ESP8266
+#define WEBSOCKETS_NETWORK_TYPE NETWORK_ESP8266_ASYNC
 #else
 #define WEBSOCKETS_NETWORK_TYPE NETWORK_W5100
 #endif
 
+#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266_ASYNC)
 
-#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
+// Note:
+//   No SSL/WSS support for client in Async mode
+//   TLS lib need a sync interface!
 
-#ifndef ESP8266
+#if !defined(ESP8266) && !defined(ESP31B)
+#error "network type ESP8266 ASYNC only possible on the ESP mcu!"
+#endif
+
+#ifdef ESP8266
+#include <ESP8266WiFi.h>
+#else
+#include <ESP31BWiFi.h>
+#endif
+#include <ESPAsyncTCP.h>
+#include <ESPAsyncTCPbuffer.h>
+#define WEBSOCKETS_NETWORK_CLASS AsyncTCPbuffer
+#define WEBSOCKETS_NETWORK_SERVER_CLASS AsyncServer
+
+#elif (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
+
+#if !defined(ESP8266) && !defined(ESP31B)
 #error "network type ESP8266 only possible on the ESP mcu!"
 #endif
 
+#ifdef ESP8266
 #include <ESP8266WiFi.h>
+#else
+#include <ESP31BWiFi.h>
+#endif
 #define WEBSOCKETS_NETWORK_CLASS WiFiClient
 #define WEBSOCKETS_NETWORK_SERVER_CLASS WiFiServer
 
@@ -111,6 +138,21 @@ typedef enum {
 } WSopcode_t;
 
 typedef struct {
+
+        bool fin;
+        bool rsv1;
+        bool rsv2;
+        bool rsv3;
+
+        WSopcode_t opCode;
+        bool mask;
+
+        size_t payloadLen;
+
+        uint8_t * maskKey;
+} WSMessageHeader_t;
+
+typedef struct {
         uint8_t num; ///< connection number
 
         WSclientsStatus_t status;
@@ -134,10 +176,26 @@ typedef struct {
         String cExtensions; ///< client Sec-WebSocket-Extensions
         uint16_t cVersion;  ///< client Sec-WebSocket-Version
 
+        uint8_t cWsRXsize;  ///< State of the RX
+        uint8_t cWsHeader[WEBSOCKETS_MAX_HEADER_SIZE]; ///< RX WS Message buffer
+        WSMessageHeader_t cWsHeaderDecode;
+
+#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266_ASYNC)
+        String cHttpLine;   ///< HTTP header lines
+#endif
+
 } WSclient_t;
+
+
 
 class WebSockets {
     protected:
+#ifdef __AVR__
+        typedef void (*WSreadWaitCb)(WSclient_t * client, bool ok);
+#else
+        typedef std::function<void(WSclient_t * client, bool ok)> WSreadWaitCb;
+#endif
+
         virtual void clientDisconnect(WSclient_t * client);
         virtual bool clientIsConnected(WSclient_t * client);
 
@@ -146,13 +204,19 @@ class WebSockets {
         void clientDisconnect(WSclient_t * client, uint16_t code, char * reason = NULL, size_t reasonLen = 0);
         void sendFrame(WSclient_t * client, WSopcode_t opcode, uint8_t * payload = NULL, size_t length = 0, bool mask = false, bool fin = true, bool headerToPayload = false);
 
+        void headerDone(WSclient_t * client);
 
         void handleWebsocket(WSclient_t * client);
 
-        bool readWait(WSclient_t * client, uint8_t *out, size_t n);
+        bool handleWebsocketWaitFor(WSclient_t * client, size_t size);
+        void handleWebsocketCb(WSclient_t * client);
+        void handleWebsocketPayloadCb(WSclient_t * client, bool ok, uint8_t * payload);
 
         String acceptKey(String clientKey);
         String base64_encode(uint8_t * data, size_t length);
+
+        bool readCb(WSclient_t * client, uint8_t *out, size_t n, WSreadWaitCb cb);
+
 
 };
 
