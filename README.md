@@ -21,6 +21,7 @@ a WebSocket Server and Client for Arduino based on RFC6455.
 
 ##### Supported Hardware #####
  - ESP8266 [Arduino for ESP8266](https://github.com/Links2004/Arduino)
+ - ESP31B
  - ATmega328 with Ethernet Shield (ATmega branch) 
  - ATmega328 with enc28j60 (ATmega branch) 
  - ATmega2560 with Ethernet Shield (ATmega branch) 
