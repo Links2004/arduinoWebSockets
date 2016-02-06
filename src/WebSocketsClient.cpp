@@ -171,7 +171,7 @@ void WebSocketsClient::sendTXT(const char * payload, size_t length) {
     sendTXT((uint8_t *) payload, length);
 }
 
-void WebSocketsClient::sendTXT(String payload) {
+void WebSocketsClient::sendTXT(String & payload) {
     sendTXT((uint8_t *) payload.c_str(), payload.length());
 }
 

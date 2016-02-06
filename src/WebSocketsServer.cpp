@@ -148,7 +148,7 @@ void WebSocketsServer::sendTXT(uint8_t num, const char * payload, size_t length)
     sendTXT(num, (uint8_t *) payload, length);
 }
 
-void WebSocketsServer::sendTXT(uint8_t num, String payload) {
+void WebSocketsServer::sendTXT(uint8_t num, String & payload) {
     sendTXT(num, (uint8_t *) payload.c_str(), payload.length());
 }
 
@@ -187,7 +187,7 @@ void WebSocketsServer::broadcastTXT(const char * payload, size_t length) {
     broadcastTXT((uint8_t *) payload, length);
 }
 
-void WebSocketsServer::broadcastTXT(String payload) {
+void WebSocketsServer::broadcastTXT(String & payload) {
     broadcastTXT((uint8_t *) payload.c_str(), payload.length());
 }
 
