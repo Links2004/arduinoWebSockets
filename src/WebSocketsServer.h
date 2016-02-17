@@ -78,6 +78,9 @@ public:
         void disconnect(void);
         void disconnect(uint8_t num);
 
+        void setAuthorization(const char * user, const char * password);
+        void setAuthorization(const char * auth);
+
 #if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266_ASYNC)
         IPAddress remoteIP(uint8_t num);
 #endif
@@ -86,6 +89,7 @@ protected:
         uint16_t _port;
         String _origin;
         String _protocol;
+        String _base64Authorization; ///< Base64 encoded Auth request
 
         WEBSOCKETS_NETWORK_SERVER_CLASS * _server;
 
@@ -109,8 +113,8 @@ protected:
 
 
         /**
-         * called if a non Websocket connection is comming in.
-         * Note: can be overrided
+         * called if a non Websocket connection is coming in.
+         * Note: can be override
          * @param client WSclient_t *  ptr to the client struct
          */
         virtual void handleNonWebsocketConnection(WSclient_t * client) {
@@ -123,6 +127,25 @@ protected:
                     "Sec-WebSocket-Version: 13\r\n"
                     "\r\n"
                     "This is a Websocket server only!");
+            clientDisconnect(client);
+        }
+
+        /**
+         * called if a non Authorization connection is coming in.
+         * Note: can be override
+         * @param client WSclient_t *  ptr to the client struct
+         */
+        virtual void handleAuthorizationFailed(WSclient_t *client) {
+
+            client->tcp->write("HTTP/1.1 401 Unauthorized\r\n"
+                    "Server: arduino-WebSocket-Server\r\n"
+                    "Content-Type: text/plain\r\n"
+                    "Content-Length: 45\r\n"
+                    "Connection: close\r\n"
+                    "Sec-WebSocket-Version: 13\r\n"
+                    "WWW-Authenticate: Basic realm=\"WebSocket Server\""
+                    "\r\n"
+                    "This Websocket server requires Authorization!");
             clientDisconnect(client);
         }
 

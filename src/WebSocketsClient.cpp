@@ -25,6 +25,7 @@
 #include "WebSockets.h"
 #include "WebSocketsClient.h"
 
+
 WebSocketsClient::WebSocketsClient() {
     _cbEvent = NULL;
     _client.num = 0;
@@ -60,6 +61,7 @@ void WebSocketsClient::begin(const char *host, uint16_t port, const char * url, 
     _client.cProtocol = protocol;
     _client.cExtensions = "";
     _client.cVersion = 0;
+    _client.base64Authorization = "";
 
 #ifdef ESP8266
     randomSeed(RANDOM_REG32);
@@ -199,6 +201,30 @@ void WebSocketsClient::sendBIN(const uint8_t * payload, size_t length) {
 void WebSocketsClient::disconnect(void) {
     if(clientIsConnected(&_client)) {
         WebSockets::clientDisconnect(&_client, 1000);
+    }
+}
+
+/**
+ * set the Authorizatio for the http request
+ * @param user const char *
+ * @param password const char *
+ */
+void WebSocketsClient::setAuthorization(const char * user, const char * password) {
+    if(user && password) {
+        String auth = user;
+        auth += ":";
+        auth += password;
+        _client.base64Authorization = base64_encode((uint8_t *)auth.c_str(), auth.length());
+    }
+}
+
+/**
+ * set the Authorizatio for the http request
+ * @param auth const char * base64
+ */
+void WebSocketsClient::setAuthorization(const char * auth) {
+    if(auth) {
+        _client.base64Authorization = auth;
     }
 }
 
@@ -372,6 +398,10 @@ void WebSocketsClient::sendHeader(WSclient_t * client) {
 
     if(client->cExtensions.length() > 0) {
         handshake += "Sec-WebSocket-Extensions: " + client->cExtensions + "\r\n";
+    }
+
+    if(client->base64Authorization.length() > 0) {
+        handshake += "Authorization: Basic " + client->base64Authorization + "\r\n";
     }
 
     handshake += "\r\n";

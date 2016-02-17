@@ -68,6 +68,9 @@ class WebSocketsClient: private WebSockets {
 
         void disconnect(void);
 
+        void setAuthorization(const char * user, const char * password);
+        void setAuthorization(const char * auth);
+
     protected:
         String _host;
         uint16_t _port;

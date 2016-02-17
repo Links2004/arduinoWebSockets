@@ -80,6 +80,8 @@ void WebSocketsServer::begin(void) {
         client->cIsUpgrade = false;
         client->cIsWebsocket = false;
 
+        client->base64Authorization = "";
+
         client->cWsRXsize = 0;
 #if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266_ASYNC)
         client->cHttpLine = "";
@@ -259,6 +261,32 @@ void WebSocketsServer::disconnect(uint8_t num) {
     WSclient_t * client = &_clients[num];
     if(clientIsConnected(client)) {
         WebSockets::clientDisconnect(client, 1000);
+    }
+}
+
+
+
+/**
+ * set the Authorizatio for the http request
+ * @param user const char *
+ * @param password const char *
+ */
+void WebSocketsServer::setAuthorization(const char * user, const char * password) {
+    if(user && password) {
+        String auth = user;
+        auth += ":";
+        auth += password;
+        _base64Authorization = base64_encode((uint8_t *)auth.c_str(), auth.length());
+    }
+}
+
+/**
+ * set the Authorizatio for the http request
+ * @param auth const char * base64
+ */
+void WebSocketsServer::setAuthorization(const char * auth) {
+    if(auth) {
+        _base64Authorization = auth;
     }
 }
 
@@ -564,6 +592,8 @@ void WebSocketsServer::handleHeader(WSclient_t * client, String * headerLine) {
                 client->cProtocol = headerValue;
             } else if(headerName.equalsIgnoreCase("Sec-WebSocket-Extensions")) {
                 client->cExtensions = headerValue;
+            } else if(headerName.equalsIgnoreCase("Authorization")) {
+                client->base64Authorization = headerValue;
             }
         } else {
             DEBUG_WEBSOCKETS("[WS-Client][handleHeader] Header error (%s)\n", headerLine->c_str());
@@ -583,6 +613,7 @@ void WebSocketsServer::handleHeader(WSclient_t * client, String * headerLine) {
         DEBUG_WEBSOCKETS("[WS-Server][%d][handleHeader]  - cProtocol: %s\n", client->num, client->cProtocol.c_str());
         DEBUG_WEBSOCKETS("[WS-Server][%d][handleHeader]  - cExtensions: %s\n", client->num, client->cExtensions.c_str());
         DEBUG_WEBSOCKETS("[WS-Server][%d][handleHeader]  - cVersion: %d\n", client->num, client->cVersion);
+        DEBUG_WEBSOCKETS("[WS-Server][%d][handleHeader]  - base64Authorization: %s\n", client->num, client->base64Authorization);
 
         bool ok = (client->cIsUpgrade && client->cIsWebsocket);
 
@@ -594,6 +625,20 @@ void WebSocketsServer::handleHeader(WSclient_t * client, String * headerLine) {
                 ok = false;
             }
             if(client->cVersion != 13) {
+                ok = false;
+            }
+        }
+
+        if(_base64Authorization.length() > 0) {
+            if(client->base64Authorization.length() > 0) {
+                String auth = "Basic ";
+                auth += _base64Authorization;
+                if(auth != client->base64Authorization) {
+                    DEBUG_WEBSOCKETS("[WS-Server][%d][handleHeader] HTTP Authorization failed!\n", client->num);
+                    handleAuthorizationFailed(client);
+                    return;
+                }
+            } else {
                 ok = false;
             }
         }

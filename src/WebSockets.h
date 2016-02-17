@@ -180,6 +180,8 @@ typedef struct {
         uint8_t cWsHeader[WEBSOCKETS_MAX_HEADER_SIZE]; ///< RX WS Message buffer
         WSMessageHeader_t cWsHeaderDecode;
 
+        String base64Authorization; ///< Base64 encoded Auth request
+
 #if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266_ASYNC)
         String cHttpLine;   ///< HTTP header lines
 #endif

@@ -77,6 +77,7 @@ void setup() {
     }
 
     webSocket.begin("192.168.0.123", 81);
+    //webSocket.setAuthorization("user", "Password"); // HTTP Basic Authorization
     webSocket.onEvent(webSocketEvent);
 
 }
