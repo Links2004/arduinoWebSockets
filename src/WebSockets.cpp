@@ -77,17 +77,18 @@ void WebSockets::clientDisconnect(WSclient_t * client, uint16_t code, char * rea
  * @param mask bool             add dummy mask to the frame (needed for web browser)
  * @param fin bool              can be used to send data in more then one frame (set fin on the last frame)
  * @param headerToPayload bool  set true if the payload has reserved 14 Byte at the beginning to dynamically add the Header (payload neet to be in RAM!)
+ * @return true if ok
  */
-void WebSockets::sendFrame(WSclient_t * client, WSopcode_t opcode, uint8_t * payload, size_t length, bool mask, bool fin, bool headerToPayload) {
+bool WebSockets::sendFrame(WSclient_t * client, WSopcode_t opcode, uint8_t * payload, size_t length, bool mask, bool fin, bool headerToPayload) {
 
     if(client->tcp && !client->tcp->connected()) {
         DEBUG_WEBSOCKETS("[WS][%d][sendFrame] not Connected!?\n", client->num);
-        return;
+        return false;
     }
 
     if(client->status != WSC_CONNECTED) {
         DEBUG_WEBSOCKETS("[WS][%d][sendFrame] not in WSC_CONNECTED state!?\n", client->num);
-        return;
+        return false;
     }
 
     DEBUG_WEBSOCKETS("[WS][%d][sendFrame] ------- send massage frame -------\n", client->num);
@@ -104,6 +105,7 @@ void WebSockets::sendFrame(WSclient_t * client, WSopcode_t opcode, uint8_t * pay
     uint8_t * headerPtr;
     uint8_t * payloadPtr = payload;
     bool useInternBuffer = false;
+    bool ret = true;
 
     // calculate header Size
     if(length < 126) {
@@ -231,14 +233,20 @@ void WebSockets::sendFrame(WSclient_t * client, WSopcode_t opcode, uint8_t * pay
         // header has be added to payload
         // payload is forced to reserved 14 Byte but we may not need all based on the length and mask settings
         // offset in payload is calculatetd 14 - headerSize
-        client->tcp->write(&payloadPtr[(WEBSOCKETS_MAX_HEADER_SIZE - headerSize)], (length + headerSize));
+        if(client->tcp->write(&payloadPtr[(WEBSOCKETS_MAX_HEADER_SIZE - headerSize)], (length + headerSize)) != (length + headerSize)) {
+            ret = false;
+        }
     } else {
         // send header
-        client->tcp->write(&buffer[0], headerSize);
+        if(client->tcp->write(&buffer[0], headerSize) != headerSize) {
+            ret = false;
+        }
 
         if(payloadPtr && length > 0) {
             // send payload
-            client->tcp->write(&payloadPtr[0], length);
+            if(client->tcp->write(&payloadPtr[0], length) != length) {
+                ret = false;
+            }
         }
     }
 
@@ -250,6 +258,7 @@ void WebSockets::sendFrame(WSclient_t * client, WSopcode_t opcode, uint8_t * pay
     }
 #endif
 
+    return ret;
 }
 
 /**

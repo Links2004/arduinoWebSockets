@@ -57,14 +57,14 @@ class WebSocketsClient: private WebSockets {
 
         void onEvent(WebSocketClientEvent cbEvent);
 
-        void sendTXT(uint8_t * payload, size_t length = 0, bool headerToPayload = false);
-        void sendTXT(const uint8_t * payload, size_t length = 0);
-        void sendTXT(char * payload, size_t length = 0, bool headerToPayload = false);
-        void sendTXT(const char * payload, size_t length = 0);
-        void sendTXT(String & payload);
+        bool sendTXT(uint8_t * payload, size_t length = 0, bool headerToPayload = false);
+        bool sendTXT(const uint8_t * payload, size_t length = 0);
+        bool sendTXT(char * payload, size_t length = 0, bool headerToPayload = false);
+        bool sendTXT(const char * payload, size_t length = 0);
+        bool sendTXT(String & payload);
 
-        void sendBIN(uint8_t * payload, size_t length, bool headerToPayload = false);
-        void sendBIN(const uint8_t * payload, size_t length);
+        bool sendBIN(uint8_t * payload, size_t length, bool headerToPayload = false);
+        bool sendBIN(const uint8_t * payload, size_t length);
 
         void disconnect(void);
 

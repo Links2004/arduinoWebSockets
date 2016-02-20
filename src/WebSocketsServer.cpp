@@ -124,34 +124,36 @@ void WebSocketsServer::onEvent(WebSocketServerEvent cbEvent) {
  * @param payload uint8_t *
  * @param length size_t
  * @param headerToPayload bool  (see sendFrame for more details)
+ * @return true if ok
  */
-void WebSocketsServer::sendTXT(uint8_t num, uint8_t * payload, size_t length, bool headerToPayload) {
+bool WebSocketsServer::sendTXT(uint8_t num, uint8_t * payload, size_t length, bool headerToPayload) {
     if(num >= WEBSOCKETS_SERVER_CLIENT_MAX) {
-        return;
+        return false;
     }
     if(length == 0) {
         length = strlen((const char *) payload);
     }
     WSclient_t * client = &_clients[num];
     if(clientIsConnected(client)) {
-        sendFrame(client, WSop_text, payload, length, false, true, headerToPayload);
+        return sendFrame(client, WSop_text, payload, length, false, true, headerToPayload);
     }
+    return false;
 }
 
-void WebSocketsServer::sendTXT(uint8_t num, const uint8_t * payload, size_t length) {
-    sendTXT(num, (uint8_t *) payload, length);
+bool WebSocketsServer::sendTXT(uint8_t num, const uint8_t * payload, size_t length) {
+    return sendTXT(num, (uint8_t *) payload, length);
 }
 
-void WebSocketsServer::sendTXT(uint8_t num, char * payload, size_t length, bool headerToPayload) {
-    sendTXT(num, (uint8_t *) payload, length, headerToPayload);
+bool WebSocketsServer::sendTXT(uint8_t num, char * payload, size_t length, bool headerToPayload) {
+    return sendTXT(num, (uint8_t *) payload, length, headerToPayload);
 }
 
-void WebSocketsServer::sendTXT(uint8_t num, const char * payload, size_t length) {
-    sendTXT(num, (uint8_t *) payload, length);
+bool WebSocketsServer::sendTXT(uint8_t num, const char * payload, size_t length) {
+    return sendTXT(num, (uint8_t *) payload, length);
 }
 
-void WebSocketsServer::sendTXT(uint8_t num, String & payload) {
-    sendTXT(num, (uint8_t *) payload.c_str(), payload.length());
+bool WebSocketsServer::sendTXT(uint8_t num, String & payload) {
+    return sendTXT(num, (uint8_t *) payload.c_str(), payload.length());
 }
 
 /**
@@ -159,9 +161,11 @@ void WebSocketsServer::sendTXT(uint8_t num, String & payload) {
  * @param payload uint8_t *
  * @param length size_t
  * @param headerToPayload bool  (see sendFrame for more details)
+ * @return true if ok
  */
-void WebSocketsServer::broadcastTXT(uint8_t * payload, size_t length, bool headerToPayload) {
+bool WebSocketsServer::broadcastTXT(uint8_t * payload, size_t length, bool headerToPayload) {
     WSclient_t * client;
+    bool ret = true;
     if(length == 0) {
         length = strlen((const char *) payload);
     }
@@ -169,28 +173,31 @@ void WebSocketsServer::broadcastTXT(uint8_t * payload, size_t length, bool heade
     for(uint8_t i = 0; i < WEBSOCKETS_SERVER_CLIENT_MAX; i++) {
         client = &_clients[i];
         if(clientIsConnected(client)) {
-            sendFrame(client, WSop_text, payload, length, false, true, headerToPayload);
+            if(!sendFrame(client, WSop_text, payload, length, false, true, headerToPayload)) {
+                ret = false;
+            }
         }
 #if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
         delay(0);
 #endif
     }
+    return ret;
 }
 
-void WebSocketsServer::broadcastTXT(const uint8_t * payload, size_t length) {
-    broadcastTXT((uint8_t *) payload, length);
+bool WebSocketsServer::broadcastTXT(const uint8_t * payload, size_t length) {
+    return broadcastTXT((uint8_t *) payload, length);
 }
 
-void WebSocketsServer::broadcastTXT(char * payload, size_t length, bool headerToPayload) {
-    broadcastTXT((uint8_t *) payload, length, headerToPayload);
+bool WebSocketsServer::broadcastTXT(char * payload, size_t length, bool headerToPayload) {
+    return broadcastTXT((uint8_t *) payload, length, headerToPayload);
 }
 
-void WebSocketsServer::broadcastTXT(const char * payload, size_t length) {
-    broadcastTXT((uint8_t *) payload, length);
+bool WebSocketsServer::broadcastTXT(const char * payload, size_t length) {
+    return broadcastTXT((uint8_t *) payload, length);
 }
 
-void WebSocketsServer::broadcastTXT(String & payload) {
-    broadcastTXT((uint8_t *) payload.c_str(), payload.length());
+bool WebSocketsServer::broadcastTXT(String & payload) {
+    return broadcastTXT((uint8_t *) payload.c_str(), payload.length());
 }
 
 /**
@@ -199,19 +206,21 @@ void WebSocketsServer::broadcastTXT(String & payload) {
  * @param payload uint8_t *
  * @param length size_t
  * @param headerToPayload bool  (see sendFrame for more details)
+ * @return true if ok
  */
-void WebSocketsServer::sendBIN(uint8_t num, uint8_t * payload, size_t length, bool headerToPayload) {
+bool WebSocketsServer::sendBIN(uint8_t num, uint8_t * payload, size_t length, bool headerToPayload) {
     if(num >= WEBSOCKETS_SERVER_CLIENT_MAX) {
-        return;
+        return false;
     }
     WSclient_t * client = &_clients[num];
     if(clientIsConnected(client)) {
-        sendFrame(client, WSop_binary, payload, length, false, true, headerToPayload);
+        return sendFrame(client, WSop_binary, payload, length, false, true, headerToPayload);
     }
+    return false;
 }
 
-void WebSocketsServer::sendBIN(uint8_t num, const uint8_t * payload, size_t length) {
-    sendBIN(num, (uint8_t *) payload, length);
+bool WebSocketsServer::sendBIN(uint8_t num, const uint8_t * payload, size_t length) {
+    return sendBIN(num, (uint8_t *) payload, length);
 }
 
 /**
@@ -219,22 +228,27 @@ void WebSocketsServer::sendBIN(uint8_t num, const uint8_t * payload, size_t leng
  * @param payload uint8_t *
  * @param length size_t
  * @param headerToPayload bool  (see sendFrame for more details)
+ * @return true if ok
  */
-void WebSocketsServer::broadcastBIN(uint8_t * payload, size_t length, bool headerToPayload) {
+bool WebSocketsServer::broadcastBIN(uint8_t * payload, size_t length, bool headerToPayload) {
     WSclient_t * client;
+    bool ret = true;
     for(uint8_t i = 0; i < WEBSOCKETS_SERVER_CLIENT_MAX; i++) {
         client = &_clients[i];
         if(clientIsConnected(client)) {
-            sendFrame(client, WSop_binary, payload, length, false, true, headerToPayload);
+            if(!sendFrame(client, WSop_binary, payload, length, false, true, headerToPayload)) {
+                ret = false;
+            }
         }
 #if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
         delay(0);
 #endif
     }
+    return ret;
 }
 
-void WebSocketsServer::broadcastBIN(const uint8_t * payload, size_t length) {
-    broadcastBIN((uint8_t *) payload, length);
+bool WebSocketsServer::broadcastBIN(const uint8_t * payload, size_t length) {
+    return broadcastBIN((uint8_t *) payload, length);
 }
 
 /**
