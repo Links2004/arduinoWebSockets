@@ -29,7 +29,7 @@ a WebSocket Server and Client for Arduino based on RFC6455.
  
 ###### Note: ######
 
-  version 2.0 is not compatible with AVR/ATmega, check ATmega branch.
+  version 2.0 and up is not compatible with AVR/ATmega, check ATmega branch.
   
   Arduino for AVR not supports std namespace of c++.
  
@@ -43,7 +43,7 @@ This libary can run in Async TCP mode on the ESP.
 
 The mode can be aktivated in the ```WebSockets.h``` (see WEBSOCKETS_NETWORK_TYPE define).
 
-```ESPAsyncTCP``` libary is required.
+[ESPAsyncTCP](https://github.com/me-no-dev/ESPAsyncTCP) libary is required.
 
 Note: in this mode wss / SSL is not possible.
 
