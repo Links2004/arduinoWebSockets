@@ -627,7 +627,7 @@ void WebSocketsServer::handleHeader(WSclient_t * client, String * headerLine) {
         DEBUG_WEBSOCKETS("[WS-Server][%d][handleHeader]  - cProtocol: %s\n", client->num, client->cProtocol.c_str());
         DEBUG_WEBSOCKETS("[WS-Server][%d][handleHeader]  - cExtensions: %s\n", client->num, client->cExtensions.c_str());
         DEBUG_WEBSOCKETS("[WS-Server][%d][handleHeader]  - cVersion: %d\n", client->num, client->cVersion);
-        DEBUG_WEBSOCKETS("[WS-Server][%d][handleHeader]  - base64Authorization: %s\n", client->num, client->base64Authorization);
+        DEBUG_WEBSOCKETS("[WS-Server][%d][handleHeader]  - base64Authorization: %s\n", client->num, client->base64Authorization.c_str());
 
         bool ok = (client->cIsUpgrade && client->cIsWebsocket);
 
