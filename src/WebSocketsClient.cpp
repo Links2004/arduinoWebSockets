@@ -397,8 +397,11 @@ void WebSocketsClient::sendHeader(WSclient_t * client) {
                         "Connection: Upgrade\r\n"
                         "User-Agent: arduino-WebSocket-Client\r\n"
                         "Sec-WebSocket-Version: 13\r\n"
-                        "Sec-WebSocket-Protocol: " + client->cProtocol +"\r\n"
                         "Sec-WebSocket-Key: " + client->cKey + "\r\n";
+
+    if(client->cProtocol.length() > 0) {
+        handshake += "Sec-WebSocket-Protocol: " + client->cProtocol + "\r\n";
+    }
 
     if(client->cExtensions.length() > 0) {
         handshake += "Sec-WebSocket-Extensions: " + client->cExtensions + "\r\n";
