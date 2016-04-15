@@ -48,12 +48,8 @@ class WebSocketsClient: private WebSockets {
         void beginSSL(String host, uint16_t port, String url = "/", String fingerprint = "", String protocol = "arduino");
 #endif
 
-#if (WEBSOCKETS_NETWORK_TYPE != NETWORK_ESP8266_ASYNC)
         void loop(void);
-#else
-        // Async interface not need a loop call
-        void loop(void) __attribute__ ((deprecated)) {}
-#endif
+
 
         void onEvent(WebSocketClientEvent cbEvent);
 

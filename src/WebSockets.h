@@ -30,7 +30,7 @@
 //#define DEBUG_WEBSOCKETS(...) os_printf( __VA_ARGS__ )
 
 /* recoonect time out */
-#define RECCONECT_TIMEOUT 5000
+#define RECONECT_TIMEOUT 5000
 
 #ifndef DEBUG_WEBSOCKETS
 #define DEBUG_WEBSOCKETS(...)
