@@ -112,6 +112,7 @@ void WebSocketsClient::loop(void) {
             DEBUG_WEBSOCKETS("[WS-Client] creating Network class failed!");
             return;
         }
+        DEBUG_WEBSOCKETS("[WS-Client] connect\n");
         if(_client.tcp->connect(_host.c_str(), _port)) {
             connectedCb();
         } else {
