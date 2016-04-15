@@ -100,7 +100,7 @@ void WebSocketsClient::beginSSL(String host, uint16_t port, String url, String f
 void WebSocketsClient::loop(void) {
     if (_client.status == WSC_CONNECTION_CLOSE)
     {
-      if (millis() - reconnectTimeout > RECCONECT_TIMEOUT)
+      if (millis() - reconnectTimeout > RECONECT_TIMEOUT)
       {
         _client.status = WSC_NOT_CONNECTED;
       }
