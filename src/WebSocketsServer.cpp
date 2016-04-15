@@ -68,10 +68,6 @@ void WebSocketsServer::begin(void) {
         client->num = i;
         client->status = WSC_NOT_CONNECTED;
         client->tcp = NULL;
-#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
-        client->isSSL = false;
-        client->ssl = NULL;
-#endif
         client->cUrl = "";
         client->cCode = 0;
         client->cKey = "";
@@ -342,7 +338,6 @@ bool WebSocketsServer::newClient(WEBSOCKETS_NETWORK_CLASS * TCPclient) {
             client->tcp = TCPclient;
 
 #if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
-            client->isSSL = false;
             client->tcp->setNoDelay(true);
 #endif
 #if (WEBSOCKETS_NETWORK_TYPE != NETWORK_ESP8266_ASYNC)
@@ -410,18 +405,6 @@ void WebSocketsServer::messageRecived(WSclient_t * client, WSopcode_t opcode, ui
  */
 void WebSocketsServer::clientDisconnect(WSclient_t * client) {
 
-
-#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
-    if(client->isSSL && client->ssl) {
-        if(client->ssl->connected()) {
-            client->ssl->flush();
-            client->ssl->stop();
-        }
-        delete client->ssl;
-        client->ssl = NULL;
-        client->tcp = NULL;
-    }
-#endif
 
     if(client->tcp) {
         if(client->tcp->connected()) {

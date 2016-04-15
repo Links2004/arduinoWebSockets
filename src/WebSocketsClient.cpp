@@ -27,8 +27,9 @@
 
 
 WebSocketsClient::WebSocketsClient() {
-    _cbEvent = NULL;
+    _cbEvent = nullptr;
     _client.num = 0;
+    _port = 80;
 }
 
 WebSocketsClient::~WebSocketsClient() {
@@ -39,6 +40,11 @@ WebSocketsClient::~WebSocketsClient() {
  * calles to init the Websockets server
  */
 void WebSocketsClient::begin(const char *host, uint16_t port, const char * url, const char * protocol) {
+  begin(host, port, url, protocol, false);
+}
+
+void WebSocketsClient::begin(const char *host, uint16_t port, const char * url, const char * protocol,
+                             const bool ssl) {
     _host = host;
     _port = port;
 #if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
@@ -47,11 +53,6 @@ void WebSocketsClient::begin(const char *host, uint16_t port, const char * url, 
 
     _client.num = 0;
     _client.status = WSC_NOT_CONNECTED;
-    _client.tcp = NULL;
-#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
-    _client.isSSL = false;
-    _client.ssl = NULL;
-#endif
     _client.cUrl = url;
     _client.cCode = 0;
     _client.cIsUpgrade = false;
@@ -62,6 +63,8 @@ void WebSocketsClient::begin(const char *host, uint16_t port, const char * url, 
     _client.cExtensions = "";
     _client.cVersion = 0;
     _client.base64Authorization = "";
+    if (_client.tcp) delete (_client.tcp);
+    _client.tcp = (ssl) ? new WiFiClientSecure() : new WiFiClient();
 
 #ifdef ESP8266
     randomSeed(RANDOM_REG32);
@@ -80,8 +83,7 @@ void WebSocketsClient::begin(String host, uint16_t port, String url, String prot
 
 #if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
 void WebSocketsClient::beginSSL(const char *host, uint16_t port, const char * url, const char * fingerprint, const char * protocol) {
-    begin(host, port, url, protocol);
-    _client.isSSL = true;
+    begin(host, port, url, protocol, true);
     _fingerprint = fingerprint;
 }
 
@@ -96,40 +98,24 @@ void WebSocketsClient::beginSSL(String host, uint16_t port, String url, String f
  * called in arduino loop
  */
 void WebSocketsClient::loop(void) {
+    if (_client.status == WSC_CONNECTION_CLOSE)
+    {
+      if (millis() - reconnectTimeout > RECCONECT_TIMEOUT)
+      {
+        _client.status = WSC_NOT_CONNECTED;
+      }
+      return;
+    }
+    reconnectTimeout = millis();
     if(!clientIsConnected(&_client)) {
-
-#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
-        if(_client.isSSL) {
-            DEBUG_WEBSOCKETS("[WS-Client] connect wss...\n");
-            if(_client.ssl) {
-                delete _client.ssl;
-                _client.ssl = NULL;
-                _client.tcp = NULL;
-            }
-            _client.ssl = new WiFiClientSecure();
-            _client.tcp = _client.ssl;
-        } else {
-            DEBUG_WEBSOCKETS("[WS-Client] connect ws...\n");
-            if(_client.tcp) {
-                delete _client.tcp;
-                _client.tcp = NULL;
-            }
-            _client.tcp = new WiFiClient();
-        }
-#else
-        _client.tcp = new WEBSOCKETS_NETWORK_CLASS();
-#endif
-
         if(!_client.tcp) {
             DEBUG_WEBSOCKETS("[WS-Client] creating Network class failed!");
             return;
         }
-
         if(_client.tcp->connect(_host.c_str(), _port)) {
             connectedCb();
         } else {
             connectFailedCb();
-            delay(10); //some little delay to not flood the server
         }
     } else {
         handleClientData();
@@ -267,19 +253,6 @@ void WebSocketsClient::clientDisconnect(WSclient_t * client) {
 
     bool event = false;
 
-#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
-    if(client->isSSL && client->ssl) {
-        if(client->ssl->connected()) {
-            client->ssl->flush();
-            client->ssl->stop();
-        }
-        event = true;
-        delete client->ssl;
-        client->ssl = NULL;
-        client->tcp = NULL;
-    }
-#endif
-
     if(client->tcp) {
         if(client->tcp->connected()) {
 #if (WEBSOCKETS_NETWORK_TYPE != NETWORK_ESP8266_ASYNC)
@@ -290,10 +263,7 @@ void WebSocketsClient::clientDisconnect(WSclient_t * client) {
         event = true;
 #if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266_ASYNC)
         client->status = WSC_NOT_CONNECTED;
-#else
-        delete client->tcp;
 #endif
-        client->tcp = NULL;
     }
 
     client->cCode = 0;
@@ -304,11 +274,11 @@ void WebSocketsClient::clientDisconnect(WSclient_t * client) {
     client->cIsUpgrade = false;
     client->cIsWebsocket = false;
 
-    client->status = WSC_NOT_CONNECTED;
+    client->status = WSC_CONNECTION_CLOSE;
 
     DEBUG_WEBSOCKETS("[WS-Client] client disconnected.\n");
     if(event) {
-        runCbEvent(WStype_DISCONNECTED, NULL, 0);
+        runCbEvent(WStype_DISCONNECTED, nullptr, 0);
     }
 }
 
@@ -539,7 +509,7 @@ void WebSocketsClient::connectedCb() {
     _client.tcp->onDisconnect(std::bind([](WebSocketsClient * c, AsyncTCPbuffer * obj, WSclient_t * client) -> bool {
         DEBUG_WEBSOCKETS("[WS-Server][%d] Disconnect client\n", client->num);
         client->status = WSC_NOT_CONNECTED;
-        client->tcp = NULL;
+        client->tcp = nullptr;
 
         // reconnect
         c->asyncConnect();
@@ -558,8 +528,8 @@ void WebSocketsClient::connectedCb() {
 #if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
     _client.tcp->setNoDelay(true);
 
-    if(_client.isSSL && _fingerprint.length()) {
-        if(!_client.ssl->verify(_fingerprint.c_str(), _host.c_str())) {
+    if(_fingerprint.length()) {
+        if(!((WiFiClientSecure*)_client.tcp)->verify(_fingerprint.c_str(), _host.c_str())) {
             DEBUG_WEBSOCKETS("[WS-Client] certificate mismatch\n");
             WebSockets::clientDisconnect(&_client, 1000);
             return;
@@ -575,6 +545,7 @@ void WebSocketsClient::connectedCb() {
 
 void WebSocketsClient::connectFailedCb() {
     DEBUG_WEBSOCKETS("[WS-Client] connection to %s:%u Faild\n", _host.c_str(), _port);
+    _client.status = WSC_CONNECTION_CLOSE;
 }
 
 #if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266_ASYNC)

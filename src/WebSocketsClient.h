@@ -112,7 +112,10 @@ class WebSocketsClient: private WebSockets {
                 _cbEvent(type, payload, length);
             }
         }
-
+    private:
+        ulong reconnectTimeout = 0;
+        void begin(const char *host, uint16_t port, const char * url, const char * protocol,
+                                     const bool ssl);
 };
 
 #endif /* WEBSOCKETSCLIENT_H_ */

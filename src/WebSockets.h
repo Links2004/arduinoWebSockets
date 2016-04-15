@@ -29,6 +29,9 @@
 
 //#define DEBUG_WEBSOCKETS(...) os_printf( __VA_ARGS__ )
 
+/* recoonect time out */
+#define RECCONECT_TIMEOUT 5000
+
 #ifndef DEBUG_WEBSOCKETS
 #define DEBUG_WEBSOCKETS(...)
 #define NODEBUG_WEBSOCKETS
@@ -115,7 +118,8 @@
 typedef enum {
     WSC_NOT_CONNECTED,
     WSC_HEADER,
-    WSC_CONNECTED
+    WSC_CONNECTED,
+    WSC_CONNECTION_CLOSE
 } WSclientsStatus_t;
 
 typedef enum {
@@ -157,12 +161,7 @@ typedef struct {
 
         WSclientsStatus_t status;
 
-        WEBSOCKETS_NETWORK_CLASS * tcp;
-
-#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
-        bool isSSL;             ///< run in ssl mode
-        WiFiClientSecure * ssl;
-#endif
+        WEBSOCKETS_NETWORK_CLASS * tcp = nullptr;
 
         String cUrl;        ///< http url
         uint16_t cCode;     ///< http code
