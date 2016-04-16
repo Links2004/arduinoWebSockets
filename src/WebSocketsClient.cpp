@@ -110,9 +110,8 @@ void WebSocketsClient::loop(void) {
         asyncConnect();
 #endif
       }
-      else return;
+      return;
     }
-    else reconnectTimeout = millis();
 #if (WEBSOCKETS_NETWORK_TYPE != NETWORK_ESP8266_ASYNC)
     if(!clientIsConnected(&_client)) {
         if(!_client.tcp) {
@@ -282,12 +281,12 @@ void WebSocketsClient::clientDisconnect(WSclient_t * client) {
     client->cIsUpgrade = false;
     client->cIsWebsocket = false;
 
-    client->status = WSC_CONNECTION_CLOSE;
 
     DEBUG_WEBSOCKETS("[WS-Client] client disconnected.\n");
     if(event) {
         runCbEvent(WStype_DISCONNECTED, nullptr, 0);
     }
+    connectFailedCb();
 }
 
 /**
@@ -551,6 +550,7 @@ void WebSocketsClient::connectedCb() {
 void WebSocketsClient::connectFailedCb() {
     DEBUG_WEBSOCKETS("[WS-Client] connection to %s:%u Faild\n", _host.c_str(), _port);
     _client.status = WSC_CONNECTION_CLOSE;
+    reconnectTimeout = millis();
 }
 
 #if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266_ASYNC)
