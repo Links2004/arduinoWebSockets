@@ -329,7 +329,6 @@ void WebSockets::handleWebsocketCb(WSclient_t * client) {
     uint8_t * buffer = client->cWsHeader;
 
     WSMessageHeader_t * header = &client->cWsHeaderDecode;
-    uint8_t * payload = NULL;
 
     uint8_t headerLen = 2;
 
@@ -393,8 +392,7 @@ void WebSockets::handleWebsocketCb(WSclient_t * client) {
 
     if(header->payloadLen > 0) {
         // if text data we need one more
-        payload = (uint8_t *) malloc(header->payloadLen + 1);
-
+        uint8_t * payload = (uint8_t *) malloc(header->payloadLen + 1);
         if(!payload) {
             DEBUG_WEBSOCKETS("[WS][%d][handleWebsocket] to less memory to handle payload %d!\n", client->num, header->payloadLen);
             clientDisconnect(client, 1011);
@@ -459,9 +457,6 @@ void WebSockets::handleWebsocketPayloadCb(WSclient_t * client, bool ok, uint8_t 
                 break;
         }
 
-        if(payload) {
-            free(payload);
-        }
 
         // reset input
         client->cWsRXsize = 0;
@@ -469,12 +464,15 @@ void WebSockets::handleWebsocketPayloadCb(WSclient_t * client, bool ok, uint8_t 
         //register callback for next message
         handleWebsocketWaitFor(client, 2);
 #endif
-
     } else {
         DEBUG_WEBSOCKETS("[WS][%d][handleWebsocket] missing data!\n", client->num);
-        free(payload);
         clientDisconnect(client, 1002);
     }
+
+    if(payload) {
+        free(payload);
+    }
+
 }
 
 /**

@@ -168,7 +168,7 @@ bool WebSocketsClient::sendTXT(const char * payload, size_t length) {
     return sendTXT((uint8_t *) payload, length);
 }
 
-bool WebSocketsClient::sendTXT(String & payload) {
+bool WebSocketsClient::sendTXT(const String & payload) {
     return sendTXT((uint8_t *) payload.c_str(), payload.length());
 }
 
@@ -249,10 +249,6 @@ void WebSocketsClient::messageRecived(WSclient_t * client, WSopcode_t opcode, ui
     }
 
     runCbEvent(type, payload, lenght);
-
-#if (WEBSOCKETS_NETWORK_TYPE != NETWORK_ESP8266_ASYNC)
-            client->tcp->flush();
-#endif
 
 }
 
