@@ -38,7 +38,7 @@ class WebSocketsClient: private WebSockets {
 
 
         WebSocketsClient(void);
-        ~WebSocketsClient(void);
+        virtual ~WebSocketsClient(void);
 
         void begin(const char *host, uint16_t port, const char * url = "/", const char * protocol = "arduino");
         void begin(String host, uint16_t port, String url = "/", String protocol = "arduino");
@@ -80,7 +80,7 @@ class WebSocketsClient: private WebSockets {
 
         void messageRecived(WSclient_t * client, WSopcode_t opcode, uint8_t * payload, size_t length);
 
-        void clientDisconnect(WSclient_t * client);
+        void clientDisconnectV(WSclient_t * client);
         bool clientIsConnected(WSclient_t * client);
 
 #if (WEBSOCKETS_NETWORK_TYPE != NETWORK_ESP8266_ASYNC)

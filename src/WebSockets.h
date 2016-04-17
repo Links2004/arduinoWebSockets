@@ -190,19 +190,20 @@ typedef struct {
 
 
 class WebSockets {
+    private:
+
     protected:
 #ifdef __AVR__
         typedef void (*WSreadWaitCb)(WSclient_t * client, bool ok);
 #else
         typedef std::function<void(WSclient_t * client, bool ok)> WSreadWaitCb;
 #endif
-
-        virtual void clientDisconnect(WSclient_t * client);
-        virtual bool clientIsConnected(WSclient_t * client);
-
-        virtual void messageRecived(WSclient_t * client, WSopcode_t opcode, uint8_t * payload, size_t length);
-
         void clientDisconnect(WSclient_t * client, uint16_t code, char * reason = NULL, size_t reasonLen = 0);
+
+        virtual void clientDisconnectV(WSclient_t * client) = 0;
+        virtual bool clientIsConnected(WSclient_t * client) = 0;
+        virtual void messageRecived(WSclient_t * client, WSopcode_t opcode, uint8_t * payload, size_t length) = 0;
+
         bool sendFrame(WSclient_t * client, WSopcode_t opcode, uint8_t * payload = NULL, size_t length = 0, bool mask = false, bool fin = true, bool headerToPayload = false);
 
         void headerDone(WSclient_t * client);
@@ -218,7 +219,7 @@ class WebSockets {
 
         bool readCb(WSclient_t * client, uint8_t *out, size_t n, WSreadWaitCb cb);
 
-
+        virtual ~WebSockets() {};
 };
 
 #endif /* WEBSOCKETS_H_ */

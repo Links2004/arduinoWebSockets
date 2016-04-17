@@ -250,13 +250,17 @@ void WebSocketsClient::messageRecived(WSclient_t * client, WSopcode_t opcode, ui
 
     runCbEvent(type, payload, lenght);
 
+#if (WEBSOCKETS_NETWORK_TYPE != NETWORK_ESP8266_ASYNC)
+            client->tcp->flush();
+#endif
+
 }
 
 /**
  * Disconnect an client
  * @param client WSclient_t *  ptr to the client struct
  */
-void WebSocketsClient::clientDisconnect(WSclient_t * client) {
+void WebSocketsClient::clientDisconnectV(WSclient_t * client) {
 
     bool event = false;
 
@@ -309,13 +313,13 @@ bool WebSocketsClient::clientIsConnected(WSclient_t * client) {
         if(client->status != WSC_NOT_CONNECTED) {
             DEBUG_WEBSOCKETS("[WS-Client] connection lost.\n");
             // do cleanup
-            clientDisconnect(client);
+            clientDisconnectV(client);
         }
     }
 
     if(client->tcp) {
         // do cleanup
-        clientDisconnect(client);
+        clientDisconnectV(client);
     }
 
     return false;
@@ -473,7 +477,7 @@ void WebSocketsClient::handleHeader(WSclient_t * client, String * headerLine) {
                 default:   ///< Server dont unterstand requrst
                     ok = false;
                     DEBUG_WEBSOCKETS("[WS-Client][handleHeader] serverCode is not 101 (%d)\n", client->cCode);
-                    clientDisconnect(client);
+                    clientDisconnectV(client);
                     break;
             }
         }
@@ -503,7 +507,7 @@ void WebSocketsClient::handleHeader(WSclient_t * client, String * headerLine) {
         } else {
             DEBUG_WEBSOCKETS("[WS-Client][handleHeader] no Websocket connection close.\n");
             client->tcp->write("This is a webSocket client!");
-            clientDisconnect(client);
+            clientDisconnectV(client);
         }
     }
 }

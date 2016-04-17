@@ -65,7 +65,7 @@ void WebSockets::clientDisconnect(WSclient_t * client, uint16_t code, char * rea
             sendFrame(client, WSop_close, &buffer[0], 2);
         }
     }
-    clientDisconnect(client);
+    clientDisconnectV(client);
 }
 
 /**
