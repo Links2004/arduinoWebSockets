@@ -28,7 +28,7 @@
 #include <Arduino.h>
 #include "WebSockets.h"
 
-#define WEBSOCKETS_SERVER_CLIENT_MAX  (5)
+#define WEBSOCKETS_SERVER_CLIENT_MAX  (1)
 
 
 
@@ -43,7 +43,7 @@ public:
 #endif
 
         WebSocketsServer(uint16_t port, String origin = "", String protocol = "arduino");
-        ~WebSocketsServer(void);
+        virtual ~WebSocketsServer(void);
 
         void begin(void);
 
@@ -101,7 +101,7 @@ protected:
 
         void messageRecived(WSclient_t * client, WSopcode_t opcode, uint8_t * payload, size_t length);
 
-        void clientDisconnect(WSclient_t * client);
+        void clientDisconnectV(WSclient_t * client);
         bool clientIsConnected(WSclient_t * client);
 
 #if (WEBSOCKETS_NETWORK_TYPE != NETWORK_ESP8266_ASYNC)
@@ -127,7 +127,7 @@ protected:
                     "Sec-WebSocket-Version: 13\r\n"
                     "\r\n"
                     "This is a Websocket server only!");
-            clientDisconnect(client);
+            clientDisconnectV(client);
         }
 
         /**
@@ -146,7 +146,7 @@ protected:
                     "WWW-Authenticate: Basic realm=\"WebSocket Server\""
                     "\r\n"
                     "This Websocket server requires Authorization!");
-            clientDisconnect(client);
+            clientDisconnectV(client);
         }
 
         /**

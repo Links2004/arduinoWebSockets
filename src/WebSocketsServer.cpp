@@ -255,7 +255,7 @@ void WebSocketsServer::disconnect(void) {
     for(uint8_t i = 0; i < WEBSOCKETS_SERVER_CLIENT_MAX; i++) {
         client = &_clients[i];
         if(clientIsConnected(client)) {
-            WebSockets::clientDisconnect(client, 1000);
+            clientDisconnect(client, 1000);
         }
     }
 }
@@ -270,7 +270,7 @@ void WebSocketsServer::disconnect(uint8_t num) {
     }
     WSclient_t * client = &_clients[num];
     if(clientIsConnected(client)) {
-        WebSockets::clientDisconnect(client, 1000);
+        clientDisconnect(client, 1000);
     }
 }
 
@@ -403,7 +403,7 @@ void WebSocketsServer::messageRecived(WSclient_t * client, WSopcode_t opcode, ui
  * Disconnect an client
  * @param client WSclient_t *  ptr to the client struct
  */
-void WebSocketsServer::clientDisconnect(WSclient_t * client) {
+void WebSocketsServer::clientDisconnectV(WSclient_t * client) {
 
 
     if(client->tcp) {
@@ -461,14 +461,14 @@ bool WebSocketsServer::clientIsConnected(WSclient_t * client) {
         if(client->status != WSC_NOT_CONNECTED) {
             DEBUG_WEBSOCKETS("[WS-Server][%d] client connection lost.\n", client->num);
             // do cleanup
-            clientDisconnect(client);
+            clientDisconnectV(client);
         }
     }
 
     if(client->tcp) {
         // do cleanup
         DEBUG_WEBSOCKETS("[WS-Server][%d] client list cleanup.\n", client->num);
-        clientDisconnect(client);
+        clientDisconnectV(client);
     }
 
     return false;

@@ -34,6 +34,10 @@ WebSocketsClient::WebSocketsClient() {
 
 WebSocketsClient::~WebSocketsClient() {
     disconnect();
+    if (_client.tcp)
+    {
+      delete _client.tcp;
+    }
 }
 
 /**
