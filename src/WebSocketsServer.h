@@ -119,14 +119,15 @@ protected:
          */
         virtual void handleNonWebsocketConnection(WSclient_t * client) {
             DEBUG_WEBSOCKETS("[WS-Server][%d][handleHeader] no Websocket connection close.\n", client->num);
-            client->tcp->write("HTTP/1.1 400 Bad Request\r\n"
+
+            client->tcp->print(F("HTTP/1.1 400 Bad Request\r\n"
                     "Server: arduino-WebSocket-Server\r\n"
                     "Content-Type: text/plain\r\n"
                     "Content-Length: 32\r\n"
                     "Connection: close\r\n"
                     "Sec-WebSocket-Version: 13\r\n"
                     "\r\n"
-                    "This is a Websocket server only!");
+                    "This is a Websocket server only!"));
             clientDisconnectV(client);
         }
 
@@ -137,7 +138,7 @@ protected:
          */
         virtual void handleAuthorizationFailed(WSclient_t *client) {
 
-            client->tcp->write("HTTP/1.1 401 Unauthorized\r\n"
+            client->tcp->print(F("HTTP/1.1 401 Unauthorized\r\n"
                     "Server: arduino-WebSocket-Server\r\n"
                     "Content-Type: text/plain\r\n"
                     "Content-Length: 45\r\n"
@@ -145,7 +146,7 @@ protected:
                     "Sec-WebSocket-Version: 13\r\n"
                     "WWW-Authenticate: Basic realm=\"WebSocket Server\""
                     "\r\n"
-                    "This Websocket server requires Authorization!");
+                    "This Websocket server requires Authorization!"));
             clientDisconnectV(client);
         }
 
