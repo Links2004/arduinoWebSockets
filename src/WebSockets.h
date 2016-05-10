@@ -181,6 +181,7 @@ typedef struct {
         WSMessageHeader_t cWsHeaderDecode;
 
         String base64Authorization; ///< Base64 encoded Auth request
+        String plainAuthorization; ///< Base64 encoded Auth request
 
 #if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266_ASYNC)
         String cHttpLine;   ///< HTTP header lines
