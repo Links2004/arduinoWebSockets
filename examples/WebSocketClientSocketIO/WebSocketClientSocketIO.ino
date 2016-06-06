@@ -99,7 +99,7 @@ void loop() {
 
         uint64_t now = millis();
 
-        if(now - messageTimestamp > INTERVAL) {
+        if(now - messageTimestamp > MESSAGE_INTERVAL) {
             messageTimestamp = now;
             // example socket.io message with type "messageType" and JSON payload
             webSocket.sendTXT("42[\"messageType\",{\"greeting\":\"hello\"}]");
