@@ -159,6 +159,8 @@ typedef struct {
 
         WEBSOCKETS_NETWORK_CLASS * tcp;
 
+        bool isSocketIO;    ///< client for socket.io server
+
 #if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
         bool isSSL;             ///< run in ssl mode
         WiFiClientSecure * ssl;
@@ -170,6 +172,7 @@ typedef struct {
         bool cIsUpgrade;    ///< Connection == Upgrade
         bool cIsWebsocket;  ///< Upgrade == websocket
 
+        String cSessionId;  ///< client Set-Cookie (session id)
         String cKey;        ///< client Sec-WebSocket-Key
         String cAccept;     ///< client Sec-WebSocket-Accept
         String cProtocol;   ///< client Sec-WebSocket-Protocol
