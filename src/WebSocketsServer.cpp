@@ -40,6 +40,9 @@ WebSocketsServer::WebSocketsServer(uint16_t port, String origin, String protocol
 
     _cbEvent = NULL;
 
+    _httpHeaderValidationFunc = NULL;
+    _mandatoryHttpHeaders = NULL;
+    _mandatoryHttpHeaderCount = 0;
 }
 
 
@@ -53,10 +56,14 @@ WebSocketsServer::~WebSocketsServer() {
     // TODO how to close server?
 #endif
 
+    if (_mandatoryHttpHeaders)
+        delete[] _mandatoryHttpHeaders;
+
+    _mandatoryHttpHeaderCount = 0;
 }
 
 /**
- * calles to init the Websockets server
+ * called to initialize the Websocket server
  */
 void WebSocketsServer::begin(void) {
     WSclient_t * client;
@@ -83,6 +90,7 @@ void WebSocketsServer::begin(void) {
         client->base64Authorization = "";
 
         client->cWsRXsize = 0;
+
 #if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266_ASYNC)
         client->cHttpLine = "";
 #endif
@@ -118,7 +126,30 @@ void WebSocketsServer::onEvent(WebSocketServerEvent cbEvent) {
     _cbEvent = cbEvent;
 }
 
-/**
+/*
+ * Sets the custom http header validator function
+ * If this functionality is being used, call this function prior to calling WebSocketsServer::begin
+ * @param httpHeaderValidationFunc WebSocketServerHttpHeaderValFunc ///< pointer to the custom http header validation function
+ * @param mandatoryHttpHeaders const char* ///< the array of named http headers considered to be mandatory / must be present in order for websocket upgrade to succeed
+ */
+void WebSocketsServer::onValidateHttpHeader(
+	WebSocketServerHttpHeaderValFunc validationFunc,
+	const char* mandatoryHttpHeaders[])
+{
+	_httpHeaderValidationFunc = validationFunc;
+
+	if (_mandatoryHttpHeaders)
+		delete[] _mandatoryHttpHeaders;
+
+	_mandatoryHttpHeaderCount = (sizeof(mandatoryHttpHeaders) / sizeof(char*));
+	_mandatoryHttpHeaders = new String[_mandatoryHttpHeaderCount];
+
+	for (size_t i = 0; i < _mandatoryHttpHeaderCount; i++) {
+		_mandatoryHttpHeaders[i] = mandatoryHttpHeaders[i];
+	}
+}
+
+/*
  * send text data to client
  * @param num uint8_t client id
  * @param payload uint8_t *
@@ -279,9 +310,8 @@ void WebSocketsServer::disconnect(uint8_t num) {
 }
 
 
-
-/**
- * set the Authorizatio for the http request
+/*
+ * set the Authorization for the http request
  * @param user const char *
  * @param password const char *
  */
@@ -388,7 +418,7 @@ bool WebSocketsServer::newClient(WEBSOCKETS_NETWORK_CLASS * TCPclient) {
  * @param payload  uint8_t *
  * @param lenght size_t
  */
-void WebSocketsServer::messageRecived(WSclient_t * client, WSopcode_t opcode, uint8_t * payload, size_t lenght) {
+void WebSocketsServer::messageReceived(WSclient_t * client, WSopcode_t opcode, uint8_t * payload, size_t lenght) {
     WStype_t type = WStype_ERROR;
 
     switch(opcode) {
@@ -446,6 +476,7 @@ void WebSocketsServer::clientDisconnect(WSclient_t * client) {
     client->cIsWebsocket = false;
 
     client->cWsRXsize = 0;
+
 #if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266_ASYNC)
     client->cHttpLine = "";
 #endif
@@ -461,7 +492,7 @@ void WebSocketsServer::clientDisconnect(WSclient_t * client) {
 /**
  * get client state
  * @param client WSclient_t *  ptr to the client struct
- * @return true = conneted
+ * @return true = connected
  */
 bool WebSocketsServer::clientIsConnected(WSclient_t * client) {
 
@@ -492,7 +523,7 @@ bool WebSocketsServer::clientIsConnected(WSclient_t * client) {
 }
 #if (WEBSOCKETS_NETWORK_TYPE != NETWORK_ESP8266_ASYNC)
 /**
- * Handle incomming Connection Request
+ * Handle incoming Connection Request
  */
 void WebSocketsServer::handleNewClients(void) {
 
@@ -569,10 +600,22 @@ void WebSocketsServer::handleClientData(void) {
 }
 #endif
 
+/*
+ * returns an indicator whether the given named header exists in the configured _mandatoryHttpHeaders collection
+ * @param headerName String ///< the name of the header being checked
+ */
+bool WebSocketsServer::hasMandatoryHeader(String headerName) {
+	for (size_t i = 0; i < _mandatoryHttpHeaderCount; i++) {
+		if (_mandatoryHttpHeaders[i].equalsIgnoreCase(headerName))
+			return true;
+	}
+	return false;
+}
 
 /**
- * handle the WebSocket header reading
- * @param client WSclient_t *  ptr to the client struct
+ * handles http header reading for WebSocket upgrade
+ * @param client WSclient_t * ///< pointer to the client struct
+ * @param headerLine String ///< the header being read / processed
  */
 void WebSocketsServer::handleHeader(WSclient_t * client, String * headerLine) {
 
@@ -581,10 +624,16 @@ void WebSocketsServer::handleHeader(WSclient_t * client, String * headerLine) {
     if(headerLine->length() > 0) {
         DEBUG_WEBSOCKETS("[WS-Server][%d][handleHeader] RX: %s\n", client->num, headerLine->c_str());
 
-        // websocket request starts allways with GET see rfc6455
+        // websocket requests always start with GET see rfc6455
         if(headerLine->startsWith("GET ")) {
+
             // cut URL out
             client->cUrl = headerLine->substring(4, headerLine->indexOf(' ', 4));
+
+            //reset non-websocket http header validation state for this client
+			client->cHttpHeadersValid = true;
+			client->cMandatoryHeadersCount = 0;
+
         } else if(headerLine->indexOf(':')) {
             String headerName = headerLine->substring(0, headerLine->indexOf(':'));
             String headerValue = headerLine->substring(headerLine->indexOf(':') + 2);
@@ -609,7 +658,13 @@ void WebSocketsServer::handleHeader(WSclient_t * client, String * headerLine) {
                 client->cExtensions = headerValue;
             } else if(headerName.equalsIgnoreCase("Authorization")) {
                 client->base64Authorization = headerValue;
+            } else {
+            	client->cHttpHeadersValid &= execHttpHeaderValidation(headerName, headerValue);
+            	if (_mandatoryHttpHeaderCount > 0 && hasMandatoryHeader(headerName)) {
+            		client->cMandatoryHeadersCount++;
+            	}
             }
+
         } else {
             DEBUG_WEBSOCKETS("[WS-Client][handleHeader] Header error (%s)\n", headerLine->c_str());
         }
@@ -619,8 +674,8 @@ void WebSocketsServer::handleHeader(WSclient_t * client, String * headerLine) {
         client->tcp->readStringUntil('\n', &(client->cHttpLine), std::bind(&WebSocketsServer::handleHeader, this, client, &(client->cHttpLine)));
 #endif
     } else {
-        DEBUG_WEBSOCKETS("[WS-Server][%d][handleHeader] Header read fin.\n", client->num);
 
+        DEBUG_WEBSOCKETS("[WS-Server][%d][handleHeader] Header read fin.\n", client->num);
         DEBUG_WEBSOCKETS("[WS-Server][%d][handleHeader]  - cURL: %s\n", client->num, client->cUrl.c_str());
         DEBUG_WEBSOCKETS("[WS-Server][%d][handleHeader]  - cIsUpgrade: %d\n", client->num, client->cIsUpgrade);
         DEBUG_WEBSOCKETS("[WS-Server][%d][handleHeader]  - cIsWebsocket: %d\n", client->num, client->cIsWebsocket);
@@ -629,6 +684,8 @@ void WebSocketsServer::handleHeader(WSclient_t * client, String * headerLine) {
         DEBUG_WEBSOCKETS("[WS-Server][%d][handleHeader]  - cExtensions: %s\n", client->num, client->cExtensions.c_str());
         DEBUG_WEBSOCKETS("[WS-Server][%d][handleHeader]  - cVersion: %d\n", client->num, client->cVersion);
         DEBUG_WEBSOCKETS("[WS-Server][%d][handleHeader]  - base64Authorization: %s\n", client->num, client->base64Authorization.c_str());
+        DEBUG_WEBSOCKETS("[WS-Server][%d][handleHeader]  - cHttpHeadersValid: %d\n", client->num, client->cHttpHeadersValid);
+        DEBUG_WEBSOCKETS("[WS-Server][%d][handleHeader]  - cMandatoryHeadersCount: %d\n", client->num, client->cMandatoryHeadersCount);
 
         bool ok = (client->cIsUpgrade && client->cIsWebsocket);
 
@@ -641,6 +698,12 @@ void WebSocketsServer::handleHeader(WSclient_t * client, String * headerLine) {
             }
             if(client->cVersion != 13) {
                 ok = false;
+            }
+            if(!client->cHttpHeadersValid) {
+            	ok = false;
+            }
+            if (client->cMandatoryHeadersCount != _mandatoryHttpHeaderCount) {
+            	ok = false;
             }
         }
 
