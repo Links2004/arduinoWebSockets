@@ -128,7 +128,6 @@ void WebSocketsServer::onEvent(WebSocketServerEvent cbEvent) {
 
 /*
  * Sets the custom http header validator function
- * If this functionality is being used, call this function prior to calling WebSocketsServer::begin
  * @param httpHeaderValidationFunc WebSocketServerHttpHeaderValFunc ///< pointer to the custom http header validation function
  * @param mandatoryHttpHeaders const char* ///< the array of named http headers considered to be mandatory / must be present in order for websocket upgrade to succeed
  */

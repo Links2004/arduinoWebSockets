@@ -1,7 +1,7 @@
 /*
- * WebSocketServer.ino
+ * WebSocketServerHttpHeaderValidation.ino
  *
- *  Created on: 22.05.2015
+ *  Created on: 08.06.2016
  *
  */
 
