@@ -75,7 +75,8 @@ void setup() {
 
     //connecting clients must supply a valid session cookie at websocket upgrade handshake negotiation time
     const char * headerkeys[] = { "Cookie" };
-    webSocket.onValidateHttpHeader(validateHttpHeader, headerkeys);
+    size_t headerKeyCount = sizeof(headerkeys) / sizeof(char*);
+    webSocket.onValidateHttpHeader(validateHttpHeader, headerkeys, headerKeyCount);
     webSocket.begin();
 }
 

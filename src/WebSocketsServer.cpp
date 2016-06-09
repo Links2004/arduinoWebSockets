@@ -129,18 +129,20 @@ void WebSocketsServer::onEvent(WebSocketServerEvent cbEvent) {
 /*
  * Sets the custom http header validator function
  * @param httpHeaderValidationFunc WebSocketServerHttpHeaderValFunc ///< pointer to the custom http header validation function
- * @param mandatoryHttpHeaders const char* ///< the array of named http headers considered to be mandatory / must be present in order for websocket upgrade to succeed
+ * @param mandatoryHttpHeaders[] const char* ///< the array of named http headers considered to be mandatory / must be present in order for websocket upgrade to succeed
+ * @param mandatoryHttpHeaderCount size_t ///< the number of items in the mandatoryHttpHeaders array
  */
 void WebSocketsServer::onValidateHttpHeader(
 	WebSocketServerHttpHeaderValFunc validationFunc,
-	const char* mandatoryHttpHeaders[])
+	const char* mandatoryHttpHeaders[],
+	size_t mandatoryHttpHeaderCount)
 {
 	_httpHeaderValidationFunc = validationFunc;
 
 	if (_mandatoryHttpHeaders)
 		delete[] _mandatoryHttpHeaders;
 
-	_mandatoryHttpHeaderCount = (sizeof(mandatoryHttpHeaders) / sizeof(char*));
+	_mandatoryHttpHeaderCount = mandatoryHttpHeaderCount;
 	_mandatoryHttpHeaders = new String[_mandatoryHttpHeaderCount];
 
 	for (size_t i = 0; i < _mandatoryHttpHeaderCount; i++) {

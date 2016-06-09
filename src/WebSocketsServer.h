@@ -57,7 +57,10 @@ public:
 #endif
 
         void onEvent(WebSocketServerEvent cbEvent);
-        void onValidateHttpHeader(WebSocketServerHttpHeaderValFunc validationFunc, const char* mandatoryHttpHeaders[]);
+        void onValidateHttpHeader(
+			WebSocketServerHttpHeaderValFunc validationFunc,
+			const char* mandatoryHttpHeaders[],
+			size_t mandatoryHttpHeaderCount);
 
 
         bool sendTXT(uint8_t num, uint8_t * payload, size_t length = 0, bool headerToPayload = false);
