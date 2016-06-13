@@ -38,8 +38,10 @@ public:
 
 #ifdef __AVR__
         typedef void (*WebSocketServerEvent)(uint8_t num, WStype_t type, uint8_t * payload, size_t length);
+        typedef bool (*WebSocketServerHttpHeaderValFunc)(String headerName, String headerValue);
 #else
         typedef std::function<void (uint8_t num, WStype_t type, uint8_t * payload, size_t length)> WebSocketServerEvent;
+        typedef std::function<bool (String headerName, String headerValue)> WebSocketServerHttpHeaderValFunc;
 #endif
 
         WebSocketsServer(uint16_t port, String origin = "", String protocol = "arduino");
@@ -55,6 +57,10 @@ public:
 #endif
 
         void onEvent(WebSocketServerEvent cbEvent);
+        void onValidateHttpHeader(
+			WebSocketServerHttpHeaderValFunc validationFunc,
+			const char* mandatoryHttpHeaders[],
+			size_t mandatoryHttpHeaderCount);
 
 
         bool sendTXT(uint8_t num, uint8_t * payload, size_t length = 0, bool headerToPayload = false);
@@ -90,16 +96,19 @@ protected:
         String _origin;
         String _protocol;
         String _base64Authorization; ///< Base64 encoded Auth request
+        String * _mandatoryHttpHeaders;
+        size_t _mandatoryHttpHeaderCount;
 
         WEBSOCKETS_NETWORK_SERVER_CLASS * _server;
 
         WSclient_t _clients[WEBSOCKETS_SERVER_CLIENT_MAX];
 
         WebSocketServerEvent _cbEvent;
+        WebSocketServerHttpHeaderValFunc _httpHeaderValidationFunc;
 
         bool newClient(WEBSOCKETS_NETWORK_CLASS * TCPclient);
 
-        void messageRecived(WSclient_t * client, WSopcode_t opcode, uint8_t * payload, size_t length);
+        void messageReceived(WSclient_t * client, WSopcode_t opcode, uint8_t * payload, size_t length);
 
         void clientDisconnect(WSclient_t * client);
         bool clientIsConnected(WSclient_t * client);
@@ -110,7 +119,6 @@ protected:
 #endif
 
         void handleHeader(WSclient_t * client, String * headerLine);
-
 
         /**
          * called if a non Websocket connection is coming in.
@@ -161,6 +169,30 @@ protected:
                 _cbEvent(num, type, payload, length);
             }
         }
+
+        /*
+         * Called at client socket connect handshake negotiation time for each http header that is not
+         * a websocket specific http header (not Connection, Upgrade, Sec-WebSocket-*)
+         * If the custom httpHeaderValidationFunc returns false for any headerName / headerValue passed, the
+         * socket negotiation is considered invalid and the upgrade to websockets request is denied / rejected
+         * This mechanism can be used to enable custom authentication schemes e.g. test the value
+         * of a session cookie to determine if a user is logged on / authenticated
+         */
+        virtual bool execHttpHeaderValidation(String headerName, String headerValue) {
+        	if(_httpHeaderValidationFunc) {
+        		//return the value of the custom http header validation function
+        		return _httpHeaderValidationFunc(headerName, headerValue);
+        	}
+        	//no custom http header validation so just assume all is good
+        	return true;
+        }
+
+private:
+        /*
+         * returns an indicator whether the given named header exists in the configured _mandatoryHttpHeaders collection
+         * @param headerName String ///< the name of the header being checked
+         */
+        bool hasMandatoryHeader(String headerName);
 
 };
 

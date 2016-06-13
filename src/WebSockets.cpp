@@ -426,7 +426,7 @@ void WebSockets::handleWebsocketPayloadCb(WSclient_t * client, bool ok, uint8_t 
                 DEBUG_WEBSOCKETS("[WS][%d][handleWebsocket] text: %s\n", client->num, payload);
                 // no break here!
             case WSop_binary:
-                messageRecived(client, header->opCode, payload, header->payloadLen);
+                messageReceived(client, header->opCode, payload, header->payloadLen);
                 break;
             case WSop_ping:
                 // send pong back
