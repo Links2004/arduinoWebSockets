@@ -68,10 +68,6 @@ void WebSocketsServer::begin(void) {
         client->num = i;
         client->status = WSC_NOT_CONNECTED;
         client->tcp = NULL;
-#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
-        client->isSSL = false;
-        client->ssl = NULL;
-#endif
         client->cUrl = "";
         client->cCode = 0;
         client->cKey = "";
@@ -259,7 +255,7 @@ void WebSocketsServer::disconnect(void) {
     for(uint8_t i = 0; i < WEBSOCKETS_SERVER_CLIENT_MAX; i++) {
         client = &_clients[i];
         if(clientIsConnected(client)) {
-            WebSockets::clientDisconnect(client, 1000);
+            clientDisconnect(client, 1000);
         }
     }
 }
@@ -274,7 +270,7 @@ void WebSocketsServer::disconnect(uint8_t num) {
     }
     WSclient_t * client = &_clients[num];
     if(clientIsConnected(client)) {
-        WebSockets::clientDisconnect(client, 1000);
+        clientDisconnect(client, 1000);
     }
 }
 
@@ -342,7 +338,6 @@ bool WebSocketsServer::newClient(WEBSOCKETS_NETWORK_CLASS * TCPclient) {
             client->tcp = TCPclient;
 
 #if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
-            client->isSSL = false;
             client->tcp->setNoDelay(true);
 #endif
 #if (WEBSOCKETS_NETWORK_TYPE != NETWORK_ESP8266_ASYNC)
@@ -408,20 +403,8 @@ void WebSocketsServer::messageRecived(WSclient_t * client, WSopcode_t opcode, ui
  * Disconnect an client
  * @param client WSclient_t *  ptr to the client struct
  */
-void WebSocketsServer::clientDisconnect(WSclient_t * client) {
+void WebSocketsServer::clientDisconnectV(WSclient_t * client) {
 
-
-#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
-    if(client->isSSL && client->ssl) {
-        if(client->ssl->connected()) {
-            client->ssl->flush();
-            client->ssl->stop();
-        }
-        delete client->ssl;
-        client->ssl = NULL;
-        client->tcp = NULL;
-    }
-#endif
 
     if(client->tcp) {
         if(client->tcp->connected()) {
@@ -478,14 +461,14 @@ bool WebSocketsServer::clientIsConnected(WSclient_t * client) {
         if(client->status != WSC_NOT_CONNECTED) {
             DEBUG_WEBSOCKETS("[WS-Server][%d] client connection lost.\n", client->num);
             // do cleanup
-            clientDisconnect(client);
+            clientDisconnectV(client);
         }
     }
 
     if(client->tcp) {
         // do cleanup
         DEBUG_WEBSOCKETS("[WS-Server][%d] client list cleanup.\n", client->num);
-        clientDisconnect(client);
+        clientDisconnectV(client);
     }
 
     return false;

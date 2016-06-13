@@ -38,7 +38,7 @@ class WebSocketsClient: private WebSockets {
 
 
         WebSocketsClient(void);
-        ~WebSocketsClient(void);
+        virtual ~WebSocketsClient(void);
 
         void begin(const char *host, uint16_t port, const char * url = "/", const char * protocol = "arduino");
         void begin(String host, uint16_t port, String url = "/", String protocol = "arduino");
@@ -48,12 +48,8 @@ class WebSocketsClient: private WebSockets {
         void beginSSL(String host, uint16_t port, String url = "/", String fingerprint = "", String protocol = "arduino");
 #endif
 
-#if (WEBSOCKETS_NETWORK_TYPE != NETWORK_ESP8266_ASYNC)
         void loop(void);
-#else
-        // Async interface not need a loop call
-        void loop(void) __attribute__ ((deprecated)) {}
-#endif
+
 
         void onEvent(WebSocketClientEvent cbEvent);
 
@@ -61,7 +57,7 @@ class WebSocketsClient: private WebSockets {
         bool sendTXT(const uint8_t * payload, size_t length = 0);
         bool sendTXT(char * payload, size_t length = 0, bool headerToPayload = false);
         bool sendTXT(const char * payload, size_t length = 0);
-        bool sendTXT(String & payload);
+        bool sendTXT(const String & payload);
 
         bool sendBIN(uint8_t * payload, size_t length, bool headerToPayload = false);
         bool sendBIN(const uint8_t * payload, size_t length);
@@ -84,7 +80,7 @@ class WebSocketsClient: private WebSockets {
 
         void messageRecived(WSclient_t * client, WSopcode_t opcode, uint8_t * payload, size_t length);
 
-        void clientDisconnect(WSclient_t * client);
+        void clientDisconnectV(WSclient_t * client);
         bool clientIsConnected(WSclient_t * client);
 
 #if (WEBSOCKETS_NETWORK_TYPE != NETWORK_ESP8266_ASYNC)
@@ -112,7 +108,10 @@ class WebSocketsClient: private WebSockets {
                 _cbEvent(type, payload, length);
             }
         }
-
+    private:
+        ulong reconnectTimeout = 0;
+        void begin(const char *host, uint16_t port, const char * url, const char * protocol,
+                                     const bool ssl);
 };
 
 #endif /* WEBSOCKETSCLIENT_H_ */

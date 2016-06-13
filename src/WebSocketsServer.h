@@ -28,7 +28,7 @@
 #include <Arduino.h>
 #include "WebSockets.h"
 
-#define WEBSOCKETS_SERVER_CLIENT_MAX  (5)
+#define WEBSOCKETS_SERVER_CLIENT_MAX  (1)
 
 
 
@@ -43,7 +43,7 @@ public:
 #endif
 
         WebSocketsServer(uint16_t port, String origin = "", String protocol = "arduino");
-        ~WebSocketsServer(void);
+        virtual ~WebSocketsServer(void);
 
         void begin(void);
 
@@ -101,7 +101,7 @@ protected:
 
         void messageRecived(WSclient_t * client, WSopcode_t opcode, uint8_t * payload, size_t length);
 
-        void clientDisconnect(WSclient_t * client);
+        void clientDisconnectV(WSclient_t * client);
         bool clientIsConnected(WSclient_t * client);
 
 #if (WEBSOCKETS_NETWORK_TYPE != NETWORK_ESP8266_ASYNC)
@@ -119,15 +119,16 @@ protected:
          */
         virtual void handleNonWebsocketConnection(WSclient_t * client) {
             DEBUG_WEBSOCKETS("[WS-Server][%d][handleHeader] no Websocket connection close.\n", client->num);
-            client->tcp->write("HTTP/1.1 400 Bad Request\r\n"
+
+            client->tcp->print(F("HTTP/1.1 400 Bad Request\r\n"
                     "Server: arduino-WebSocket-Server\r\n"
                     "Content-Type: text/plain\r\n"
                     "Content-Length: 32\r\n"
                     "Connection: close\r\n"
                     "Sec-WebSocket-Version: 13\r\n"
                     "\r\n"
-                    "This is a Websocket server only!");
-            clientDisconnect(client);
+                    "This is a Websocket server only!"));
+            clientDisconnectV(client);
         }
 
         /**
@@ -137,7 +138,7 @@ protected:
          */
         virtual void handleAuthorizationFailed(WSclient_t *client) {
 
-            client->tcp->write("HTTP/1.1 401 Unauthorized\r\n"
+            client->tcp->print(F("HTTP/1.1 401 Unauthorized\r\n"
                     "Server: arduino-WebSocket-Server\r\n"
                     "Content-Type: text/plain\r\n"
                     "Content-Length: 45\r\n"
@@ -145,8 +146,8 @@ protected:
                     "Sec-WebSocket-Version: 13\r\n"
                     "WWW-Authenticate: Basic realm=\"WebSocket Server\""
                     "\r\n"
-                    "This Websocket server requires Authorization!");
-            clientDisconnect(client);
+                    "This Websocket server requires Authorization!"));
+            clientDisconnectV(client);
         }
 
         /**
