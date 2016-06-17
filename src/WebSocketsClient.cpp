@@ -245,7 +245,7 @@ void WebSocketsClient::setAuthorization(const char * auth) {
  * @param payload  uint8_t *
  * @param lenght size_t
  */
-void WebSocketsClient::messageRecived(WSclient_t * client, WSopcode_t opcode, uint8_t * payload, size_t lenght) {
+void WebSocketsClient::messageReceived(WSclient_t * client, WSopcode_t opcode, uint8_t * payload, size_t lenght) {
     WStype_t type = WStype_ERROR;
 
     switch(opcode) {
