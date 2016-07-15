@@ -52,12 +52,14 @@
 // max size of the WS Message Header
 #define WEBSOCKETS_MAX_HEADER_SIZE  (14)
 
+#if !defined(WEBSOCKETS_NETWORK_TYPE) 
 // select Network type based
 #if defined(ESP8266) || defined(ESP31B)
 #define WEBSOCKETS_NETWORK_TYPE NETWORK_ESP8266
 //#define WEBSOCKETS_NETWORK_TYPE NETWORK_ESP8266_ASYNC
 #else
 #define WEBSOCKETS_NETWORK_TYPE NETWORK_W5100
+#endif
 #endif
 
 #if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266_ASYNC)
