@@ -296,7 +296,7 @@ bool WebSockets::handleWebsocketWaitFor(WSclient_t * client, size_t size) {
     }
 
     if(size > WEBSOCKETS_MAX_HEADER_SIZE) {
-        DEBUG_WEBSOCKETS("[WS][%d][handleWebsocketWaitFor] size: %d to big!\n", client->num, size);
+        DEBUG_WEBSOCKETS("[WS][%d][handleWebsocketWaitFor] size: %d too big!\n", client->num, size);
         return false;
     }
 
@@ -364,7 +364,7 @@ void WebSockets::handleWebsocketCb(WSclient_t * client) {
         }
 
         if(buffer[0] != 0 || buffer[1] != 0 || buffer[2] != 0 || buffer[3] != 0) {
-            // really to big!
+            // really too big!
             header->payloadLen = 0xFFFFFFFF;
         } else {
             header->payloadLen = buffer[4] << 24 | buffer[5] << 16 | buffer[6] << 8 | buffer[7];
@@ -377,7 +377,7 @@ void WebSockets::handleWebsocketCb(WSclient_t * client) {
     DEBUG_WEBSOCKETS("[WS][%d][handleWebsocket] mask: %u payloadLen: %u\n", client->num, header->mask, header->payloadLen);
 
     if(header->payloadLen > WEBSOCKETS_MAX_DATA_SIZE) {
-        DEBUG_WEBSOCKETS("[WS][%d][handleWebsocket] payload to big! (%u)\n", client->num, header->payloadLen);
+        DEBUG_WEBSOCKETS("[WS][%d][handleWebsocket] payload too big! (%u)\n", client->num, header->payloadLen);
         clientDisconnect(client, 1009);
         return;
     }
@@ -596,4 +596,3 @@ bool WebSockets::readCb(WSclient_t * client, uint8_t * out, size_t n, WSreadWait
 #endif
     return true;
 }
-

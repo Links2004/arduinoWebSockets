@@ -91,6 +91,14 @@ void WebSocketsClient::beginSSL(String host, uint16_t port, String url, String f
 }
 #endif
 
+void WebSocketsClient::beginSocketIO(const char *host, uint16_t port, const char * url, const char * protocol) {
+    begin(host, port, url, protocol);
+    _client.isSocketIO = true;
+}
+
+void WebSocketsClient::beginSocketIO(String host, uint16_t port, String url, String protocol) {
+    beginSocketIO(host.c_str(), port, url.c_str(), protocol.c_str());
+}
 
 #if (WEBSOCKETS_NETWORK_TYPE != NETWORK_ESP8266_ASYNC)
 /**
@@ -393,22 +401,37 @@ void WebSocketsClient::sendHeader(WSclient_t * client) {
     unsigned long start = micros();
 #endif
 
-    String handshake =  "GET " + client->cUrl + " HTTP/1.1\r\n"
-                        "Host: " + _host + ":" + _port + "\r\n"
-                        "Connection: Upgrade\r\n"
-                        "Upgrade: websocket\r\n"
-                        "Origin: file://\r\n"
-                        "User-Agent: arduino-WebSocket-Client\r\n"
-                        "Sec-WebSocket-Version: 13\r\n"
-                        "Sec-WebSocket-Key: " + client->cKey + "\r\n";
+    String transport;
+    String handshake;
+    if(!client->isSocketIO || (client->isSocketIO && client->cSessionId.length() > 0)) {
+        if(client->isSocketIO) {
+            transport = "&transport=websocket&sid=" + client->cSessionId;
+        }
+        handshake = "GET " + client->cUrl + transport + " HTTP/1.1\r\n"
+                    "Host: " + _host + ":" + _port + "\r\n"
+                    "Connection: Upgrade\r\n"
+                    "Upgrade: websocket\r\n"
+                    "Origin: file://\r\n"
+                    "User-Agent: arduino-WebSocket-Client\r\n"
+                    "Sec-WebSocket-Version: 13\r\n"
+                    "Sec-WebSocket-Key: " + client->cKey + "\r\n";
 
-    if(client->cProtocol.length() > 0) {
-       handshake += "Sec-WebSocket-Protocol: " + client->cProtocol + "\r\n";
+        if(client->cProtocol.length() > 0) {
+           handshake += "Sec-WebSocket-Protocol: " + client->cProtocol + "\r\n";
+        }
+
+        if(client->cExtensions.length() > 0) {
+            handshake += "Sec-WebSocket-Extensions: " + client->cExtensions + "\r\n";
+        }
+
+    } else {
+        handshake = "GET " + client->cUrl + "&transport=polling HTTP/1.1\r\n"
+                    "Connection: keep-alive\r\n";
     }
 
-    if(client->cExtensions.length() > 0) {
-        handshake += "Sec-WebSocket-Extensions: " + client->cExtensions + "\r\n";
-    }
+    handshake +=    "Host: " + _host + ":" + _port + "\r\n"
+                    "Origin: file://\r\n"
+                    "User-Agent: arduino-WebSocket-Client\r\n";
 
     if(client->base64Authorization.length() > 0) {
         handshake += "Authorization: Basic " + client->base64Authorization + "\r\n";
@@ -465,6 +488,8 @@ void WebSocketsClient::handleHeader(WSclient_t * client, String * headerLine) {
                 client->cExtensions = headerValue;
             } else if(headerName.equalsIgnoreCase("Sec-WebSocket-Version")) {
                 client->cVersion = headerValue.toInt();
+            } else if(headerName.equalsIgnoreCase("Set-Cookie")) {
+                client->cSessionId = headerValue.substring(headerValue.indexOf('=') + 1);
             }
         } else {
             DEBUG_WEBSOCKETS("[WS-Client][handleHeader] Header error (%s)\n", headerLine->c_str());
@@ -490,6 +515,7 @@ void WebSocketsClient::handleHeader(WSclient_t * client, String * headerLine) {
         DEBUG_WEBSOCKETS("[WS-Client][handleHeader]  - cProtocol: %s\n", client->cProtocol.c_str());
         DEBUG_WEBSOCKETS("[WS-Client][handleHeader]  - cExtensions: %s\n", client->cExtensions.c_str());
         DEBUG_WEBSOCKETS("[WS-Client][handleHeader]  - cVersion: %d\n", client->cVersion);
+        DEBUG_WEBSOCKETS("[WS-Client][handleHeader]  - cSessionId: %s\n", client->cSessionId.c_str());
 
         bool ok = (client->cIsUpgrade && client->cIsWebsocket);
 
@@ -498,6 +524,10 @@ void WebSocketsClient::handleHeader(WSclient_t * client, String * headerLine) {
                 case 101:  ///< Switching Protocols
 
                     break;
+                case 200:
+                    if(client->isSocketIO) {
+                        break;
+                    }
                 case 403: ///< Forbidden
                     // todo handle login
                 default:   ///< Server dont unterstand requrst
@@ -530,6 +560,8 @@ void WebSocketsClient::handleHeader(WSclient_t * client, String * headerLine) {
 
             runCbEvent(WStype_CONNECTED, (uint8_t *) client->cUrl.c_str(), client->cUrl.length());
 
+        } else if(clientIsConnected(client) && client->isSocketIO && client->cSessionId.length() > 0) {
+            sendHeader(client);
         } else {
             DEBUG_WEBSOCKETS("[WS-Client][handleHeader] no Websocket connection close.\n");
             client->tcp->write("This is a webSocket client!");
