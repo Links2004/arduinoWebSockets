@@ -25,7 +25,6 @@
 #ifndef WEBSOCKETSSERVER_H_
 #define WEBSOCKETSSERVER_H_
 
-#include <Arduino.h>
 #include "WebSockets.h"
 
 #define WEBSOCKETS_SERVER_CLIENT_MAX  (5)

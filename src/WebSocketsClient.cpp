@@ -443,7 +443,7 @@ void WebSocketsClient::sendHeader(WSclient_t * client) {
 
     handshake += "\r\n";
 
-    client->tcp->write(handshake.c_str(), handshake.length());
+    client->tcp->write((uint8_t*)handshake.c_str(), handshake.length());
 
 #if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266_ASYNC)
         client->tcp->readStringUntil('\n', &(client->cHttpLine), std::bind(&WebSocketsClient::handleHeader, this, client, &(client->cHttpLine)));

@@ -25,7 +25,6 @@
 #ifndef WEBSOCKETSCLIENT_H_
 #define WEBSOCKETSCLIENT_H_
 
-#include <Arduino.h>
 #include "WebSockets.h"
 
 class WebSocketsClient: private WebSockets {
