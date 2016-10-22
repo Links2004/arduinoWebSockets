@@ -81,6 +81,12 @@ public:
         bool broadcastBIN(uint8_t * payload, size_t length, bool headerToPayload = false);
         bool broadcastBIN(const uint8_t * payload, size_t length);
 
+        bool sendPing(uint8_t num, uint8_t * payload = NULL, size_t length = 0);
+        bool sendPing(uint8_t num, String & payload);
+
+        bool broadcastPing(uint8_t * payload = NULL, size_t length = 0);
+        bool broadcastPing(String & payload);
+
         void disconnect(void);
         void disconnect(uint8_t num);
 

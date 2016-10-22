@@ -208,6 +208,24 @@ bool WebSocketsClient::sendBIN(const uint8_t * payload, size_t length) {
 }
 
 /**
+ * sends a WS ping to Server
+ * @param payload uint8_t *
+ * @param length size_t
+ * @return true if ping is send out
+ */
+bool WebSocketsClient::sendPing(uint8_t * payload, size_t length) {
+    if(clientIsConnected(&_client)) {
+        return sendFrame(&_client, WSop_ping, payload, length);
+    }
+    return false;
+}
+
+bool WebSocketsClient::sendPing(String & payload) {
+    return sendPing((uint8_t *) payload.c_str(), payload.length());
+}
+
+
+/**
  * disconnect one client
  * @param num uint8_t client id
  */

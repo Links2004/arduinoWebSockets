@@ -69,6 +69,9 @@ class WebSocketsClient: private WebSockets {
         bool sendBIN(uint8_t * payload, size_t length, bool headerToPayload = false);
         bool sendBIN(const uint8_t * payload, size_t length);
 
+        bool sendPing(uint8_t * payload = NULL, size_t length = 0);
+        bool sendPing(String & payload);
+
         void disconnect(void);
 
         void setAuthorization(const char * user, const char * password);
