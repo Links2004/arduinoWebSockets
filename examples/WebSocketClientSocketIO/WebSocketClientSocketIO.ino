@@ -86,7 +86,7 @@ void setup() {
         delay(100);
     }
 
-    webSocket.begin("192.168.0.123", 81);
+    webSocket.beginSocketIO("192.168.0.123", 81);
     //webSocket.setAuthorization("user", "Password"); // HTTP Basic Authorization
     webSocket.onEvent(webSocketEvent);
 
