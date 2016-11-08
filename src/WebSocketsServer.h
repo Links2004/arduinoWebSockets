@@ -33,7 +33,7 @@
 
 
 
-class WebSocketsServer: private WebSockets {
+class WebSocketsServer: public WebSockets {
 public:
 
 #ifdef __AVR__
