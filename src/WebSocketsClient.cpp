@@ -426,11 +426,8 @@ void WebSocketsClient::sendHeader(WSclient_t * client) {
             transport = "&transport=websocket&sid=" + client->cSessionId;
         }
         handshake = "GET " + client->cUrl + transport + " HTTP/1.1\r\n"
-                    "Host: " + _host + ":" + _port + "\r\n"
                     "Connection: Upgrade\r\n"
                     "Upgrade: websocket\r\n"
-                    "Origin: file://\r\n"
-                    "User-Agent: arduino-WebSocket-Client\r\n"
                     "Sec-WebSocket-Version: 13\r\n"
                     "Sec-WebSocket-Key: " + client->cKey + "\r\n";
 
@@ -460,7 +457,7 @@ void WebSocketsClient::sendHeader(WSclient_t * client) {
     }
 
     handshake += "\r\n";
-
+    DEBUG_WEBSOCKETS("[WS-Client][sendHeader] handshake %s", handshake.c_str());
     client->tcp->write(handshake.c_str(), handshake.length());
 
 #if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266_ASYNC)
