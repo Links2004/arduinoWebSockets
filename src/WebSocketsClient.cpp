@@ -331,7 +331,7 @@ void WebSocketsClient::clientDisconnect(WSclient_t * client) {
     client->cVersion = 0;
     client->cIsUpgrade = false;
     client->cIsWebsocket = false;
-    client->SessionId = "";
+    client->cSessionId = "";
 
     client->status = WSC_NOT_CONNECTED;
 
