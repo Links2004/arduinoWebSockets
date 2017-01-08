@@ -427,6 +427,7 @@ void WebSocketsClient::sendHeader(WSclient_t * client) {
             transport = "&transport=websocket&sid=" + client->cSessionId;
         }
         handshake = "GET " + client->cUrl + transport + " HTTP/1.1\r\n"
+                    "Host: " + _host + ":" + _port + "\r\n"
                     "Connection: Upgrade\r\n"
                     "Upgrade: websocket\r\n"
                     "Sec-WebSocket-Version: 13\r\n"
@@ -442,11 +443,11 @@ void WebSocketsClient::sendHeader(WSclient_t * client) {
 
     } else {
         handshake = "GET " + client->cUrl + "&transport=polling HTTP/1.1\r\n"
+                    "Host: " + _host + ":" + _port + "\r\n"
                     "Connection: keep-alive\r\n";
     }
 
-    handshake +=    "Host: " + _host + ":" + _port + "\r\n"
-                    "Origin: file://\r\n"
+    handshake +=    "Origin: file://\r\n"
                     "User-Agent: arduino-WebSocket-Client\r\n";
 
     if(client->base64Authorization.length() > 0) {
