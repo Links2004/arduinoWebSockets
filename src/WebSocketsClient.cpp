@@ -63,6 +63,7 @@ void WebSocketsClient::begin(const char *host, uint16_t port, const char * url, 
     _client.cVersion = 0;
     _client.base64Authorization = "";
     _client.plainAuthorization = "";
+    _client.isSocketIO = false;
 
 #ifdef ESP8266
     randomSeed(RANDOM_REG32);
