@@ -48,7 +48,7 @@ a WebSocket Server and Client for Arduino based on RFC6455.
 
 This libary can run in Async TCP mode on the ESP.
 
-The mode can be aktivated in the ```WebSockets.h``` (see WEBSOCKETS_NETWORK_TYPE define).
+The mode can be activated in the ```WebSockets.h``` (see WEBSOCKETS_NETWORK_TYPE define).
 
 [ESPAsyncTCP](https://github.com/me-no-dev/ESPAsyncTCP) libary is required.
 
