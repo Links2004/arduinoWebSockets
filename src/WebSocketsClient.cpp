@@ -507,7 +507,11 @@ void WebSocketsClient::handleHeader(WSclient_t * client, String * headerLine) {
             } else if(headerName.equalsIgnoreCase("Sec-WebSocket-Version")) {
                 client->cVersion = headerValue.toInt();
             } else if(headerName.equalsIgnoreCase("Set-Cookie")) {
-                client->cSessionId = headerValue.substring(headerValue.indexOf('=') + 1);
+                if (headerValue.indexOf("HttpOnly") > -1) { 
+                    client->cSessionId = headerValue.substring(headerValue.indexOf('=') + 1, headerValue.indexOf(";"));
+                } else { 
+                    client->cSessionId = headerValue.substring(headerValue.indexOf('=') + 1); 
+                }
             }
         } else {
             DEBUG_WEBSOCKETS("[WS-Client][handleHeader] Header error (%s)\n", headerLine->c_str());
