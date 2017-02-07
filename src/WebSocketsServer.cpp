@@ -283,6 +283,57 @@ bool WebSocketsServer::broadcastBIN(const uint8_t * payload, size_t length) {
     return broadcastBIN((uint8_t *) payload, length);
 }
 
+
+/**
+ * sends a WS ping to Client
+ * @param num uint8_t client id
+ * @param payload uint8_t *
+ * @param length size_t
+ * @return true if ping is send out
+ */
+bool WebSocketsServer::sendPing(uint8_t num, uint8_t * payload, size_t length) {
+    if(num >= WEBSOCKETS_SERVER_CLIENT_MAX) {
+        return false;
+    }
+    WSclient_t * client = &_clients[num];
+    if(clientIsConnected(client)) {
+        return sendFrame(client, WSop_ping, payload, length);
+    }
+    return false;
+}
+
+bool WebSocketsServer::sendPing(uint8_t num, String & payload) {
+    return sendPing(num, (uint8_t *) payload.c_str(), payload.length());
+}
+
+/**
+ *  sends a WS ping to all Client
+ * @param payload uint8_t *
+ * @param length size_t
+ * @return true if ping is send out
+ */
+bool WebSocketsServer::broadcastPing(uint8_t * payload, size_t length) {
+    WSclient_t * client;
+    bool ret = true;
+    for(uint8_t i = 0; i < WEBSOCKETS_SERVER_CLIENT_MAX; i++) {
+        client = &_clients[i];
+        if(clientIsConnected(client)) {
+            if(!sendFrame(client, WSop_ping, payload, length)) {
+                ret = false;
+            }
+        }
+#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
+        delay(0);
+#endif
+    }
+    return ret;
+}
+
+bool WebSocketsServer::broadcastPing(String & payload) {
+    return broadcastPing((uint8_t *) payload.c_str(), payload.length());
+}
+
+
 /**
  * disconnect all clients
  */

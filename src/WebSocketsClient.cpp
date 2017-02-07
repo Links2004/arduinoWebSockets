@@ -63,6 +63,7 @@ void WebSocketsClient::begin(const char *host, uint16_t port, const char * url, 
     _client.cVersion = 0;
     _client.base64Authorization = "";
     _client.plainAuthorization = "";
+    _client.isSocketIO = false;
 
 #ifdef ESP8266
     randomSeed(RANDOM_REG32);
@@ -208,6 +209,24 @@ bool WebSocketsClient::sendBIN(const uint8_t * payload, size_t length) {
 }
 
 /**
+ * sends a WS ping to Server
+ * @param payload uint8_t *
+ * @param length size_t
+ * @return true if ping is send out
+ */
+bool WebSocketsClient::sendPing(uint8_t * payload, size_t length) {
+    if(clientIsConnected(&_client)) {
+        return sendFrame(&_client, WSop_ping, payload, length, true);
+    }
+    return false;
+}
+
+bool WebSocketsClient::sendPing(String & payload) {
+    return sendPing((uint8_t *) payload.c_str(), payload.length());
+}
+
+
+/**
  * disconnect one client
  * @param num uint8_t client id
  */
@@ -313,6 +332,7 @@ void WebSocketsClient::clientDisconnect(WSclient_t * client) {
     client->cVersion = 0;
     client->cIsUpgrade = false;
     client->cIsWebsocket = false;
+    client->cSessionId = "";
 
     client->status = WSC_NOT_CONNECTED;
 
@@ -411,8 +431,6 @@ void WebSocketsClient::sendHeader(WSclient_t * client) {
                     "Host: " + _host + ":" + _port + "\r\n"
                     "Connection: Upgrade\r\n"
                     "Upgrade: websocket\r\n"
-                    "Origin: file://\r\n"
-                    "User-Agent: arduino-WebSocket-Client\r\n"
                     "Sec-WebSocket-Version: 13\r\n"
                     "Sec-WebSocket-Key: " + client->cKey + "\r\n";
 
@@ -426,11 +444,11 @@ void WebSocketsClient::sendHeader(WSclient_t * client) {
 
     } else {
         handshake = "GET " + client->cUrl + "&transport=polling HTTP/1.1\r\n"
+                    "Host: " + _host + ":" + _port + "\r\n"
                     "Connection: keep-alive\r\n";
     }
 
-    handshake +=    "Host: " + _host + ":" + _port + "\r\n"
-                    "Origin: file://\r\n"
+    handshake +=    "Origin: file://\r\n"
                     "User-Agent: arduino-WebSocket-Client\r\n";
 
     if(client->base64Authorization.length() > 0) {
@@ -443,6 +461,7 @@ void WebSocketsClient::sendHeader(WSclient_t * client) {
 
     handshake += "\r\n";
 
+    DEBUG_WEBSOCKETS("[WS-Client][sendHeader] handshake %s", (uint8_t*)handshake.c_str());
     client->tcp->write((uint8_t*)handshake.c_str(), handshake.length());
 
 #if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266_ASYNC)
@@ -489,7 +508,11 @@ void WebSocketsClient::handleHeader(WSclient_t * client, String * headerLine) {
             } else if(headerName.equalsIgnoreCase("Sec-WebSocket-Version")) {
                 client->cVersion = headerValue.toInt();
             } else if(headerName.equalsIgnoreCase("Set-Cookie")) {
-                client->cSessionId = headerValue.substring(headerValue.indexOf('=') + 1);
+                if (headerValue.indexOf("HttpOnly") > -1) { 
+                    client->cSessionId = headerValue.substring(headerValue.indexOf('=') + 1, headerValue.indexOf(";"));
+                } else { 
+                    client->cSessionId = headerValue.substring(headerValue.indexOf('=') + 1); 
+                }
             }
         } else {
             DEBUG_WEBSOCKETS("[WS-Client][handleHeader] Header error (%s)\n", headerLine->c_str());

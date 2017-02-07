@@ -430,7 +430,7 @@ void WebSockets::handleWebsocketPayloadCb(WSclient_t * client, bool ok, uint8_t 
                 break;
             case WSop_ping:
                 // send pong back
-                sendFrame(client, WSop_pong, payload, header->payloadLen);
+                sendFrame(client, WSop_pong, payload, header->payloadLen, true);
                 break;
             case WSop_pong:
                 DEBUG_WEBSOCKETS("[WS][%d][handleWebsocket] get pong  (%s)\n", client->num, payload);
