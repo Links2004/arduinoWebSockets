@@ -790,20 +790,20 @@ void WebSocketsServer::handleHeader(WSclient_t * client, String * headerLine) {
                     "Connection: Upgrade\r\n"
                     "Sec-WebSocket-Version: 13\r\n"
                     "Sec-WebSocket-Accept: ");
-            client->tcp->write(sKey.c_str(), sKey.length());
+            client->tcp->write((uint8_t*)sKey.c_str(), sKey.length());
 
             if(_origin.length() > 0) {
                 String origin = "\r\nAccess-Control-Allow-Origin: ";
                 origin += _origin;
                 origin += "\r\n";
-                client->tcp->write(origin.c_str(), origin.length());
+                client->tcp->write((uint8_t*)origin.c_str(), origin.length());
             }
 
             if(client->cProtocol.length() > 0) {
                 String protocol = "\r\nSec-WebSocket-Protocol: ";
                 protocol += _protocol;
                 protocol += "\r\n";
-                client->tcp->write(protocol.c_str(), protocol.length());
+                client->tcp->write((uint8_t*)protocol.c_str(), protocol.length());
             } else {
                 client->tcp->write("\r\n");
             }

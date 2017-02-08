@@ -25,7 +25,12 @@
 #ifndef WEBSOCKETS_H_
 #define WEBSOCKETS_H_
 
+#ifdef STM32_DEVICE
+#include <application.h>
+#define bit(b) (1UL << (b)) // Taken directly from Arduino.h
+#else
 #include <Arduino.h>
+#endif
 
 //#define DEBUG_WEBSOCKETS(...) os_printf( __VA_ARGS__ )
 
@@ -37,9 +42,16 @@
 #ifdef ESP8266
 #define WEBSOCKETS_MAX_DATA_SIZE  (15*1024)
 #define WEBSOCKETS_USE_BIG_MEM
+#define GET_FREE_HEAP ESP.getFreeHeap()
+#else
+#ifdef STM32_DEVICE
+#define WEBSOCKETS_MAX_DATA_SIZE  (15*1024)
+#define WEBSOCKETS_USE_BIG_MEM
+#define GET_FREE_HEAP System.freeMemory()
 #else
 //atmega328p has only 2KB ram!
 #define WEBSOCKETS_MAX_DATA_SIZE  (1024)
+#endif
 #endif
 
 #define WEBSOCKETS_TCP_TIMEOUT    (2000)
@@ -98,10 +110,15 @@
 
 #elif (WEBSOCKETS_NETWORK_TYPE == NETWORK_W5100)
 
+#ifdef STM32_DEVICE
+#define WEBSOCKETS_NETWORK_CLASS TCPClient
+#define WEBSOCKETS_NETWORK_SERVER_CLASS TCPServer
+#else
 #include <Ethernet.h>
 #include <SPI.h>
 #define WEBSOCKETS_NETWORK_CLASS EthernetClient
 #define WEBSOCKETS_NETWORK_SERVER_CLASS EthernetServer
+#endif
 
 #elif (WEBSOCKETS_NETWORK_TYPE == NETWORK_ENC28J60)
 
