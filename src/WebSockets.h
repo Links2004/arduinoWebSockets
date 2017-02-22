@@ -32,7 +32,11 @@
 #include <Arduino.h>
 #endif
 
+#ifdef DEBUG_ESP_PORT
+#define DEBUG_WEBSOCKETS(...) DEBUG_ESP_PORT.printf( __VA_ARGS__ )
+#else
 //#define DEBUG_WEBSOCKETS(...) os_printf( __VA_ARGS__ )
+#endif
 
 #ifndef DEBUG_WEBSOCKETS
 #define DEBUG_WEBSOCKETS(...)
@@ -142,7 +146,11 @@ typedef enum {
     WStype_DISCONNECTED,
     WStype_CONNECTED,
     WStype_TEXT,
-    WStype_BIN
+    WStype_BIN,
+	WStype_FRAGMENT_TEXT_START,
+	WStype_FRAGMENT_BIN_START,
+	WStype_FRAGMENT,
+	WStype_FRAGMENT_FIN,
 } WStype_t;
 
 typedef enum {
@@ -227,7 +235,7 @@ class WebSockets {
         virtual void clientDisconnect(WSclient_t * client);
         virtual bool clientIsConnected(WSclient_t * client);
 
-        virtual void messageReceived(WSclient_t * client, WSopcode_t opcode, uint8_t * payload, size_t length);
+        virtual void messageReceived(WSclient_t * client, WSopcode_t opcode, uint8_t * payload, size_t length, bool fin);
 
         void clientDisconnect(WSclient_t * client, uint16_t code, char * reason = NULL, size_t reasonLen = 0);
         bool sendFrame(WSclient_t * client, WSopcode_t opcode, uint8_t * payload = NULL, size_t length = 0, bool mask = false, bool fin = true, bool headerToPayload = false);

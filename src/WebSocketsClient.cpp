@@ -272,16 +272,19 @@ void WebSocketsClient::setAuthorization(const char * auth) {
  * @param payload  uint8_t *
  * @param lenght size_t
  */
-void WebSocketsClient::messageReceived(WSclient_t * client, WSopcode_t opcode, uint8_t * payload, size_t lenght) {
+void WebSocketsClient::messageReceived(WSclient_t * client, WSopcode_t opcode, uint8_t * payload, size_t lenght, bool fin) {
     WStype_t type = WStype_ERROR;
 
     switch(opcode) {
         case WSop_text:
-            type = WStype_TEXT;
+            type = fin ? WStype_TEXT : WStype_FRAGMENT_TEXT_START;
             break;
         case WSop_binary:
-            type = WStype_BIN;
+            type = fin ? WStype_BIN : WStype_FRAGMENT_BIN_START;
             break;
+		case WSop_continuation:
+			type = fin ? WStype_FRAGMENT_FIN : WStype_FRAGMENT;
+			break;
     }
 
     runCbEvent(type, payload, lenght);

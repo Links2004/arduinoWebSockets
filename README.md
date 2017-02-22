@@ -3,47 +3,47 @@ WebSocket Server and Client for Arduino
 
 a WebSocket Server and Client for Arduino based on RFC6455.
 
- 
+
 ##### Supported features of RFC6455 #####
  - text frame
  - binary frame
  - connection close
  - ping
  - pong
- 
-##### Not supported features of RFC6455 #####
  - continuation frame
-  
+
 ##### Limitations #####
  - max input length is limited to the ram size and the ```WEBSOCKETS_MAX_DATA_SIZE``` define
  - max output length has no limit (the hardware is the limit)
  - Client send big frames with mask 0x00000000 (on AVR all frames)
- 
+ - continuation frame reassembly need to be handled in the application code
+
  ##### Limitations for Async #####
  - Functions called from within the context of the websocket event might not honor `yield()` and/or `delay()`.  See [this issue](https://github.com/Links2004/arduinoWebSockets/issues/58#issuecomment-192376395) for more info and a potential workaround.
  - wss / SSL is not possible.
- 
+
 ##### Supported Hardware #####
  - ESP8266 [Arduino for ESP8266](https://github.com/Links2004/Arduino)
  - ESP31B
- - ATmega328 with Ethernet Shield (ATmega branch) 
- - ATmega328 with enc28j60 (ATmega branch) 
- - ATmega2560 with Ethernet Shield (ATmega branch) 
- - ATmega2560 with enc28j60 (ATmega branch) 
- 
+ - Particle with STM32 ARM Cortex M3
+ - ATmega328 with Ethernet Shield (ATmega branch)
+ - ATmega328 with enc28j60 (ATmega branch)
+ - ATmega2560 with Ethernet Shield (ATmega branch)
+ - ATmega2560 with enc28j60 (ATmega branch)
+
 ###### Note: ######
 
   version 2.0 and up is not compatible with AVR/ATmega, check ATmega branch.
-  
+
   Arduino for AVR not supports std namespace of c++.
- 
+
 ### wss / SSL ###
  supported for:
  - wss client on the ESP8266
  - wss / SSL is not natively supported in WebSocketsServer however it is possible to achieve secure websockets
    by running the device behind an SSL proxy. See [Nginx](examples/Nginx/esp8266.ssl.reverse.proxy.conf) for a
-   sample Nginx server configuration file to enable this. 
- 
+   sample Nginx server configuration file to enable this.
+
 ### ESP Async TCP ###
 
 This libary can run in Async TCP mode on the ESP.
@@ -52,9 +52,6 @@ The mode can be activated in the ```WebSockets.h``` (see WEBSOCKETS_NETWORK_TYPE
 
 [ESPAsyncTCP](https://github.com/me-no-dev/ESPAsyncTCP) libary is required.
 
-### Support for Particle devices ###
-- ESP.getFreeHeap() replaced by macro GET_FREE_HEAP, defined by the type of device (currently only for ESP and STM32-based/Particle devices).
-- Use Particle's TCPClient and TCPServer classes instead of Arduino's.
 
 ### Issues ###
 Submit issues to: https://github.com/Links2004/arduinoWebSockets/issues

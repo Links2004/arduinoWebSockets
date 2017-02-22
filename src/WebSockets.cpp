@@ -426,14 +426,15 @@ void WebSockets::handleWebsocketPayloadCb(WSclient_t * client, bool ok, uint8_t 
                 DEBUG_WEBSOCKETS("[WS][%d][handleWebsocket] text: %s\n", client->num, payload);
                 // no break here!
             case WSop_binary:
-                messageReceived(client, header->opCode, payload, header->payloadLen);
+            case WSop_continuation:
+                messageReceived(client, header->opCode, payload, header->payloadLen, header->fin);
                 break;
             case WSop_ping:
                 // send pong back
                 sendFrame(client, WSop_pong, payload, header->payloadLen, true);
                 break;
             case WSop_pong:
-                DEBUG_WEBSOCKETS("[WS][%d][handleWebsocket] get pong  (%s)\n", client->num, payload);
+                DEBUG_WEBSOCKETS("[WS][%d][handleWebsocket] get pong (%s)\n", client->num, payload ? (const char*)payload : "");
                 break;
             case WSop_close: {
                 uint16_t reasonCode = 1000;
@@ -449,11 +450,7 @@ void WebSockets::handleWebsocketPayloadCb(WSclient_t * client, bool ok, uint8_t 
                 }
                 clientDisconnect(client, 1000);
             }
-                break;
-            case WSop_continuation:
-                // continuation is not supported
-                clientDisconnect(client, 1003);
-                break;
+            	break;
             default:
                 clientDisconnect(client, 1002);
                 break;
