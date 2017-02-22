@@ -149,8 +149,7 @@ protected:
          * @param client WSclient_t *  ptr to the client struct
          */
         virtual void handleAuthorizationFailed(WSclient_t *client) {
-
-            client->tcp->write("HTTP/1.1 401 Unauthorized\r\n"
+        	 client->tcp->write("HTTP/1.1 401 Unauthorized\r\n"
                     "Server: arduino-WebSocket-Server\r\n"
                     "Content-Type: text/plain\r\n"
                     "Content-Length: 45\r\n"

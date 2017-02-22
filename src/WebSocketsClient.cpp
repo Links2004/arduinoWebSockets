@@ -404,11 +404,14 @@ void WebSocketsClient::handleClientData(void) {
 }
 #endif
 
+
 /**
  * send the WebSocket header to Server
  * @param client WSclient_t *  ptr to the client struct
  */
 void WebSocketsClient::sendHeader(WSclient_t * client) {
+
+	static const char * NEW_LINE = "\r\n";
 
     DEBUG_WEBSOCKETS("[WS-Client][sendHeader] sending header...\n");
 
@@ -424,45 +427,59 @@ void WebSocketsClient::sendHeader(WSclient_t * client) {
     unsigned long start = micros();
 #endif
 
-    String transport;
     String handshake;
-    if(!client->isSocketIO || (client->isSocketIO && client->cSessionId.length() > 0)) {
-        if(client->isSocketIO) {
-            transport = "&transport=websocket&sid=" + client->cSessionId;
-        }
-        handshake = "GET " + client->cUrl + transport + " HTTP/1.1\r\n"
-                    "Host: " + _host + ":" + _port + "\r\n"
-                    "Connection: Upgrade\r\n"
-                    "Upgrade: websocket\r\n"
-                    "Sec-WebSocket-Version: 13\r\n"
-                    "Sec-WebSocket-Key: " + client->cKey + "\r\n";
+    bool ws_header = true;
+    String url = client->cUrl;
 
-        if(client->cProtocol.length() > 0) {
-           handshake += "Sec-WebSocket-Protocol: " + client->cProtocol + "\r\n";
-        }
-
-        if(client->cExtensions.length() > 0) {
-            handshake += "Sec-WebSocket-Extensions: " + client->cExtensions + "\r\n";
-        }
-
-    } else {
-        handshake = "GET " + client->cUrl + "&transport=polling HTTP/1.1\r\n"
-                    "Host: " + _host + ":" + _port + "\r\n"
-                    "Connection: keep-alive\r\n";
+    if(client->isSocketIO) {
+    	if(client->cSessionId.length() == 0) {
+    		url += WEBSOCKETS_STRING("&transport=polling");
+    		ws_header = false;
+    	} else {
+    		url += WEBSOCKETS_STRING("&transport=websocket&sid=");
+    		url += client->cSessionId;
+    	}
     }
 
-    handshake +=    "Origin: file://\r\n"
-                    "User-Agent: arduino-WebSocket-Client\r\n";
+	handshake = WEBSOCKETS_STRING("GET ");
+	handshake += url + WEBSOCKETS_STRING(" HTTP/1.1\r\n"
+			"Host: ");
+	handshake += _host + ":" + _port + NEW_LINE;
 
-    if(client->base64Authorization.length() > 0) {
-        handshake += "Authorization: Basic " + client->base64Authorization + "\r\n";
-    }
+	if(ws_header) {
+		handshake += WEBSOCKETS_STRING("Connection: Upgrade\r\n"
+				"Upgrade: websocket\r\n"
+				"Sec-WebSocket-Version: 13\r\n"
+				"Sec-WebSocket-Key: ");
+		handshake += client->cKey + NEW_LINE;
 
-    if(client->plainAuthorization.length() > 0) {
-        handshake += "Authorization: " + client->plainAuthorization + "\r\n";
-    }
+		if(client->cProtocol.length() > 0) {
+			handshake += WEBSOCKETS_STRING("Sec-WebSocket-Protocol: ");
+			handshake +=client->cProtocol + NEW_LINE;
+		}
 
-    handshake += "\r\n";
+		if(client->cExtensions.length() > 0) {
+			handshake += WEBSOCKETS_STRING("Sec-WebSocket-Extensions: ");
+			handshake +=client->cExtensions + NEW_LINE;
+		}
+	} else {
+		handshake += WEBSOCKETS_STRING("Connection: keep-alive\r\n");
+	}
+
+	handshake += WEBSOCKETS_STRING("Origin: file://\r\n"
+			"User-Agent: arduino-WebSocket-Client\r\n");
+
+	if(client->base64Authorization.length() > 0) {
+		handshake += WEBSOCKETS_STRING("Authorization: Basic ");
+		handshake += client->base64Authorization + NEW_LINE;
+	}
+
+	if(client->plainAuthorization.length() > 0) {
+		handshake += WEBSOCKETS_STRING("Authorization: ");
+		handshake += client->plainAuthorization + NEW_LINE;
+	}
+
+	handshake += NEW_LINE;
 
     DEBUG_WEBSOCKETS("[WS-Client][sendHeader] handshake %s", (uint8_t*)handshake.c_str());
     client->tcp->write((uint8_t*)handshake.c_str(), handshake.length());
@@ -486,32 +503,32 @@ void WebSocketsClient::handleHeader(WSclient_t * client, String * headerLine) {
     if(headerLine->length() > 0) {
         DEBUG_WEBSOCKETS("[WS-Client][handleHeader] RX: %s\n", headerLine->c_str());
 
-        if(headerLine->startsWith("HTTP/1.")) {
+        if(headerLine->startsWith(WEBSOCKETS_STRING("HTTP/1."))) {
             // "HTTP/1.1 101 Switching Protocols"
             client->cCode = headerLine->substring(9, headerLine->indexOf(' ', 9)).toInt();
         } else if(headerLine->indexOf(':')) {
             String headerName = headerLine->substring(0, headerLine->indexOf(':'));
             String headerValue = headerLine->substring(headerLine->indexOf(':') + 2);
 
-            if(headerName.equalsIgnoreCase("Connection")) {
-                if(headerValue.equalsIgnoreCase("upgrade")) {
+            if(headerName.equalsIgnoreCase(WEBSOCKETS_STRING("Connection"))) {
+                if(headerValue.equalsIgnoreCase(WEBSOCKETS_STRING("upgrade"))) {
                     client->cIsUpgrade = true;
                 }
-            } else if(headerName.equalsIgnoreCase("Upgrade")) {
-                if(headerValue.equalsIgnoreCase("websocket")) {
+            } else if(headerName.equalsIgnoreCase(WEBSOCKETS_STRING("Upgrade"))) {
+                if(headerValue.equalsIgnoreCase(WEBSOCKETS_STRING("websocket"))) {
                     client->cIsWebsocket = true;
                 }
-            } else if(headerName.equalsIgnoreCase("Sec-WebSocket-Accept")) {
+            } else if(headerName.equalsIgnoreCase(WEBSOCKETS_STRING("Sec-WebSocket-Accept"))) {
                 client->cAccept = headerValue;
                 client->cAccept.trim(); // see rfc6455
-            } else if(headerName.equalsIgnoreCase("Sec-WebSocket-Protocol")) {
+            } else if(headerName.equalsIgnoreCase(WEBSOCKETS_STRING("Sec-WebSocket-Protocol"))) {
                 client->cProtocol = headerValue;
-            } else if(headerName.equalsIgnoreCase("Sec-WebSocket-Extensions")) {
+            } else if(headerName.equalsIgnoreCase(WEBSOCKETS_STRING("Sec-WebSocket-Extensions"))) {
                 client->cExtensions = headerValue;
-            } else if(headerName.equalsIgnoreCase("Sec-WebSocket-Version")) {
+            } else if(headerName.equalsIgnoreCase(WEBSOCKETS_STRING("Sec-WebSocket-Version"))) {
                 client->cVersion = headerValue.toInt();
-            } else if(headerName.equalsIgnoreCase("Set-Cookie")) {
-                if (headerValue.indexOf("HttpOnly") > -1) { 
+            } else if(headerName.equalsIgnoreCase(WEBSOCKETS_STRING("Set-Cookie"))) {
+                if (headerValue.indexOf(WEBSOCKETS_STRING("HttpOnly")) > -1) {
                     client->cSessionId = headerValue.substring(headerValue.indexOf('=') + 1, headerValue.indexOf(";"));
                 } else { 
                     client->cSessionId = headerValue.substring(headerValue.indexOf('=') + 1); 

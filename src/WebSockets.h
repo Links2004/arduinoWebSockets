@@ -47,6 +47,8 @@
 #define WEBSOCKETS_MAX_DATA_SIZE  (15*1024)
 #define WEBSOCKETS_USE_BIG_MEM
 #define GET_FREE_HEAP ESP.getFreeHeap()
+// moves all Header strings to Flash (~300 Byte)
+//#define WEBSOCKETS_SAVE_RAM
 #else
 #ifdef STM32_DEVICE
 #define WEBSOCKETS_MAX_DATA_SIZE  (15*1024)
@@ -55,6 +57,8 @@
 #else
 //atmega328p has only 2KB ram!
 #define WEBSOCKETS_MAX_DATA_SIZE  (1024)
+// moves all Header strings to Flash
+#define WEBSOCKETS_SAVE_RAM
 #endif
 #endif
 
@@ -134,6 +138,12 @@
 #error "no network type selected!"
 #endif
 
+// moves all Header strings to Flash (~300 Byte)
+#ifdef WEBSOCKETS_SAVE_RAM
+#define WEBSOCKETS_STRING(var)  F(var)
+#else
+#define WEBSOCKETS_STRING(var)  var
+#endif
 
 typedef enum {
     WSC_NOT_CONNECTED,
