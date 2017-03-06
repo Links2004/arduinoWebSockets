@@ -468,9 +468,9 @@ bool WebSocketsServer::newClient(WEBSOCKETS_NETWORK_CLASS * TCPclient) {
  * @param client WSclient_t *  ptr to the client struct
  * @param opcode WSopcode_t
  * @param payload  uint8_t *
- * @param lenght size_t
+ * @param length size_t
  */
-void WebSocketsServer::messageReceived(WSclient_t * client, WSopcode_t opcode, uint8_t * payload, size_t lenght, bool fin) {
+void WebSocketsServer::messageReceived(WSclient_t * client, WSopcode_t opcode, uint8_t * payload, size_t length, bool fin) {
     WStype_t type = WStype_ERROR;
 
     switch(opcode) {
@@ -485,7 +485,7 @@ void WebSocketsServer::messageReceived(WSclient_t * client, WSopcode_t opcode, u
             break;
     }
 
-    runCbEvent(client->num, type, payload, lenght);
+    runCbEvent(client->num, type, payload, length);
 
 }
 

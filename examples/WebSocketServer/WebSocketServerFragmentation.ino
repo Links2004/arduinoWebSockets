@@ -20,7 +20,7 @@ WebSocketsServer webSocket = WebSocketsServer(81);
 
 String fragmentBuffer = "";
 
-void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t lenght) {
+void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length) {
 
 	switch(type) {
 		case WStype_DISCONNECTED:
@@ -38,8 +38,8 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t lenght
 			USE_SERIAL.printf("[%u] get Text: %s\n", num, payload);
 			break;
 		case WStype_BIN:
-			USE_SERIAL.printf("[%u] get binary lenght: %u\n", num, lenght);
-			hexdump(payload, lenght);
+			USE_SERIAL.printf("[%u] get binary length: %u\n", num, length);
+			hexdump(payload, length);
 			break;
 
 		// Fragmentation / continuation opcode handling
