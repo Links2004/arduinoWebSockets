@@ -31,7 +31,29 @@ a WebSocket Server and Client for Arduino based on RFC6455.
  - ATmega2560 with Ethernet Shield (ATmega branch)
  - ATmega2560 with enc28j60 (ATmega branch)
 
-##### High Level API #####
+###### Note: ######
+
+  version 2.0 and up is not compatible with AVR/ATmega, check ATmega branch.
+
+  Arduino for AVR not supports std namespace of c++.
+
+### wss / SSL ###
+ supported for:
+ - wss client on the ESP8266
+ - wss / SSL is not natively supported in WebSocketsServer however it is possible to achieve secure websockets
+   by running the device behind an SSL proxy. See [Nginx](examples/Nginx/esp8266.ssl.reverse.proxy.conf) for a
+   sample Nginx server configuration file to enable this.
+
+### ESP Async TCP ###
+
+This libary can run in Async TCP mode on the ESP.
+
+The mode can be activated in the ```WebSockets.h``` (see WEBSOCKETS_NETWORK_TYPE define).
+
+[ESPAsyncTCP](https://github.com/me-no-dev/ESPAsyncTCP) libary is required.
+
+
+### High Level Client API ###
 
  - `begin` : Initiate connection sequence to the websocket host.
 ```
@@ -62,29 +84,6 @@ Where `WStype_t type` is defined as:
   	WStype_FRAGMENT_FIN,
   } WStype_t;
   ```
-
-
-###### Note: ######
-
-  version 2.0 and up is not compatible with AVR/ATmega, check ATmega branch.
-
-  Arduino for AVR not supports std namespace of c++.
-
-### wss / SSL ###
- supported for:
- - wss client on the ESP8266
- - wss / SSL is not natively supported in WebSocketsServer however it is possible to achieve secure websockets
-   by running the device behind an SSL proxy. See [Nginx](examples/Nginx/esp8266.ssl.reverse.proxy.conf) for a
-   sample Nginx server configuration file to enable this.
-
-### ESP Async TCP ###
-
-This libary can run in Async TCP mode on the ESP.
-
-The mode can be activated in the ```WebSockets.h``` (see WEBSOCKETS_NETWORK_TYPE define).
-
-[ESPAsyncTCP](https://github.com/me-no-dev/ESPAsyncTCP) libary is required.
-
 
 ### Issues ###
 Submit issues to: https://github.com/Links2004/arduinoWebSockets/issues
