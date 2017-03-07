@@ -270,9 +270,9 @@ void WebSocketsClient::setAuthorization(const char * auth) {
  * @param client WSclient_t *  ptr to the client struct
  * @param opcode WSopcode_t
  * @param payload  uint8_t *
- * @param lenght size_t
+ * @param length size_t
  */
-void WebSocketsClient::messageReceived(WSclient_t * client, WSopcode_t opcode, uint8_t * payload, size_t lenght, bool fin) {
+void WebSocketsClient::messageReceived(WSclient_t * client, WSopcode_t opcode, uint8_t * payload, size_t length, bool fin) {
     WStype_t type = WStype_ERROR;
 
     switch(opcode) {
@@ -287,7 +287,7 @@ void WebSocketsClient::messageReceived(WSclient_t * client, WSopcode_t opcode, u
 			break;
     }
 
-    runCbEvent(type, payload, lenght);
+    runCbEvent(type, payload, length);
 
 }
 
