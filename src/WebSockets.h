@@ -32,6 +32,8 @@
 #include <Arduino.h>
 #endif
 
+#include <functional>
+
 #ifdef DEBUG_ESP_PORT
 #define DEBUG_WEBSOCKETS(...) DEBUG_ESP_PORT.printf( __VA_ARGS__ )
 #else
@@ -77,6 +79,7 @@
 #if defined(ESP8266) || defined(ESP31B)
 #define WEBSOCKETS_NETWORK_TYPE NETWORK_ESP8266
 //#define WEBSOCKETS_NETWORK_TYPE NETWORK_ESP8266_ASYNC
+//#define WEBSOCKETS_NETWORK_TYPE NETWORK_W5100
 #else
 #define WEBSOCKETS_NETWORK_TYPE NETWORK_W5100
 #endif
