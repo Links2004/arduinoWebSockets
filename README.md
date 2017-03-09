@@ -53,6 +53,38 @@ The mode can be activated in the ```WebSockets.h``` (see WEBSOCKETS_NETWORK_TYPE
 [ESPAsyncTCP](https://github.com/me-no-dev/ESPAsyncTCP) libary is required.
 
 
+### High Level Client API ###
+
+ - `begin` : Initiate connection sequence to the websocket host.
+```
+void begin(const char *host, uint16_t port, const char * url = "/", const char * protocol = "arduino");
+void begin(String host, uint16_t port, String url = "/", String protocol = "arduino");
+ ```
+ - `onEvent`: Callback to handle for websocket events
+
+ ```
+ void onEvent(WebSocketClientEvent cbEvent);
+ ```
+
+ - `WebSocketClientEvent`: Handler for websocket events
+ ```
+ void (*WebSocketClientEvent)(WStype_t type, uint8_t * payload, size_t length)
+ ```
+Where `WStype_t type` is defined as:
+  ```
+  typedef enum {
+      WStype_ERROR,
+      WStype_DISCONNECTED,
+      WStype_CONNECTED,
+      WStype_TEXT,
+      WStype_BIN,
+  	WStype_FRAGMENT_TEXT_START,
+  	WStype_FRAGMENT_BIN_START,
+  	WStype_FRAGMENT,
+  	WStype_FRAGMENT_FIN,
+  } WStype_t;
+  ```
+
 ### Issues ###
 Submit issues to: https://github.com/Links2004/arduinoWebSockets/issues
 

@@ -27,7 +27,7 @@ uint64_t messageTimestamp = 0;
 uint64_t heartbeatTimestamp = 0;
 bool isConnected = false;
 
-void webSocketEvent(WStype_t type, uint8_t * payload, size_t lenght) {
+void webSocketEvent(WStype_t type, uint8_t * payload, size_t length) {
 
 
     switch(type) {
@@ -52,11 +52,11 @@ void webSocketEvent(WStype_t type, uint8_t * payload, size_t lenght) {
 			// webSocket.sendTXT("message here");
             break;
         case WStype_BIN:
-            USE_SERIAL.printf("[WSc] get binary lenght: %u\n", lenght);
-            hexdump(payload, lenght);
+            USE_SERIAL.printf("[WSc] get binary length: %u\n", length);
+            hexdump(payload, length);
 
             // send data to server
-            // webSocket.sendBIN(payload, lenght);
+            // webSocket.sendBIN(payload, length);
             break;
     }
 
