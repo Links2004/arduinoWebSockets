@@ -766,17 +766,13 @@ void WebSocketsServer::handleHeader(WSclient_t * client, String * headerLine) {
         }
 
         if(_base64Authorization.length() > 0) {
-            if(client->base64Authorization.length() > 0) {
-                String auth = WEBSOCKETS_STRING("Basic ");
-                auth += _base64Authorization;
-                if(auth != client->base64Authorization) {
-                    DEBUG_WEBSOCKETS("[WS-Server][%d][handleHeader] HTTP Authorization failed!\n", client->num);
-                    handleAuthorizationFailed(client);
-                    return;
-                }
-            } else {
-                ok = false;
-            }
+			String auth = WEBSOCKETS_STRING("Basic ");
+			auth += _base64Authorization;
+			if(auth != client->base64Authorization) {
+				DEBUG_WEBSOCKETS("[WS-Server][%d][handleHeader] HTTP Authorization failed!\n", client->num);
+				handleAuthorizationFailed(client);
+				return;
+			}
         }
 
         if(ok) {
