@@ -809,7 +809,7 @@ void WebSocketsServer::handleHeader(WSclient_t * client, String * headerLine) {
 
             DEBUG_WEBSOCKETS("[WS-Server][%d][handleHeader] handshake %s",  client->num, (uint8_t*)handshake.c_str());
 
-            client->tcp->write((uint8_t*)handshake.c_str(), handshake.length());
+            write(client, (uint8_t*)handshake.c_str(), handshake.length());
 
             headerDone(client);
 

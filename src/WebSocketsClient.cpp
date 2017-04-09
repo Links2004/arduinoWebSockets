@@ -482,7 +482,7 @@ void WebSocketsClient::sendHeader(WSclient_t * client) {
 	handshake += NEW_LINE;
 
     DEBUG_WEBSOCKETS("[WS-Client][sendHeader] handshake %s", (uint8_t*)handshake.c_str());
-    client->tcp->write((uint8_t*)handshake.c_str(), handshake.length());
+    write(client, (uint8_t*)handshake.c_str(), handshake.length());
 
 #if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266_ASYNC)
         client->tcp->readStringUntil('\n', &(client->cHttpLine), std::bind(&WebSocketsClient::handleHeader, this, client, &(client->cHttpLine)));
@@ -607,7 +607,7 @@ void WebSocketsClient::handleHeader(WSclient_t * client, String * headerLine) {
             sendHeader(client);
         } else {
             DEBUG_WEBSOCKETS("[WS-Client][handleHeader] no Websocket connection close.\n");
-            client->tcp->write("This is a webSocket client!");
+            write(client, "This is a webSocket client!");
             clientDisconnect(client);
         }
     }
