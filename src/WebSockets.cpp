@@ -599,7 +599,7 @@ bool WebSockets::readCb(WSclient_t * client, uint8_t * out, size_t n, WSreadWait
  * @param client WSclient_t *
  * @param out  uint8_t * data buffer
  * @param n size_t byte count
- * @return true if ok
+ * @return bytes send
  */
 size_t WebSockets::write(WSclient_t * client, uint8_t *out, size_t n) {
 	if(out == NULL) return 0;
@@ -607,7 +607,7 @@ size_t WebSockets::write(WSclient_t * client, uint8_t *out, size_t n) {
 	unsigned long t = millis();
 	size_t len = 0;
 	size_t total = 0;
-	DEBUG_WEBSOCKETS("[size_t] n: %d t: %d\n", n, t);
+	DEBUG_WEBSOCKETS("[write] n: %d t: %d\n", n, t);
 	while(n > 0) {
 		if(client->tcp == NULL) {
 			DEBUG_WEBSOCKETS("[write] tcp is null!\n");
