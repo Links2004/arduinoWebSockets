@@ -45,7 +45,7 @@
 #endif
 
 #ifndef DEBUG_WEBSOCKETS
-#define DEBUG_WEBSOCKETS(...) Serial.println(__VA_ARGS__)
+#define DEBUG_WEBSOCKETS(...)
 #define NODEBUG_WEBSOCKETS
 #endif
 

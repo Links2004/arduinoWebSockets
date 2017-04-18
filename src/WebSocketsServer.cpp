@@ -29,7 +29,6 @@ WebSocketsServer::WebSocketsServer(uint16_t port, String origin, String protocol
     _port = port;
     _origin = origin;
     _protocol = protocol;
-	debugln("websockets!");
 DEBUG_WEBSOCKETS("tesT!");
     _server = new WEBSOCKETS_NETWORK_SERVER_CLASS(port);
 
@@ -115,6 +114,7 @@ void WebSocketsServer::begin(void) {
  * called in arduino loop
  */
 void WebSocketsServer::loop(void) {
+
     handleNewClients();
     handleClientData();
 }
@@ -125,6 +125,8 @@ void WebSocketsServer::loop(void) {
  * @param cbEvent WebSocketServerEvent
  */
 void WebSocketsServer::onEvent(WebSocketServerEvent cbEvent) {
+DEBUG_WEBSOCKETS("[WS-Server] onEvent.\n");
+
     _cbEvent = cbEvent;
 }
 
@@ -346,6 +348,8 @@ bool WebSocketsServer::broadcastPing(String & payload) {
  * disconnect all clients
  */
 void WebSocketsServer::disconnect(void) {
+DEBUG_WEBSOCKETS("[WS-Server] disconnect.\n");
+
     WSclient_t * client;
     for(uint8_t i = 0; i < WEBSOCKETS_SERVER_CLIENT_MAX; i++) {
         client = &_clients[i];
@@ -360,6 +364,8 @@ void WebSocketsServer::disconnect(void) {
  * @param num uint8_t client id
  */
 void WebSocketsServer::disconnect(uint8_t num) {
+DEBUG_WEBSOCKETS("[WS-Server] disconnect-NUM.\n");
+
     if(num >= WEBSOCKETS_SERVER_CLIENT_MAX) {
         return;
     }
@@ -376,6 +382,8 @@ void WebSocketsServer::disconnect(uint8_t num) {
  * @param password const char *
  */
 void WebSocketsServer::setAuthorization(const char * user, const char * password) {
+DEBUG_WEBSOCKETS("[WS-Server] setAuthorization.\n");
+
     if(user && password) {
         String auth = user;
         auth += ":";
@@ -401,6 +409,8 @@ void WebSocketsServer::setAuthorization(const char * auth) {
  * @return IPAddress
  */
 IPAddress WebSocketsServer::remoteIP(uint8_t num) {
+DEBUG_WEBSOCKETS("[WS-Server] remoteIP.\n");
+
     if(num < WEBSOCKETS_SERVER_CLIENT_MAX) {
         WSclient_t * client = &_clients[num];
         if(clientIsConnected(client)) {
@@ -421,6 +431,8 @@ IPAddress WebSocketsServer::remoteIP(uint8_t num) {
  * @param client
  */
 bool WebSocketsServer::newClient(WEBSOCKETS_NETWORK_CLASS * TCPclient) {
+DEBUG_WEBSOCKETS("[WS-Server] newClient.\n");
+
     WSclient_t * client;
     // search free list entry for client
     for(uint8_t i = 0; i < WEBSOCKETS_SERVER_CLIENT_MAX; i++) {
@@ -502,6 +514,7 @@ void WebSocketsServer::messageReceived(WSclient_t * client, WSopcode_t opcode, u
  * @param client WSclient_t *  ptr to the client struct
  */
 void WebSocketsServer::clientDisconnect(WSclient_t * client) {
+DEBUG_WEBSOCKETS("[WS-Server] clientDisconnect.\n");
 
 
 #if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
@@ -594,9 +607,10 @@ bool WebSocketsServer::clientIsConnected(WSclient_t * client) {
  */
 void WebSocketsServer::handleNewClients(void) {
 
+
 /*
  * 
-#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266) ||(WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP32)
+#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP32)
     while(_server->hasClient()) {
 #endif
         bool ok = false;
@@ -675,6 +689,8 @@ void WebSocketsServer::handleClientData(void) {
  * @param headerName String ///< the name of the header being checked
  */
 bool WebSocketsServer::hasMandatoryHeader(String headerName) {
+DEBUG_WEBSOCKETS("[WS-Server] handleHeader.\n");
+
 	for (size_t i = 0; i < _mandatoryHttpHeaderCount; i++) {
 		if (_mandatoryHttpHeaders[i].equalsIgnoreCase(headerName))
 			return true;
@@ -689,6 +705,7 @@ bool WebSocketsServer::hasMandatoryHeader(String headerName) {
  * @param headerLine String ///< the header being read / processed
  */
 void WebSocketsServer::handleHeader(WSclient_t * client, String * headerLine) {
+DEBUG_WEBSOCKETS("[WS-Server] handleHeader.\n");
 
 	static const char * NEW_LINE = "\r\n";
 
