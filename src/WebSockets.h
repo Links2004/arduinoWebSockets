@@ -25,6 +25,10 @@
 #ifndef WEBSOCKETS_H_
 #define WEBSOCKETS_H_
 
+
+#define DEBUG_ESP_PORT Serial
+
+
 #ifdef STM32_DEVICE
 #include <application.h>
 #define bit(b) (1UL << (b)) // Taken directly from Arduino.h
@@ -41,7 +45,7 @@
 #endif
 
 #ifndef DEBUG_WEBSOCKETS
-#define DEBUG_WEBSOCKETS(...)
+#define DEBUG_WEBSOCKETS(...) Serial.println(__VA_ARGS__)
 #define NODEBUG_WEBSOCKETS
 #endif
 
@@ -70,6 +74,7 @@
 #define NETWORK_ESP8266         (1)
 #define NETWORK_W5100           (2)
 #define NETWORK_ENC28J60        (3)
+#define NETWORK_ESP32         (4)
 
 // max size of the WS Message Header
 #define WEBSOCKETS_MAX_HEADER_SIZE  (14)
@@ -80,6 +85,8 @@
 #define WEBSOCKETS_NETWORK_TYPE NETWORK_ESP8266
 //#define WEBSOCKETS_NETWORK_TYPE NETWORK_ESP8266_ASYNC
 //#define WEBSOCKETS_NETWORK_TYPE NETWORK_W5100
+#elif defined(ESP32)
+#define WEBSOCKETS_NETWORK_TYPE NETWORK_ESP32
 #else
 #define WEBSOCKETS_NETWORK_TYPE NETWORK_W5100
 #endif
@@ -91,12 +98,14 @@
 //   No SSL/WSS support for client in Async mode
 //   TLS lib need a sync interface!
 
-#if !defined(ESP8266) && !defined(ESP31B)
+#if !defined(ESP8266) && !defined(ESP31B) && !defined(ESP32)
 #error "network type ESP8266 ASYNC only possible on the ESP mcu!"
 #endif
 
 #ifdef ESP8266
 #include <ESP8266WiFi.h>
+#elif defined(ESP32)
+#include <WiFi.h>
 #else
 #include <ESP31BWiFi.h>
 #endif
@@ -107,29 +116,43 @@
 
 #elif (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
 
-#if !defined(ESP8266) && !defined(ESP31B)
+#if !defined(ESP8266) && !defined(ESP31B) && !defined(ESP32)
 #error "network type ESP8266 only possible on the ESP mcu!"
 #endif
 
 #ifdef ESP8266
 #include <ESP8266WiFi.h>
 #else
-#include <ESP31BWiFi.h>
+#include <WiFi.h>
 #endif
+#define WEBSOCKETS_NETWORK_CLASS WiFiClient
+#define WEBSOCKETS_NETWORK_SERVER_CLASS WiFiServer
+
+#elif (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP32)
+
+#if !defined(ESP32)
+#error "network type ESP32 only possible on the ESP mcu!"
+#endif
+
+
+#include <WiFi.h>
 #define WEBSOCKETS_NETWORK_CLASS WiFiClient
 #define WEBSOCKETS_NETWORK_SERVER_CLASS WiFiServer
 
 #elif (WEBSOCKETS_NETWORK_TYPE == NETWORK_W5100)
 
-#ifdef STM32_DEVICE
-#define WEBSOCKETS_NETWORK_CLASS TCPClient
-#define WEBSOCKETS_NETWORK_SERVER_CLASS TCPServer
-#else
-#include <Ethernet.h>
-#include <SPI.h>
-#define WEBSOCKETS_NETWORK_CLASS EthernetClient
-#define WEBSOCKETS_NETWORK_SERVER_CLASS EthernetServer
-#endif
+
+
+
+//#ifdef STM32_DEVICE
+//#define WEBSOCKETS_NETWORK_CLASS TCPClient
+//#define WEBSOCKETS_NETWORK_SERVER_CLASS TCPServer
+//#else
+//#include <Ethernet.h>
+//#include <SPI.h>
+//#define WEBSOCKETS_NETWORK_CLASS EthernetClient
+//#define WEBSOCKETS_NETWORK_SERVER_CLASS EthernetServer
+//#endif
 
 #elif (WEBSOCKETS_NETWORK_TYPE == NETWORK_ENC28J60)
 
@@ -203,7 +226,7 @@ typedef struct {
 
 #if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
         bool isSSL;             ///< run in ssl mode
-        WiFiClientSecure * ssl;
+        //WiFiClientSecure * ssl;
 #endif
 
         String cUrl;        ///< http url
@@ -261,7 +284,7 @@ class WebSockets {
         void handleWebsocketCb(WSclient_t * client);
         void handleWebsocketPayloadCb(WSclient_t * client, bool ok, uint8_t * payload);
 
-        String acceptKey(String & clientKey);
+        //String acceptKey(String & clientKey);
         String base64_encode(uint8_t * data, size_t length);
 
         bool readCb(WSclient_t * client, uint8_t *out, size_t n, WSreadWaitCb cb);

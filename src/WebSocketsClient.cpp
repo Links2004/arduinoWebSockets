@@ -587,11 +587,13 @@ void WebSocketsClient::handleHeader(WSclient_t * client, String * headerLine) {
                 ok = false;
             } else {
                 // generate Sec-WebSocket-Accept key for check
-                String sKey = acceptKey(client->cKey);
+                /*
+		String sKey = acceptKey(client->cKey);
                 if(sKey != client->cAccept) {
                     DEBUG_WEBSOCKETS("[WS-Client][handleHeader] Sec-WebSocket-Accept is wrong\n");
                     ok = false;
                 }
+		*/
             }
         }
 

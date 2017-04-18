@@ -40,9 +40,9 @@ extern "C" {
 #include <Hash.h>
 #else
 
-extern "C" {
-#include "libsha1/libsha1.h"
-}
+//extern "C" {
+//#include "libsha1/libsha1.h"
+//}
 
 #endif
 
@@ -479,6 +479,7 @@ void WebSockets::handleWebsocketPayloadCb(WSclient_t * client, bool ok, uint8_t 
  * @param clientKey String
  * @return String Accept Key
  */
+/*
 String WebSockets::acceptKey(String & clientKey) {
     uint8_t sha1HashBin[20] = { 0 };
 #ifdef ESP8266
@@ -496,7 +497,7 @@ String WebSockets::acceptKey(String & clientKey) {
 
     return key;
 }
-
+*/
 /**
  * base64_encode
  * @param data uint8_t *

@@ -29,7 +29,8 @@ WebSocketsServer::WebSocketsServer(uint16_t port, String origin, String protocol
     _port = port;
     _origin = origin;
     _protocol = protocol;
-
+	debugln("websockets!");
+DEBUG_WEBSOCKETS("tesT!");
     _server = new WEBSOCKETS_NETWORK_SERVER_CLASS(port);
 
 #if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266_ASYNC)
@@ -50,8 +51,9 @@ WebSocketsServer::~WebSocketsServer() {
     // disconnect all clients
     disconnect();
 
-#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
-    _server->close();
+DEBUG_WEBSOCKETS("tesssT!");
+#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP32)
+    _server->end();
 #else
     // TODO how to close server?
 #endif
@@ -67,7 +69,7 @@ WebSocketsServer::~WebSocketsServer() {
  */
 void WebSocketsServer::begin(void) {
     WSclient_t * client;
-
+	DEBUG_WEBSOCKETS("begin!");
     // init client storage
     for(uint8_t i = 0; i < WEBSOCKETS_SERVER_CLIENT_MAX; i++) {
         client = &_clients[i];
@@ -77,7 +79,7 @@ void WebSocketsServer::begin(void) {
         client->tcp = NULL;
 #if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
         client->isSSL = false;
-        client->ssl = NULL;
+       	client->ssl = NULL;
 #endif
         client->cUrl = "";
         client->cCode = 0;
@@ -211,6 +213,8 @@ bool WebSocketsServer::broadcastTXT(uint8_t * payload, size_t length, bool heade
         }
 #if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
         delay(0);
+#elif (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP32)
+	delay(0);
 #endif
     }
     return ret;
@@ -274,6 +278,8 @@ bool WebSocketsServer::broadcastBIN(uint8_t * payload, size_t length, bool heade
         }
 #if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
         delay(0);
+#elif (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP32)
+        delay(0);
 #endif
     }
     return ret;
@@ -323,6 +329,8 @@ bool WebSocketsServer::broadcastPing(uint8_t * payload, size_t length) {
             }
         }
 #if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
+        delay(0);
+#elif (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP32)
         delay(0);
 #endif
     }
@@ -386,7 +394,7 @@ void WebSocketsServer::setAuthorization(const char * auth) {
     }
 }
 
-#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266_ASYNC)
+#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266_ASYNC) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP32)
 /**
  * get an IP for a client
  * @param num uint8_t client id
@@ -432,7 +440,7 @@ bool WebSocketsServer::newClient(WEBSOCKETS_NETWORK_CLASS * TCPclient) {
             client->tcp->setTimeout(WEBSOCKETS_TCP_TIMEOUT);
 #endif
             client->status = WSC_HEADER;
-#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266_ASYNC)
+#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266_ASYNC) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP32)
             IPAddress ip = client->tcp->remoteIP();
             DEBUG_WEBSOCKETS("[WS-Server][%d] new client from %d.%d.%d.%d\n", client->num, ip[0], ip[1], ip[2], ip[3]);
 #else
@@ -497,6 +505,8 @@ void WebSocketsServer::clientDisconnect(WSclient_t * client) {
 
 
 #if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
+    /*
+     * 
     if(client->isSSL && client->ssl) {
         if(client->ssl->connected()) {
             client->ssl->flush();
@@ -506,6 +516,8 @@ void WebSocketsServer::clientDisconnect(WSclient_t * client) {
         client->ssl = NULL;
         client->tcp = NULL;
     }
+    
+     */
 #endif
 
     if(client->tcp) {
@@ -582,7 +594,9 @@ bool WebSocketsServer::clientIsConnected(WSclient_t * client) {
  */
 void WebSocketsServer::handleNewClients(void) {
 
-#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
+/*
+ * 
+#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266) ||(WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP32)
     while(_server->hasClient()) {
 #endif
         bool ok = false;
@@ -603,7 +617,7 @@ void WebSocketsServer::handleNewClients(void) {
 
         if(!ok) {
             // no free space to handle client
-#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
+#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP32)
             IPAddress ip = tcpClient->remoteIP();
             DEBUG_WEBSOCKETS("[WS-Server] no free space new client from %d.%d.%d.%d\n", ip[0], ip[1], ip[2], ip[3]);
 #else
@@ -612,11 +626,12 @@ void WebSocketsServer::handleNewClients(void) {
             tcpClient->stop();
         }
 
-#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
+#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP32)
         delay(0);
     }
 #endif
 
+ */
 }
 
 
@@ -648,7 +663,7 @@ void WebSocketsServer::handleClientData(void) {
                 }
             }
         }
-#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
+#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP32)
         delay(0);
 #endif
     }
@@ -780,9 +795,9 @@ void WebSocketsServer::handleHeader(WSclient_t * client, String * headerLine) {
             DEBUG_WEBSOCKETS("[WS-Server][%d][handleHeader] Websocket connection incoming.\n", client->num);
 
             // generate Sec-WebSocket-Accept key
-            String sKey = acceptKey(client->cKey);
+            //String sKey = acceptKey(client->cKey);
 
-            DEBUG_WEBSOCKETS("[WS-Server][%d][handleHeader]  - sKey: %s\n", client->num, sKey.c_str());
+            //DEBUG_WEBSOCKETS("[WS-Server][%d][handleHeader]  - sKey: %s\n", client->num, sKey.c_str());
 
             client->status = WSC_CONNECTED;
 
@@ -792,7 +807,7 @@ void WebSocketsServer::handleHeader(WSclient_t * client, String * headerLine) {
                     "Connection: Upgrade\r\n"
                     "Sec-WebSocket-Version: 13\r\n"
                     "Sec-WebSocket-Accept: ");
-			handshake += sKey + NEW_LINE;
+			//handshake += sKey + NEW_LINE;
 
             if(_origin.length() > 0) {
                 handshake += WEBSOCKETS_STRING("Access-Control-Allow-Origin: ");
