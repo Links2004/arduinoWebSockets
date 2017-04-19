@@ -6,17 +6,15 @@
  */
 
 #include <Arduino.h>
-
-#include <ESP8266WiFi.h>
-#include <ESP8266WiFiMulti.h>
+#include <WiFi.h>
+#include <WiFiMulti.h>
 #include <WebSocketsServer.h>
-#include <Hash.h>
 
-ESP8266WiFiMulti WiFiMulti;
+WiFiMulti WiFiMulti;
 
 WebSocketsServer webSocket = WebSocketsServer(81);
 
-#define USE_SERIAL Serial1
+#define USE_SERIAL Serial
 
 void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length) {
 
@@ -44,7 +42,7 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length
             break;
         case WStype_BIN:
             USE_SERIAL.printf("[%u] get binary length: %u\n", num, length);
-            hexdump(payload, length);
+            //hexdump(payload, length);
 
             // send message to client
             // webSocket.sendBIN(num, payload, length);
@@ -73,8 +71,13 @@ void setup() {
     WiFiMulti.addAP("SSID", "passpasspass");
 
     while(WiFiMulti.run() != WL_CONNECTED) {
+        Serial.print(".");
         delay(100);
     }
+    Serial.println("");
+    Serial.println("WiFi connected");
+    Serial.println("IP address: ");
+    Serial.println(WiFi.localIP());
 
     webSocket.begin();
     webSocket.onEvent(webSocketEvent);
@@ -83,4 +86,3 @@ void setup() {
 void loop() {
     webSocket.loop();
 }
-
