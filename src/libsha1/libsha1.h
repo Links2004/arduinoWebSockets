@@ -5,7 +5,7 @@ By Steve Reid <steve@edmweb.com>
 100% Public Domain
 */
 
-#ifndef ESP8266
+#if !defined(ESP8266) && !defined(ESP32)
 
 typedef struct {
     uint32_t state[5];

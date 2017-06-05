@@ -7,15 +7,23 @@
 
 #include <Arduino.h>
 
+#if defined(ESP8266)
 #include <ESP8266WiFi.h>
 #include <ESP8266WiFiMulti.h>
+ESP8266WiFiMulti WiFiMulti;
+#else
+#include <WiFi.h>
+#include <WiFiMulti.h>
+WiFiMulti WiFiMulti;
+#endif
 #include <WebSocketsServer.h>
 #include <Hash.h>
 
-ESP8266WiFiMulti WiFiMulti;
-
 WebSocketsServer webSocket = WebSocketsServer(81);
 
+#if defined(ESP32)
+HardwareSerial Serial1(2);  // UART1/Serial1 pins 16,17
+#endif
 #define USE_SERIAL Serial1
 
 const unsigned long int validSessionId = 12345; //some arbitrary value to act as a valid sessionId

@@ -51,9 +51,13 @@ WebSocketsServer::~WebSocketsServer() {
     disconnect();
 
 #if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
-    _server->close();
+#ifdef ESP8266
+    _server->stop();
 #else
-    // TODO how to close server?
+    _server->end();
+#endif
+#else
+    // TODO how to close server?
 #endif
 
     if (_mandatoryHttpHeaders)

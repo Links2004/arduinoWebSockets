@@ -81,7 +81,11 @@ class WebSocketsClient: private WebSockets {
         uint16_t _port;
 
 #if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
+#if defined(ESP8266)
         String _fingerprint;
+#else
+        String _root_ca_cert;
+#endif
 #endif
         WSclient_t _client;
 

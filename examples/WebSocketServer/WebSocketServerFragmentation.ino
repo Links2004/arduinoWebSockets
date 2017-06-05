@@ -7,12 +7,17 @@
 
 #include <Arduino.h>
 
+#if defined(ESP8266)
 #include <ESP8266WiFi.h>
 #include <ESP8266WiFiMulti.h>
+ESP8266WiFiMulti WiFiMulti;
+#else
+#include <WiFi.h>
+#include <WiFiMulti.h>
+WiFiMulti WiFiMulti;
+#endif
 #include <WebSocketsServer.h>
 #include <Hash.h>
-
-ESP8266WiFiMulti WiFiMulti;
 
 WebSocketsServer webSocket = WebSocketsServer(81);
 
