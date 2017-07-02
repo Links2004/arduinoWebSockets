@@ -44,7 +44,9 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length
 			break;
 		case WStype_BIN:
 			USE_SERIAL.printf("[%u] get binary length: %u\n", num, length);
+#ifdef ESP8266
 			hexdump(payload, length);
+#endif
 			break;
 
 		// Fragmentation / continuation opcode handling
