@@ -117,6 +117,19 @@ void WebSocketsClient::beginSocketIO(String host, uint16_t port, String url, Str
     beginSocketIO(host.c_str(), port, url.c_str(), protocol.c_str());
 }
 
+#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
+void WebSocketsClient::beginSocketIOSSL(const char *host, uint16_t port, const char * url, const char * protocol) {
+    begin(host, port, url, protocol);
+    _client.isSocketIO = true;
+    _client.isSSL = true;
+    _fingerprint = "";
+}
+
+void WebSocketsClient::beginSocketIOSSL(String host, uint16_t port, String url, String protocol) {
+    beginSocketIOSSL(host.c_str(), port, url.c_str(), protocol.c_str());
+}
+#endif
+
 #if (WEBSOCKETS_NETWORK_TYPE != NETWORK_ESP8266_ASYNC)
 /**
  * called in arduino loop
@@ -621,14 +634,16 @@ void WebSocketsClient::handleHeader(WSclient_t * client, String * headerLine) {
 
             runCbEvent(WStype_CONNECTED, (uint8_t *) client->cUrl.c_str(), client->cUrl.length());
 
-        } else if(clientIsConnected(client) && client->isSocketIO && client->cSessionId.length() > 0) {
-            sendHeader(client);
-        } else {
-            DEBUG_WEBSOCKETS("[WS-Client][handleHeader] no Websocket connection close.\n");
-            client->tcp->write("This is a webSocket client!");
-            clientDisconnect(client);
-        }
-    }
+		} else if(clientIsConnected(client) && client->isSocketIO && client->cSessionId.length() > 0) {
+			sendHeader(client);
+		} else {
+			DEBUG_WEBSOCKETS("[WS-Client][handleHeader] no Websocket connection close.\n");
+			if(clientIsConnected(client)) {
+				client->tcp->write("This is a webSocket client!");
+			}
+			clientDisconnect(client);
+		}
+	}
 }
 
 void WebSocketsClient::connectedCb() {
