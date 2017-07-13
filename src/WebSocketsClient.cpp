@@ -122,7 +122,11 @@ void WebSocketsClient::beginSocketIOSSL(const char *host, uint16_t port, const c
     begin(host, port, url, protocol);
     _client.isSocketIO = true;
     _client.isSSL = true;
+#ifdef ESP8266
     _fingerprint = "";
+#else
+    _root_ca_cert = "";
+#endif
 }
 
 void WebSocketsClient::beginSocketIOSSL(String host, uint16_t port, String url, String protocol) {
