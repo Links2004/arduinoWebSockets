@@ -479,8 +479,12 @@ void WebSocketsClient::sendHeader(WSclient_t * client) {
 		handshake += WEBSOCKETS_STRING("Connection: keep-alive\r\n");
 	}
 
-	handshake += WEBSOCKETS_STRING("Origin: file://\r\n"
-			"User-Agent: arduino-WebSocket-Client\r\n");
+#ifndef WEBSOCKET_HEADERS_NO_ORIGIN
+	// add origin header if requested
+	handshake += WEBSOCKETS_STRING("Origin: file://\r\n");
+#endif
+	
+	handshake += WEBSOCKETS_STRING("User-Agent: arduino-WebSocket-Client\r\n");
 
 	if(client->base64Authorization.length() > 0) {
 		handshake += WEBSOCKETS_STRING("Authorization: Basic ");
