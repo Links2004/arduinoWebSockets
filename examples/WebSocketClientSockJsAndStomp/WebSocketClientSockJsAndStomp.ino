@@ -137,7 +137,7 @@ void setup() {
 
     // connect to websocket
     webSocket.begin(ws_host, ws_port, socketUrl);
-    webSocket.setExtraHeaders(""); // remove "Origin: file://" header because it breaks the connection with Spring's default websocket config
+    webSocket.setExtraHeaders(); // remove "Origin: file://" header because it breaks the connection with Spring's default websocket config
 //    webSocket.setExtraHeaders("foo: I am so funny\r\nbar: not"); // some headers, in case you feel funny
     webSocket.onEvent(webSocketEvent);
 }
