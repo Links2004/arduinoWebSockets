@@ -29,6 +29,7 @@
 WebSocketsClient::WebSocketsClient() {
     _cbEvent = NULL;
     _client.num = 0;
+    _client.extraHeaders = "Origin: file://";
 }
 
 WebSocketsClient::~WebSocketsClient() {
@@ -274,6 +275,15 @@ void WebSocketsClient::setAuthorization(const char * auth) {
     }
 }
 
+/**
+ * set extra headers for the http request;
+ * separate headers by "\r\n"
+ * @param extraHeaders const char * extraHeaders
+ */
+void WebSocketsClient::setExtraHeaders(const char * extraHeaders) {
+    _client.extraHeaders = extraHeaders;
+}
+
 //#################################################################################
 //#################################################################################
 //#################################################################################
@@ -479,10 +489,8 @@ void WebSocketsClient::sendHeader(WSclient_t * client) {
 		handshake += WEBSOCKETS_STRING("Connection: keep-alive\r\n");
 	}
 
-#ifndef WEBSOCKET_HEADERS_NO_ORIGIN
-	// add origin header if requested
-	handshake += WEBSOCKETS_STRING("Origin: file://\r\n");
-#endif
+	// add extra headers; by default this includes "Origin: file://"
+	handshake += client->extraHeaders + NEW_LINE;
 	
 	handshake += WEBSOCKETS_STRING("User-Agent: arduino-WebSocket-Client\r\n");
 

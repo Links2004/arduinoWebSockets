@@ -80,6 +80,9 @@ class WebSocketsClient: private WebSockets {
 
         void setAuthorization(const char * user, const char * password);
         void setAuthorization(const char * auth);
+	
+        void setExtraHeaders(char * extraHeaders);
+        void setExtraHeaders(const char * extraHeaders);
 
     protected:
         String _host;
