@@ -82,7 +82,7 @@ void webSocketEvent(WStype_t type, uint8_t * payload, size_t length) {
 
               // and send a message
 
-              msg = "[\"SEND\\ndestination:/app/message\\ncontent-length:33\\n\\n{\\\"user\\\":\\\"esp\\\",\\\"message\\\":\\\"Hello!\\\"}\\u0000\"]";
+              msg = "[\"SEND\\ndestination:/app/message\\n\\n{\\\"user\\\":\\\"esp\\\",\\\"message\\\":\\\"Hello!\\\"}\\u0000\"]";
               webSocket.sendTXT(msg);
               delay(1000);
             }
