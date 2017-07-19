@@ -5,16 +5,10 @@
  * In this example we connect to a Spring application (see https://docs.spring.io/spring/docs/current/spring-framework-reference/html/websocket.html).
  *
  *  Created on: 18.07.2017
- *  Author: Martin Becker <mgbckr>, contact: becker@informatik.uni-wuerzburg.de
+ *  Author: Martin Becker <mgbckr>, Contact: becker@informatik.uni-wuerzburg.de
  */
 
-// CONSTANTS AND MACROS
-
-#define DEBUG_WEBSOCKETS
-#define DEBUG_WEBSOCKETS(...) Serial.printf( __VA_ARGS__ )
-
-#define WEBSOCKETS_NETWORK_TYPE NETWORK_ESP8266
-#define WEBSOCKETS_HEADERS_NO_ORIGIN
+// PRE
 
 #define USE_SERIAL Serial
 
@@ -28,9 +22,9 @@
 // SETTINGS
 
 const char* wlan_ssid             = "yourssid";
-const char* wlan_password         = "password";
+const char* wlan_password         = "somepassword";
 
-const char* ws_host               = "the.host.com";
+const char* ws_host               = "the.host.net";
 const int   ws_port               = 80;
 
 // base URL for SockJS (websocket) connection
@@ -117,11 +111,6 @@ void setup() {
 
     USE_SERIAL.println();
 
-    for(uint8_t t = 4; t > 0; t--) {
-        USE_SERIAL.printf("[SETUP] BOOT WAIT %d...\n", t);
-        USE_SERIAL.flush();
-        delay(1000);
-    }
 
     // connect to WiFi
 
@@ -135,6 +124,7 @@ void setup() {
     }
     USE_SERIAL.println(" success.");
     USE_SERIAL.print("IP: "); USE_SERIAL.println(WiFi.localIP());
+
     
     // #####################
     // create socket url according to SockJS protocol (cf. http://sockjs.github.io/sockjs-protocol/sockjs-protocol-0.3.3.html#section-36)
@@ -147,6 +137,8 @@ void setup() {
 
     // connect to websocket
     webSocket.begin(ws_host, ws_port, socketUrl);
+    webSocket.setExtraHeaders(""); // remove "Origin: file://" header because it breaks the connection with Spring's default websocket config
+//    webSocket.setExtraHeaders("foo: I am so funny\r\nbar: not"); // some headers, in case you feel funny
     webSocket.onEvent(webSocketEvent);
 }
 
