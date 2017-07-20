@@ -15,6 +15,9 @@
 
 // LIBRARIES
 
+#include <Arduino.h>
+#include <Hash.h>
+
 #include <ESP8266WiFi.h>
 #include <WebSocketsClient.h>
 
@@ -52,7 +55,7 @@ void webSocketEvent(WStype_t type, uint8_t * payload, size_t length) {
                 USE_SERIAL.printf("[WSc] Connected to url: %s\n",  payload);
             }
             break;
-        case WStype_TEXT: 
+        case WStype_TEXT:
             {
                 // #####################
                 // handle STOMP protocol
