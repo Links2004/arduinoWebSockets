@@ -70,6 +70,7 @@
 #define NETWORK_ESP8266         (1)
 #define NETWORK_W5100           (2)
 #define NETWORK_ENC28J60        (3)
+#define NETWORK_ESP32           (4)
 
 // max size of the WS Message Header
 #define WEBSOCKETS_MAX_HEADER_SIZE  (14)
@@ -80,6 +81,8 @@
 #define WEBSOCKETS_NETWORK_TYPE NETWORK_ESP8266
 //#define WEBSOCKETS_NETWORK_TYPE NETWORK_ESP8266_ASYNC
 //#define WEBSOCKETS_NETWORK_TYPE NETWORK_W5100
+#elif defined(ESP32)
+#define WEBSOCKETS_NETWORK_TYPE NETWORK_ESP32
 #else
 #define WEBSOCKETS_NETWORK_TYPE NETWORK_W5100
 #endif
@@ -136,6 +139,13 @@
 #include <UIPEthernet.h>
 #define WEBSOCKETS_NETWORK_CLASS UIPClient
 #define WEBSOCKETS_NETWORK_SERVER_CLASS UIPServer
+
+#elif (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP32)
+
+#include <WiFi.h>
+#include <WiFiClientSecure.h>
+#define WEBSOCKETS_NETWORK_CLASS WiFiClient
+#define WEBSOCKETS_NETWORK_SERVER_CLASS WiFiServer
 
 #else
 #error "no network type selected!"
@@ -201,7 +211,7 @@ typedef struct {
 
         bool isSocketIO;    ///< client for socket.io server
 
-#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
+#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP32)
         bool isSSL;             ///< run in ssl mode
         WiFiClientSecure * ssl;
 #endif
