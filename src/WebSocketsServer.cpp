@@ -589,8 +589,6 @@ void WebSocketsServer::handleNewClients(void) {
 
 #if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
     while(_server->hasClient()) {
-#elif (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP32)
-    while(_server->available()) {
 #endif
         bool ok = false;
 
@@ -621,8 +619,9 @@ void WebSocketsServer::handleNewClients(void) {
 
 #if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP32)
         delay(0);
-#endif
     }
+#endif
+
 }
 
 
