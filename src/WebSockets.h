@@ -270,6 +270,8 @@ class WebSockets {
         String base64_encode(uint8_t * data, size_t length);
 
         bool readCb(WSclient_t * client, uint8_t *out, size_t n, WSreadWaitCb cb);
+        virtual size_t write(WSclient_t * client, uint8_t *out, size_t n);
+        size_t write(WSclient_t * client, const char *out);
 
 
 };
