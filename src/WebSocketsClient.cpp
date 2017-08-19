@@ -75,6 +75,9 @@ void WebSocketsClient::begin(const char *host, uint16_t port, const char * url, 
 #if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266_ASYNC)
     asyncConnect();
 #endif
+
+    _lastConnectionFail = 0;
+    _reconnectInterval = 500;
 }
 
 void WebSocketsClient::begin(String host, uint16_t port, String url, String protocol) {
@@ -121,6 +124,10 @@ void WebSocketsClient::beginSocketIOSSL(String host, uint16_t port, String url, 
  */
 void WebSocketsClient::loop(void) {
     if(!clientIsConnected(&_client)) {
+    	// do not flood the server
+    	if((millis() - _lastConnectionFail) < _reconnectInterval) {
+    		return;
+    	}
 
 #if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
         if(_client.isSSL) {
@@ -151,9 +158,11 @@ void WebSocketsClient::loop(void) {
 
         if(_client.tcp->connect(_host.c_str(), _port)) {
             connectedCb();
+            _lastConnectionFail = 0;
         } else {
             connectFailedCb();
-            delay(10); //some little delay to not flood the server
+            _lastConnectionFail = millis();
+
         }
     } else {
         handleClientData();
@@ -282,6 +291,16 @@ void WebSocketsClient::setAuthorization(const char * auth) {
  */
 void WebSocketsClient::setExtraHeaders(const char * extraHeaders) {
     _client.extraHeaders = extraHeaders;
+}
+
+
+/**
+ * set the reconnect Interval
+ * how long to wait after a connection initiate failed
+ * @param time in ms
+ */
+void WebSocketsClient::setReconnectInterval(unsigned long time) {
+	_reconnectInterval = time;
 }
 
 //#################################################################################
@@ -604,6 +623,7 @@ void WebSocketsClient::handleHeader(WSclient_t * client, String * headerLine) {
                     ok = false;
                     DEBUG_WEBSOCKETS("[WS-Client][handleHeader] serverCode is not 101 (%d)\n", client->cCode);
                     clientDisconnect(client);
+                    _lastConnectionFail = millis();
                     break;
             }
         }
@@ -634,6 +654,7 @@ void WebSocketsClient::handleHeader(WSclient_t * client, String * headerLine) {
 			sendHeader(client);
 		} else {
 			DEBUG_WEBSOCKETS("[WS-Client][handleHeader] no Websocket connection close.\n");
+			_lastConnectionFail = millis();
 			if(clientIsConnected(client)) {
 				client->tcp->write("This is a webSocket client!");
 			}

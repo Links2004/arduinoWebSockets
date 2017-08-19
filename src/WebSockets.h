@@ -34,11 +34,14 @@
 
 #include <functional>
 
+#ifndef NODEBUG_WEBSOCKETS
 #ifdef DEBUG_ESP_PORT
 #define DEBUG_WEBSOCKETS(...) DEBUG_ESP_PORT.printf( __VA_ARGS__ )
 #else
 //#define DEBUG_WEBSOCKETS(...) os_printf( __VA_ARGS__ )
 #endif
+#endif
+
 
 #ifndef DEBUG_WEBSOCKETS
 #define DEBUG_WEBSOCKETS(...)
