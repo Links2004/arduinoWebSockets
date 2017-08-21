@@ -624,7 +624,7 @@ size_t WebSockets::write(WSclient_t * client, uint8_t *out, size_t n) {
 			break;
 		}
 
-		len = client->tcp->write(out, n);
+		len = client->tcp->write((const uint8_t*)out, n);
 		if(len) {
 			t = millis();
 			out += len;
