@@ -13,7 +13,7 @@
         "type": "git",
         "url": "https://github.com/Links2004/arduinoWebSockets.git"
     },
-    "version": "2.0.7",
+    "version": "2.0.10",
     "license": "LGPL-2.1",
     "export": {
         "exclude": [

@@ -34,11 +34,14 @@
 
 #include <functional>
 
+#ifndef NODEBUG_WEBSOCKETS
 #ifdef DEBUG_ESP_PORT
 #define DEBUG_WEBSOCKETS(...) DEBUG_ESP_PORT.printf( __VA_ARGS__ )
 #else
 //#define DEBUG_WEBSOCKETS(...) os_printf( __VA_ARGS__ )
 #endif
+#endif
+
 
 #ifndef DEBUG_WEBSOCKETS
 #define DEBUG_WEBSOCKETS(...)
@@ -232,6 +235,8 @@ typedef struct {
         String base64Authorization; ///< Base64 encoded Auth request
         String plainAuthorization; ///< Base64 encoded Auth request
 
+        String extraHeaders;
+
         bool cHttpHeadersValid; ///< non-websocket http header validity indicator
         size_t cMandatoryHeadersCount; ///< non-websocket mandatory http headers present count
 
@@ -271,6 +276,8 @@ class WebSockets {
         String base64_encode(uint8_t * data, size_t length);
 
         bool readCb(WSclient_t * client, uint8_t *out, size_t n, WSreadWaitCb cb);
+        virtual size_t write(WSclient_t * client, uint8_t *out, size_t n);
+        size_t write(WSclient_t * client, const char *out);
 
 
 };

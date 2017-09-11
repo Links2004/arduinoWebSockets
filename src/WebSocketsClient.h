@@ -80,6 +80,10 @@ class WebSocketsClient: private WebSockets {
 
         void setAuthorization(const char * user, const char * password);
         void setAuthorization(const char * auth);
+	
+        void setExtraHeaders(const char * extraHeaders = NULL);
+
+        void setReconnectInterval(unsigned long time);
 
     protected:
         String _host;
@@ -95,6 +99,9 @@ class WebSocketsClient: private WebSockets {
         WSclient_t _client;
 
         WebSocketClientEvent _cbEvent;
+
+        unsigned long _lastConnectionFail;
+        unsigned long _reconnectInterval;
 
         void messageReceived(WSclient_t * client, WSopcode_t opcode, uint8_t * payload, size_t length, bool fin);
 
