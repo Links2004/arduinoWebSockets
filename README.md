@@ -23,7 +23,7 @@ a WebSocket Server and Client for Arduino based on RFC6455.
  - wss / SSL is not possible.
 
 ##### Supported Hardware #####
- - ESP32 [Arduino for ESPRE](https://github.com/espressif/arduino-esp32)
+ - ESP32 [Arduino for ESP32](https://github.com/espressif/arduino-esp32)
  - ESP8266 [Arduino for ESP8266](https://github.com/Links2004/Arduino)
  - ESP31B
  - Particle with STM32 ARM Cortex M3
