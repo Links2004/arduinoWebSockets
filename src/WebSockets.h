@@ -284,7 +284,7 @@ class WebSockets {
         void handleWebsocketCb(WSclient_t * client);
         void handleWebsocketPayloadCb(WSclient_t * client, bool ok, uint8_t * payload);
 
-        //String acceptKey(String & clientKey);
+        String acceptKey(String & clientKey);
         String base64_encode(uint8_t * data, size_t length);
 
         bool readCb(WSclient_t * client, uint8_t *out, size_t n, WSreadWaitCb cb);

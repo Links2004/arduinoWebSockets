@@ -29,7 +29,7 @@ WebSocketsServer::WebSocketsServer(uint16_t port, String origin, String protocol
     _port = port;
     _origin = origin;
     _protocol = protocol;
-DEBUG_WEBSOCKETS("tesT!");
+    DEBUG_WEBSOCKETS("tesT!");
     _server = new WEBSOCKETS_NETWORK_SERVER_CLASS(port);
 
 #if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266_ASYNC)
@@ -114,7 +114,7 @@ void WebSocketsServer::begin(void) {
  * called in arduino loop
  */
 void WebSocketsServer::loop(void) {
-
+    
     handleNewClients();
     handleClientData();
 }
@@ -608,8 +608,7 @@ bool WebSocketsServer::clientIsConnected(WSclient_t * client) {
 void WebSocketsServer::handleNewClients(void) {
 
 
-/*
- * 
+
 #if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP32)
     while(_server->hasClient()) {
 #endif
@@ -645,7 +644,7 @@ void WebSocketsServer::handleNewClients(void) {
     }
 #endif
 
- */
+
 }
 
 
@@ -812,8 +811,8 @@ DEBUG_WEBSOCKETS("[WS-Server] handleHeader.\n");
             DEBUG_WEBSOCKETS("[WS-Server][%d][handleHeader] Websocket connection incoming.\n", client->num);
 
             // generate Sec-WebSocket-Accept key
-            //String sKey = acceptKey(client->cKey);
-
+            String sKey = acceptKey(client->cKey);
+            DEBUG_WEBSOCKETS("SKEY [%d]",client->cKey);
             //DEBUG_WEBSOCKETS("[WS-Server][%d][handleHeader]  - sKey: %s\n", client->num, sKey.c_str());
 
             client->status = WSC_CONNECTED;
@@ -824,11 +823,12 @@ DEBUG_WEBSOCKETS("[WS-Server] handleHeader.\n");
                     "Connection: Upgrade\r\n"
                     "Sec-WebSocket-Version: 13\r\n"
                     "Sec-WebSocket-Accept: ");
-			//handshake += sKey + NEW_LINE;
+			handshake += sKey + NEW_LINE;
 
             if(_origin.length() > 0) {
                 handshake += WEBSOCKETS_STRING("Access-Control-Allow-Origin: ");
                 handshake +=_origin + NEW_LINE;
+//                handshake += NEW_LINE;
             }
 
             if(client->cProtocol.length() > 0) {
