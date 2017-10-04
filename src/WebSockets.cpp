@@ -46,6 +46,7 @@ extern "C" {
 
 #endif
 
+
 /**
  *
  * @param client WSclient_t *  ptr to the client struct

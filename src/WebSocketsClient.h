@@ -37,7 +37,7 @@ class WebSocketsClient: private WebSockets {
 
 
         WebSocketsClient(void);
-        ~WebSocketsClient(void);
+        virtual ~WebSocketsClient(void);
 
         void begin(const char *host, uint16_t port, const char * url = "/", const char * protocol = "arduino");
         void begin(String host, uint16_t port, String url = "/", String protocol = "arduino");

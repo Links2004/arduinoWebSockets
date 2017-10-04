@@ -44,7 +44,7 @@ public:
 #endif
 
         WebSocketsServer(uint16_t port, String origin = "", String protocol = "arduino");
-        ~WebSocketsServer(void);
+        virtual ~WebSocketsServer(void);
 
         void begin(void);
 
