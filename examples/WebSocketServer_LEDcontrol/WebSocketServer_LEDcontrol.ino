@@ -7,11 +7,23 @@
 
 #include <Arduino.h>
 
+#if defined(ESP8266)
 #include <ESP8266WiFi.h>
 #include <ESP8266WiFiMulti.h>
-#include <WebSocketsServer.h>
 #include <ESP8266WebServer.h>
 #include <ESP8266mDNS.h>
+ESP8266WiFiMulti WiFiMulti;
+ESP8266WebServer server = ESP8266WebServer(80);
+#elif defined(ESP32)
+#include <WiFi.h>
+#include <WiFiMulti.h>
+#include <WebServer.h>
+#include <ESPmDNS.h>
+WiFiMulti WiFiMulti;
+WebServer server = WebServer(80);
+#define analogWrite(...)
+#endif
+#include <WebSocketsServer.h>
 #include <Hash.h>
 
 #define LED_RED     15
@@ -21,9 +33,6 @@
 #define USE_SERIAL Serial
 
 
-ESP8266WiFiMulti WiFiMulti;
-
-ESP8266WebServer server = ESP8266WebServer(80);
 WebSocketsServer webSocket = WebSocketsServer(81);
 
 void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length) {

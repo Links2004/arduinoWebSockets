@@ -43,7 +43,11 @@ void WebSocketsClient::begin(const char *host, uint16_t port, const char * url, 
     _host = host;
     _port = port;
 #if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
+#if defined(ESP8266)
     _fingerprint = "";
+#else
+    _root_ca_cert = "";
+#endif
 #endif
 
     _client.num = 0;
@@ -85,6 +89,7 @@ void WebSocketsClient::begin(String host, uint16_t port, String url, String prot
 }
 
 #if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
+#if defined(ESP8266)
 void WebSocketsClient::beginSSL(const char *host, uint16_t port, const char * url, const char * fingerprint, const char * protocol) {
     begin(host, port, url, protocol);
     _client.isSSL = true;
@@ -94,6 +99,17 @@ void WebSocketsClient::beginSSL(const char *host, uint16_t port, const char * ur
 void WebSocketsClient::beginSSL(String host, uint16_t port, String url, String fingerprint, String protocol) {
     beginSSL(host.c_str(), port, url.c_str(), fingerprint.c_str(), protocol.c_str());
 }
+#else
+void WebSocketsClient::beginSSL(const char *host, uint16_t port, const char * url, const char * root_ca_cert, const char * protocol) {
+    begin(host, port, url, protocol);
+    _client.isSSL = true;
+    _root_ca_cert = root_ca_cert;
+}
+
+void WebSocketsClient::beginSSL(String host, uint16_t port, String url, String fingerprint, String protocol) {
+    beginSSL(host.c_str(), port, url.c_str(), fingerprint.c_str(), protocol.c_str());
+}
+#endif
 #endif
 
 void WebSocketsClient::beginSocketIO(const char *host, uint16_t port, const char * url, const char * protocol) {
@@ -110,7 +126,11 @@ void WebSocketsClient::beginSocketIOSSL(const char *host, uint16_t port, const c
     begin(host, port, url, protocol);
     _client.isSocketIO = true;
     _client.isSSL = true;
+#ifdef ESP8266
     _fingerprint = "";
+#else
+    _root_ca_cert = "";
+#endif
 }
 
 void WebSocketsClient::beginSocketIOSSL(String host, uint16_t port, String url, String protocol) {
@@ -138,7 +158,9 @@ void WebSocketsClient::loop(void) {
                 _client.tcp = NULL;
             }
             _client.ssl = new WiFiClientSecure();
+#if !defined(ESP32)
             _client.tcp = _client.ssl;
+#endif
         } else {
             DEBUG_WEBSOCKETS("[WS-Client] connect ws...\n");
             if(_client.tcp) {
@@ -324,9 +346,9 @@ void WebSocketsClient::messageReceived(WSclient_t * client, WSopcode_t opcode, u
         case WSop_binary:
             type = fin ? WStype_BIN : WStype_FRAGMENT_BIN_START;
             break;
-		case WSop_continuation:
-			type = fin ? WStype_FRAGMENT_FIN : WStype_FRAGMENT;
-			break;
+        case WSop_continuation:
+            type = fin ? WStype_FRAGMENT_FIN : WStype_FRAGMENT;
+            break;
     }
 
     runCbEvent(type, payload, length);
@@ -688,6 +710,7 @@ void WebSocketsClient::connectedCb() {
 #if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
     _client.tcp->setNoDelay(true);
 
+#if !defined(ESP32)
     if(_client.isSSL && _fingerprint.length()) {
         if(!_client.ssl->verify(_fingerprint.c_str(), _host.c_str())) {
             DEBUG_WEBSOCKETS("[WS-Client] certificate mismatch\n");
@@ -695,6 +718,7 @@ void WebSocketsClient::connectedCb() {
             return;
         }
     }
+#endif
 #endif
 
     // send Header to Server

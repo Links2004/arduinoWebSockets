@@ -7,16 +7,26 @@
 
 #include <Arduino.h>
 
+#if defined(ESP8266)
 #include <ESP8266WiFi.h>
 #include <ESP8266WiFiMulti.h>
+ESP8266WiFiMulti WiFiMulti;
+#else
+#include <WiFi.h>
+#include <WiFiMulti.h>
+WiFiMulti WiFiMulti;
+#endif
 
 #include <WebSocketsClient.h>
 
 #include <Hash.h>
 
-ESP8266WiFiMulti WiFiMulti;
 WebSocketsClient webSocket;
 
+
+#if defined(ESP32)
+HardwareSerial Serial1(2);  // UART1/Serial1 pins 16,17
+#endif
 #define USE_SERIAL Serial1
 
 void webSocketEvent(WStype_t type, uint8_t * payload, size_t length) {
@@ -37,10 +47,12 @@ void webSocketEvent(WStype_t type, uint8_t * payload, size_t length) {
 
 			// send message to server
 			// webSocket.sendTXT("message here");
-			break;
-		case WStype_BIN:
-			USE_SERIAL.printf("[WSc] get binary length: %u\n", length);
-			hexdump(payload, length);
+            break;
+        case WStype_BIN:
+            USE_SERIAL.printf("[WSc] get binary length: %u\n", length);
+#ifdef ESP8266
+            hexdump(payload, length);
+#endif
 
 			// send data to server
 			// webSocket.sendBIN(payload, length);

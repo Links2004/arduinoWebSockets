@@ -48,7 +48,7 @@
 #define NODEBUG_WEBSOCKETS
 #endif
 
-#ifdef ESP8266
+#if defined(ESP8266) || defined(ESP32)
 #define WEBSOCKETS_MAX_DATA_SIZE  (15*1024)
 #define WEBSOCKETS_USE_BIG_MEM
 #define GET_FREE_HEAP ESP.getFreeHeap()
@@ -79,7 +79,7 @@
 
 #if !defined(WEBSOCKETS_NETWORK_TYPE) 
 // select Network type based
-#if defined(ESP8266) || defined(ESP31B)
+#if defined(ESP8266) || defined(ESP31B) || defined(ESP32)
 #define WEBSOCKETS_NETWORK_TYPE NETWORK_ESP8266
 //#define WEBSOCKETS_NETWORK_TYPE NETWORK_ESP8266_ASYNC
 //#define WEBSOCKETS_NETWORK_TYPE NETWORK_W5100
@@ -94,12 +94,15 @@
 //   No SSL/WSS support for client in Async mode
 //   TLS lib need a sync interface!
 
-#if !defined(ESP8266) && !defined(ESP31B)
+#if !defined(ESP8266) && !defined(ESP31B) && !defined(ESP32)
 #error "network type ESP8266 ASYNC only possible on the ESP mcu!"
 #endif
 
 #ifdef ESP8266
 #include <ESP8266WiFi.h>
+#elif defined(ESP32)
+#include <WiFi.h>
+#include <WiFiClientSecure.h>
 #else
 #include <ESP31BWiFi.h>
 #endif
@@ -110,12 +113,15 @@
 
 #elif (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
 
-#if !defined(ESP8266) && !defined(ESP31B)
+#if !defined(ESP8266) && !defined(ESP31B) && !defined(ESP32)
 #error "network type ESP8266 only possible on the ESP mcu!"
 #endif
 
 #ifdef ESP8266
 #include <ESP8266WiFi.h>
+#elif defined(ESP32)
+#include <WiFi.h>
+#include <WiFiClientSecure.h>
 #else
 #include <ESP31BWiFi.h>
 #endif
