@@ -3,6 +3,8 @@
 
     Example for connecting and maintining a connection with a STOMP websocket connection.
     In this example, we connect to a Spring application (see https://docs.spring.io/spring/docs/current/spring-framework-reference/html/websocket.html).
+    In particular, we use the default STOMP WebSocket example by Spring: https://github.com/spring-guides/gs-messaging-stomp-websocket
+    That is, we connect to the Spring server, send a "hello" and get back a "greeting".
 
     Created on: 25.09.2017
     Author: Martin Becker <mgbckr>, Contact: becker@informatik.uni-wuerzburg.de
@@ -24,15 +26,16 @@
 
 // SETTINGS
 
-const char* wlan_ssid             = "yourssid";
-const char* wlan_password         = "somepassword";
+const char* wlan_ssid             = "<ssid>";
+const char* wlan_password         = "<password>";
 
-const char* ws_host               = "the.host.net";
-const int   ws_port               = 80;
+const char* ws_host               = "<ip>";
+const int   ws_port               = 8080; // the Spring webapp runs on port 8080 by default (instead of 80 for standard HTTP)
 
 // URL for STOMP endpoint.
-// For the default config of Spring's STOMP support, the default URL is "/socketentry/websocket".
-const char* stompUrl            = "/socketentry/websocket"; // don't forget the leading "/" !!!
+// For the default config of Spring's STOMP support, the preset URL is "/socketentry/websocket".
+// Here, we use the URL defined by the Spring example mentioned in the preamble.
+const char* stompUrl            = "/gs-guide-websocket/websocket"; // don't forget the leading "/" !!!
 
 
 // VARIABLES
@@ -82,13 +85,13 @@ void webSocketEvent(WStype_t type, uint8_t * payload, size_t length) {
 
                     // subscribe to some channels
 
-                    String msg = "SUBSCRIBE\nid:sub-0\ndestination:/user/queue/messages\n\n";
+                    String msg = "SUBSCRIBE\nid:sub-0\ndestination:/topic/greetings\n\n";
                     sendMessage(msg);
                     delay(1000);
 
                     // and send a message
 
-                    msg = "SEND\ndestination:/app/message\n\n{\"user\":\"esp\",\"message\":\"Hello!\"}";
+                    msg = "SEND\ndestination:/app/hello\n\n{\"name\":\"blubb\"}";
                     sendMessage(msg);
                     delay(1000);
                     
