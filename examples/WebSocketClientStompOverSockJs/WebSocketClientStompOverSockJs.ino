@@ -3,6 +3,8 @@
 
     Example for connecting and maintining a connection with a SockJS+STOMP websocket connection.
     In this example, we connect to a Spring application (see https://docs.spring.io/spring/docs/current/spring-framework-reference/html/websocket.html).
+    In particular, we use the default STOMP WebSocket example by Spring: https://github.com/spring-guides/gs-messaging-stomp-websocket
+    That is, we connect to the Spring server, send a "hello" and get back a "greeting".
 
     Created on: 18.07.2017
     Author: Martin Becker <mgbckr>, Contact: becker@informatik.uni-wuerzburg.de
@@ -24,17 +26,20 @@
 
 // SETTINGS
 
-const char* wlan_ssid             = "yourssid";
-const char* wlan_password         = "somepassword";
+const char* wlan_ssid             = "<ssid>";
+const char* wlan_password         = "<password>";
 
-const char* ws_host               = "the.host.net";
-const int   ws_port               = 80;
+const char* ws_host               = "<ip>";
+const int   ws_port               = 8080; // the Spring webapp runs on port 8080 by default (instead of 80 for standard HTTP)
 
 // base URL for SockJS (websocket) connection
-// The complete URL will look something like this(cf. http://sockjs.github.io/sockjs-protocol/sockjs-protocol-0.3.3.html#section-36):
-// ws://<ws_host>:<ws_port>/<ws_baseurl>/<3digits>/<randomstring>/websocket
-// For the default config of Spring's SockJS/STOMP support, the default base URL is "/socketentry/".
-const char* ws_baseurl            = "/socketentry/"; // don't forget leading and trailing "/" !!!
+// The complete URL will look something like this (cf. http://sockjs.github.io/sockjs-protocol/sockjs-protocol-0.3.3.html#section-36):
+//
+//     ws://<ws_host>:<ws_port>/<ws_baseurl>/<3digits>/<randomstring>/websocket
+//
+// For the default config of Spring's SockJS/STOMP support, the preset base URL is "/socketentry/".
+// Here, we use the URL defined by the Spring example mentioned in the preamble.
+const char* ws_baseurl            = "/gs-guide-websocket/"; // don't forget leading and trailing "/" !!!
 
 
 // VARIABLES
@@ -79,13 +84,13 @@ void webSocketEvent(WStype_t type, uint8_t * payload, size_t length) {
 
                     // subscribe to some channels
 
-                    char *msg = "[\"SUBSCRIBE\\nid:sub-0\\ndestination:/user/queue/messages\\n\\n\\u0000\"]";
+                    char *msg = "[\"SUBSCRIBE\\nid:sub-0\\ndestination:/topic/greetings\\n\\n\\u0000\"]";
                     webSocket.sendTXT(msg);
                     delay(1000);
 
                     // and send a message
 
-                    msg = "[\"SEND\\ndestination:/app/message\\n\\n{\\\"user\\\":\\\"esp\\\",\\\"message\\\":\\\"Hello!\\\"}\\u0000\"]";
+                    msg = "[\"SEND\\ndestination:/app/hello\\n\\n{\\\"name\\\":\\\"blubb\\\"}\\u0000\"]";
                     webSocket.sendTXT(msg);
                     delay(1000);
                 }
