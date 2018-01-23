@@ -379,19 +379,34 @@ void WebSocketsServer::handleNewClients(void) {
 //    Serial.println("handling new client");
 #if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
     while(_server-> ->hasClient()) {
+#else
+//        WiFiClient clientContainer = _server->available();
+//        while(clientContainer){
 #endif
         bool ok = false;
         // search free list entry for client
         for(uint8_t i = 0; i < WEBSOCKETS_SERVER_CLIENT_MAX; i++) {
             client = &_clients[i];
-
+            DEBUG_WEBSOCKETS("[WS-Server][");
+            DEBUG_WEBSOCKETS(i);
+            DEBUG_WEBSOCKETS("] this client is connected: ");
+            DEBUG_WEBSOCKETS(clientIsConnected(client));
+            DEBUG_WEBSOCKETS("\n");
+        }
+        for(uint8_t i = 0; i < WEBSOCKETS_SERVER_CLIENT_MAX; i++) {
+            client = &_clients[i];
+            
+            DEBUG_WEBSOCKETS("looping for ");
+            DEBUG_WEBSOCKETS(i);
+            DEBUG_WEBSOCKETS(" times\n");
             // state is not connected or tcp connection is lost
             if(!clientIsConnected(client)) {
 #if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
                 // store new connection
                 client->tcp = new WEBSOCKETS_NETWORK_CLASS(_server->available());
 #else
-                client->tcp = new WEBSOCKETS_NETWORK_CLASS(_server->available());
+                
+                client->tcp = new WEBSOCKETS_NETWORK_CLASS(_server->available());//&clientContainer ;
                 
 #endif
                 if(!client->tcp) {
@@ -406,13 +421,16 @@ void WebSocketsServer::handleNewClients(void) {
                 // set Timeout for readBytesUntil and readStringUntil
                 client->tcp->setTimeout(WEBSOCKETS_TCP_TIMEOUT);
                 client->status = WSC_HEADER;
-#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
                 IPAddress ip = client->tcp->remoteIP();
+#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
+                
                 DEBUG_WEBSOCKETS("[WS-Server][%d] new client from %d.%d.%d.%d\n", client->num, ip[0], ip[1], ip[2], ip[3]);
 #else
                 DEBUG_WEBSOCKETS("[WS-Server][");
                 DEBUG_WEBSOCKETS( client->num);
-                DEBUG_WEBSOCKETS("] new client\n");
+                DEBUG_WEBSOCKETS("] new client from:");
+                DEBUG_WEBSOCKETS(ip);
+                DEBUG_WEBSOCKETS("\n");
 #endif
                 ok = true;
                 break;
@@ -436,6 +454,8 @@ void WebSocketsServer::handleNewClients(void) {
 #endif
 #if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
     }
+#else
+    //}
 #endif
 }
 
