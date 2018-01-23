@@ -373,7 +373,6 @@ void WebSocketsClient::clientDisconnect(WSclient_t * client) {
     client->cCode = 0;
     client->cKey = "";
     client->cAccept = "";
-    client->cProtocol = "";
     client->cVersion = 0;
     client->cIsUpgrade = false;
     client->cIsWebsocket = false;

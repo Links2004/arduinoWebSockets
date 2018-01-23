@@ -1,10 +1,10 @@
 /*
-    WebSocketClientSockJsAndStomp.ino
+    WebSocketClientStomp.ino
 
-    Example for connecting and maintining a connection with a SockJS+STOMP websocket connection.
-    In this example we connect to a Spring application (see https://docs.spring.io/spring/docs/current/spring-framework-reference/html/websocket.html).
+    Example for connecting and maintining a connection with a STOMP websocket connection.
+    In this example, we connect to a Spring application (see https://docs.spring.io/spring/docs/current/spring-framework-reference/html/websocket.html).
 
-    Created on: 18.07.2017
+    Created on: 25.09.2017
     Author: Martin Becker <mgbckr>, Contact: becker@informatik.uni-wuerzburg.de
 */
 
@@ -30,11 +30,9 @@ const char* wlan_password         = "somepassword";
 const char* ws_host               = "the.host.net";
 const int   ws_port               = 80;
 
-// base URL for SockJS (websocket) connection
-// The complete URL will look something like this(cf. http://sockjs.github.io/sockjs-protocol/sockjs-protocol-0.3.3.html#section-36):
-// ws://<ws_host>:<ws_port>/<ws_baseurl>/<3digits>/<randomstring>/websocket
-// For the default config of Spring's SockJS/STOMP support the default base URL is "/socketentry/".
-const char* ws_baseurl            = "/socketentry/"; // don't forget leading and trailing "/" !!!
+// URL for STOMP endpoint.
+// For the default config of Spring's STOMP support, the default URL is "/socketentry/websocket".
+const char* stompUrl            = "/socketentry/websocket"; // don't forget the leading "/" !!!
 
 
 // VARIABLES
@@ -43,6 +41,19 @@ WebSocketsClient webSocket;
 
 
 // FUNCTIONS
+
+/**
+ * STOMP messages need to be NULL-terminated (i.e., \0 or \u0000).
+ * However, when we send a String or a char[] array without specifying 
+ * a length, the size of the message payload is derived by strlen() internally,
+ * thus dropping any NULL values appended to the "msg"-String.
+ * 
+ * To solve this, we first convert the String to a NULL terminated char[] array
+ * via "c_str" and set the length of the payload to include the NULL value.
+ */
+void sendMessage(String & msg) {
+    webSocket.sendTXT(msg.c_str(), msg.length() + 1);
+}
 
 void webSocketEvent(WStype_t type, uint8_t * payload, size_t length) {
 
@@ -53,6 +64,9 @@ void webSocketEvent(WStype_t type, uint8_t * payload, size_t length) {
         case WStype_CONNECTED:
             {
                 USE_SERIAL.printf("[WSc] Connected to url: %s\n",  payload);
+                
+                String msg = "CONNECT\r\naccept-version:1.1,1.0\r\nheart-beat:10000,10000\r\n\r\n";
+                sendMessage(msg);
             }
             break;
         case WStype_TEXT:
@@ -62,32 +76,26 @@ void webSocketEvent(WStype_t type, uint8_t * payload, size_t length) {
                 // #####################
 
                 String text = (char*) payload;
-
                 USE_SERIAL.printf("[WSc] get text: %s\n", payload);
 
-                if (payload[0] == 'h') {
-
-                    USE_SERIAL.println("Heartbeat!");
-
-                } else if (payload[0] == 'o') {
-
-                    // on open connection
-                    char *msg = "[\"CONNECT\\naccept-version:1.1,1.0\\nheart-beat:10000,10000\\n\\n\\u0000\"]";
-                    webSocket.sendTXT(msg);
-
-                } else if (text.startsWith("a[\"CONNECTED")) {
+                if (text.startsWith("CONNECTED")) {
 
                     // subscribe to some channels
 
-                    char *msg = "[\"SUBSCRIBE\\nid:sub-0\\ndestination:/user/queue/messages\\n\\n\\u0000\"]";
-                    webSocket.sendTXT(msg);
+                    String msg = "SUBSCRIBE\nid:sub-0\ndestination:/user/queue/messages\n\n";
+                    sendMessage(msg);
                     delay(1000);
 
                     // and send a message
 
-                    msg = "[\"SEND\\ndestination:/app/message\\n\\n{\\\"user\\\":\\\"esp\\\",\\\"message\\\":\\\"Hello!\\\"}\\u0000\"]";
-                    webSocket.sendTXT(msg);
+                    msg = "SEND\ndestination:/app/message\n\n{\"user\":\"esp\",\"message\":\"Hello!\"}";
+                    sendMessage(msg);
                     delay(1000);
+                    
+                } else {
+
+                    // do something with messages
+                    
                 }
 
                 break;
@@ -129,17 +137,8 @@ void setup() {
     USE_SERIAL.print("IP: "); USE_SERIAL.println(WiFi.localIP());
 
 
-    // #####################
-    // create socket url according to SockJS protocol (cf. http://sockjs.github.io/sockjs-protocol/sockjs-protocol-0.3.3.html#section-36)
-    // #####################
-    String socketUrl = ws_baseurl;
-    socketUrl += random(0, 999);
-    socketUrl += "/";
-    socketUrl += random(0, 999999); // should be a random string, but this works (see )
-    socketUrl += "/websocket";
-
     // connect to websocket
-    webSocket.begin(ws_host, ws_port, socketUrl);
+    webSocket.begin(ws_host, ws_port, stompUrl);
     webSocket.setExtraHeaders(); // remove "Origin: file://" header because it breaks the connection with Spring's default websocket config
     //    webSocket.setExtraHeaders("foo: I am so funny\r\nbar: not"); // some headers, in case you feel funny
     webSocket.onEvent(webSocketEvent);
