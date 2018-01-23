@@ -119,8 +119,15 @@ void WebSocketsClient::loop(void) {
         }
 
         if(_client.tcp->connect(_host.c_str(), _port)) {
+#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
             DEBUG_WEBSOCKETS("[WS-Client] connected to %s:%u.\n", _host.c_str(), _port);
-
+#else
+            DEBUG_WEBSOCKETS("[WS-Client] connected to");
+            DEBUG_WEBSOCKETS( _host.c_str());
+            DEBUG_WEBSOCKETS(":");
+            DEBUG_WEBSOCKETS(_port);
+            DEBUG_WEBSOCKETS("\n");
+#endif
             _client.status = WSC_HEADER;
 
             // set Timeout for readBytesUntil and readStringUntil
@@ -142,7 +149,16 @@ void WebSocketsClient::loop(void) {
             sendHeader(&_client);
 
         } else {
+            
+#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
             DEBUG_WEBSOCKETS("[WS-Client] connection to %s:%u Faild\n", _host.c_str(), _port);
+#else
+            DEBUG_WEBSOCKETS("[WS-Client] connection to");
+            DEBUG_WEBSOCKETS( _host.c_str());
+            DEBUG_WEBSOCKETS(":");
+            DEBUG_WEBSOCKETS(_port);
+            DEBUG_WEBSOCKETS(" Failed\n");
+#endif
             delay(10); //some litle delay to not flood the server
         }
     } else {
@@ -378,9 +394,9 @@ void WebSocketsClient::sendHeader(WSclient_t * client) {
     handshake += "\r\n";
 
     client->tcp->write(handshake.c_str(), handshake.length());
-
-    DEBUG_WEBSOCKETS("[WS-Client][sendHeader] sending header... Done (%uus).\n", (micros() - start));
-
+    #if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
+        DEBUG_WEBSOCKETS("[WS-Client][sendHeader] sending header... Done (%uus).\n", (micros() - start));
+    #endif
 }
 
 /**
@@ -393,8 +409,9 @@ void WebSocketsClient::handleHeader(WSclient_t * client) {
     headerLine.trim(); // remove \r
 
     if(headerLine.length() > 0) {
-        DEBUG_WEBSOCKETS("[WS-Client][handleHeader] RX: %s\n", headerLine.c_str());
-
+        #if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
+            DEBUG_WEBSOCKETS("[WS-Client][handleHeader] RX: %s\n", headerLine.c_str());
+        #endif
         if(headerLine.startsWith("HTTP/1.")) {
             // "HTTP/1.1 101 Switching Protocols"
             client->cCode = headerLine.substring(9, headerLine.indexOf(' ', 9)).toInt();
@@ -421,10 +438,13 @@ void WebSocketsClient::handleHeader(WSclient_t * client) {
                 client->cVersion = headerValue.toInt();
             }
         } else {
-            DEBUG_WEBSOCKETS("[WS-Client][handleHeader] Header error (%s)\n", headerLine.c_str());
+            #if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
+                DEBUG_WEBSOCKETS("[WS-Client][handleHeader] Header error (%s)\n", headerLine.c_str());
+            #endif
         }
 
     } else {
+        #if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
         DEBUG_WEBSOCKETS("[WS-Client][handleHeader] Header read fin.\n");
         DEBUG_WEBSOCKETS("[WS-Client][handleHeader] Client settings:\n");
 
@@ -439,7 +459,7 @@ void WebSocketsClient::handleHeader(WSclient_t * client) {
         DEBUG_WEBSOCKETS("[WS-Client][handleHeader]  - cProtocol: %s\n", client->cProtocol.c_str());
         DEBUG_WEBSOCKETS("[WS-Client][handleHeader]  - cExtensions: %s\n", client->cExtensions.c_str());
         DEBUG_WEBSOCKETS("[WS-Client][handleHeader]  - cVersion: %d\n", client->cVersion);
-
+        #endif
         bool ok = (client->cIsUpgrade && client->cIsWebsocket);
 
         if(ok) {
@@ -451,7 +471,9 @@ void WebSocketsClient::handleHeader(WSclient_t * client) {
                     // todo handle login
                 default:   ///< Server dont unterstand requrst
                     ok = false;
+                    #if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
                     DEBUG_WEBSOCKETS("[WS-Client][handleHeader] serverCode is not 101 (%d)\n", client->cCode);
+                    #endif
                     clientDisconnect(client);
                     break;
             }
