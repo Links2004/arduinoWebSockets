@@ -378,21 +378,48 @@ void WebSocketsServer::handleNewClients(void) {
     WSclient_t * client;
 //    Serial.println("handling new client");
 #if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
-    while(_server-> ->hasClient()) {
+    while(_server->hasClient()) {
 #else
-//        WiFiClient clientContainer = _server->available();
-//        while(clientContainer){
+        WiFiClient clientContainer = _server->available();
+        while(clientContainer){
+       
+            IPAddress ipContainer = clientContainer.remoteIP();
+            
+            int firstNum =      ipContainer[0];
+            int secondNum =     ipContainer[1];
+            int thirdNum =      ipContainer[2];
+            int fourthNum =     ipContainer[3];
+            DEBUG_WEBSOCKETS("[Client ip Address][");
+            DEBUG_WEBSOCKETS(firstNum);
+            DEBUG_WEBSOCKETS(".");
+            DEBUG_WEBSOCKETS(secondNum);
+            DEBUG_WEBSOCKETS(".");
+            DEBUG_WEBSOCKETS(thirdNum);
+            DEBUG_WEBSOCKETS(".");
+            DEBUG_WEBSOCKETS(fourthNum);
+                DEBUG_WEBSOCKETS("]\n");
+            
+            
+            
+            for(uint8_t i = 0; i < WEBSOCKETS_SERVER_CLIENT_MAX; i++) {
+                client = &_clients[i];
+                if(client->tcp)
+                {
+                    IPAddress ipContainer = client->tcp->remoteIP();
+                    if(ipContainer[0]==firstNum && ipContainer[1]==secondNum && ipContainer[2]==thirdNum && ipContainer[3]==fourthNum)
+                    {
+                        DEBUG_WEBSOCKETS("already present");
+                        return;
+                    }
+                }
+            }
+            
+            
+//         while(_server->hasClient()) {
 #endif
         bool ok = false;
         // search free list entry for client
-        for(uint8_t i = 0; i < WEBSOCKETS_SERVER_CLIENT_MAX; i++) {
-            client = &_clients[i];
-            DEBUG_WEBSOCKETS("[WS-Server][");
-            DEBUG_WEBSOCKETS(i);
-            DEBUG_WEBSOCKETS("] this client is connected: ");
-            DEBUG_WEBSOCKETS(clientIsConnected(client));
-            DEBUG_WEBSOCKETS("\n");
-        }
+       
         for(uint8_t i = 0; i < WEBSOCKETS_SERVER_CLIENT_MAX; i++) {
             client = &_clients[i];
             
@@ -407,7 +434,13 @@ void WebSocketsServer::handleNewClients(void) {
 #else
                 
                 client->tcp = new WEBSOCKETS_NETWORK_CLASS(_server->available());//&clientContainer ;
-                
+//                client->tcp = new WEBSOCKETS_NETWORK_CLASS(clientContainer );
+                IPAddress ip = client->tcp->remoteIP();
+                if(ip[0]==0 && ip[1]==0 && ip[2]==0 && ip[3]==0)
+                {
+                    
+                    return;
+                }
 #endif
                 if(!client->tcp) {
                     DEBUG_WEBSOCKETS("[WS-Client] creating Network class failed!");
@@ -421,7 +454,8 @@ void WebSocketsServer::handleNewClients(void) {
                 // set Timeout for readBytesUntil and readStringUntil
                 client->tcp->setTimeout(WEBSOCKETS_TCP_TIMEOUT);
                 client->status = WSC_HEADER;
-                IPAddress ip = client->tcp->remoteIP();
+                //IPAddress ip = client->tcp->remoteIP();
+                
 #if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
                 
                 DEBUG_WEBSOCKETS("[WS-Server][%d] new client from %d.%d.%d.%d\n", client->num, ip[0], ip[1], ip[2], ip[3]);
@@ -455,7 +489,7 @@ void WebSocketsServer::handleNewClients(void) {
 #if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
     }
 #else
-    //}
+    }
 #endif
 }
 
