@@ -73,6 +73,10 @@ public:
 #endif
 
 protected:
+        #if (WEBSOCKETS_NETWORK_TYPE == NETWORK_WIFI101)
+        IPAddress tempIpAddressNewClient;
+    
+        #endif
         uint16_t _port;
 
         WEBSOCKETS_NETWORK_SERVER_CLASS * _server;

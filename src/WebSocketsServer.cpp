@@ -383,21 +383,21 @@ void WebSocketsServer::handleNewClients(void) {
         WiFiClient clientContainer = _server->available();
         while(clientContainer){
        
-            IPAddress ipContainer = clientContainer.remoteIP();
+            tempIpAddressNewClient = clientContainer.remoteIP();
             
-            int firstNum =      ipContainer[0];
-            int secondNum =     ipContainer[1];
-            int thirdNum =      ipContainer[2];
-            int fourthNum =     ipContainer[3];
-            DEBUG_WEBSOCKETS("[Client ip Address][");
-            DEBUG_WEBSOCKETS(firstNum);
-            DEBUG_WEBSOCKETS(".");
-            DEBUG_WEBSOCKETS(secondNum);
-            DEBUG_WEBSOCKETS(".");
-            DEBUG_WEBSOCKETS(thirdNum);
-            DEBUG_WEBSOCKETS(".");
-            DEBUG_WEBSOCKETS(fourthNum);
-                DEBUG_WEBSOCKETS("]\n");
+//            int firstNum =      ipContainer[0];
+//            int secondNum =     ipContainer[1];
+//            int thirdNum =      ipContainer[2];
+//            int fourthNum =     ipContainer[3];
+//            DEBUG_WEBSOCKETS("[Client ip Address][");
+//            DEBUG_WEBSOCKETS(firstNum);
+//            DEBUG_WEBSOCKETS(".");
+//            DEBUG_WEBSOCKETS(secondNum);
+//            DEBUG_WEBSOCKETS(".");
+//            DEBUG_WEBSOCKETS(thirdNum);
+//            DEBUG_WEBSOCKETS(".");
+//            DEBUG_WEBSOCKETS(fourthNum);
+//                DEBUG_WEBSOCKETS("]\n");
             
             
             
@@ -406,9 +406,9 @@ void WebSocketsServer::handleNewClients(void) {
                 if(client->tcp)
                 {
                     IPAddress ipContainer = client->tcp->remoteIP();
-                    if(ipContainer[0]==firstNum && ipContainer[1]==secondNum && ipContainer[2]==thirdNum && ipContainer[3]==fourthNum)
+                    if(ipContainer[0]==tempIpAddressNewClient[0] && ipContainer[1]==tempIpAddressNewClient[1] && ipContainer[2]==tempIpAddressNewClient[2] && ipContainer[3]==tempIpAddressNewClient[3])
                     {
-                        DEBUG_WEBSOCKETS("already present");
+                        
                         return;
                     }
                 }
@@ -443,7 +443,7 @@ void WebSocketsServer::handleNewClients(void) {
                 }
 #endif
                 if(!client->tcp) {
-                    DEBUG_WEBSOCKETS("[WS-Client] creating Network class failed!");
+                    DEBUG_WEBSOCKETS("[WS-Client] creating Network class failed!\n");
                     return;
                 }
 
