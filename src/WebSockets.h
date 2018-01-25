@@ -56,8 +56,10 @@
 // select Network type based
 #ifdef ESP8266
 #define WEBSOCKETS_NETWORK_TYPE NETWORK_ESP8266
-#else
+#elif defined(ARDUINO_SAMD_MKR1000)
 #define WEBSOCKETS_NETWORK_TYPE NETWORK_WIFI101
+#else
+#define WEBSOCKETS_NETWORK_TYPE NETWORK_W5100
 #endif
 
 
