@@ -376,31 +376,14 @@ bool WebSocketsServer::clientIsConnected(WSclient_t * client) {
  */
 void WebSocketsServer::handleNewClients(void) {
     WSclient_t * client;
-//    Serial.println("handling new client");
+    
 #if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
     while(_server->hasClient()) {
 #else
         WiFiClient clientContainer = _server->available();
-        while(clientContainer){
-       
+        while(clientContainer){       
             tempIpAddressNewClient = clientContainer.remoteIP();
-            
-//            int firstNum =      ipContainer[0];
-//            int secondNum =     ipContainer[1];
-//            int thirdNum =      ipContainer[2];
-//            int fourthNum =     ipContainer[3];
-//            DEBUG_WEBSOCKETS("[Client ip Address][");
-//            DEBUG_WEBSOCKETS(firstNum);
-//            DEBUG_WEBSOCKETS(".");
-//            DEBUG_WEBSOCKETS(secondNum);
-//            DEBUG_WEBSOCKETS(".");
-//            DEBUG_WEBSOCKETS(thirdNum);
-//            DEBUG_WEBSOCKETS(".");
-//            DEBUG_WEBSOCKETS(fourthNum);
-//                DEBUG_WEBSOCKETS("]\n");
-            
-            
-            
+
             for(uint8_t i = 0; i < WEBSOCKETS_SERVER_CLIENT_MAX; i++) {
                 client = &_clients[i];
                 if(client->tcp)
@@ -414,8 +397,6 @@ void WebSocketsServer::handleNewClients(void) {
                 }
             }
             
-            
-//         while(_server->hasClient()) {
 #endif
         bool ok = false;
         // search free list entry for client
