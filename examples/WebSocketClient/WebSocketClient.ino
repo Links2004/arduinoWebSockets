@@ -14,21 +14,19 @@
 #elif defined(ESP32)
 	#include <WiFi.h>
 	#include <WiFiMulti.h>
+	#include <WiFiClientSecure.h>
 	WiFiMulti WiFiMulti;
 
 	HardwareSerial Serial1(2);
 #endif
 
 #include <WebSocketsClient.h>
+
 #include <Hash.h>
 
 WebSocketsClient webSocket;
 
 #define USE_SERIAL Serial1
-
-#ifndef ESP8266
-void hexdump(const void *mem, uint32_t len, uint8_t cols = 16);
-#endif
 
 void webSocketEvent(WStype_t type, uint8_t * payload, size_t length) {
 
@@ -101,7 +99,6 @@ void setup() {
 void loop() {
 	webSocket.loop();
 }
-
 
 
 #ifndef ESP8266
