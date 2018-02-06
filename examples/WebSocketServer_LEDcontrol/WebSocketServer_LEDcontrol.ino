@@ -23,7 +23,7 @@
 
 ESP8266WiFiMulti WiFiMulti;
 
-ESP8266WebServer server = ESP8266WebServer(80);
+ESP8266WebServer server(80);
 WebSocketsServer webSocket = WebSocketsServer(81);
 
 void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length) {
