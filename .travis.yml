@@ -6,8 +6,8 @@ env:
   global:
     - IDE_VERSION=1.6.5
   matrix:
-     CPU="esp8266" BOARD="esp8266com:esp8266:generic"
-     CPU="esp32" BOARD="espressif:esp32:esp32:FlashFreq=80"
+    - CPU="esp8266" BOARD="esp8266com:esp8266:generic"
+    - CPU="esp32" BOARD="espressif:esp32:esp32:FlashFreq=80"
 
 script:
   - /sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_1.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :1 -ac -screen 0 1280x1024x16
