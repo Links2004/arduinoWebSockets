@@ -22,3 +22,25 @@ function build_sketches()
     done
 }
 
+
+function get_core()
+{
+    cd $HOME/arduino_ide/hardware
+
+    if [ "$1" = "esp8266" ] ; then
+        mkdir esp8266com
+        cd esp8266com
+        git clone https://github.com/esp8266/Arduino.git esp8266
+        cd esp8266/tools
+        python get.py
+    fi
+
+    if [ "$1" = "esp32" ] ; then
+        mkdir espressif
+        cd espressif
+        git clone https://github.com/espressif/arduino-esp32.git esp32
+        cd esp32/tools
+        python get.py
+    fi
+    
+}
