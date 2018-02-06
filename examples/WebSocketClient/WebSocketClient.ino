@@ -10,14 +10,29 @@
 #include <ESP8266WiFi.h>
 #include <ESP8266WiFiMulti.h>
 
+#if defined(ESP8266)
+	#include <ESP8266WiFi.h>	 #include <ESP8266WiFi.h>
+	#include <ESP8266WiFiMulti.h>	 #include <ESP8266WiFiMulti.h>
+	ESP8266WiFiMulti WiFiMulti;
+#elif defined(ESP32)
+	#include <WiFi.h>
+	#include <WiFiMulti.h>
+	WiFiMulti WiFiMulti;
+
+	HardwareSerial Serial1(2);
+#endif
+
 #include <WebSocketsClient.h>
 
 #include <Hash.h>
 
-ESP8266WiFiMulti WiFiMulti;
 WebSocketsClient webSocket;
 
 #define USE_SERIAL Serial1
+
+#ifndef ESP8266
+void hexdump(const void *mem, uint32_t len, uint8_t cols = 16);
+#endif
 
 void webSocketEvent(WStype_t type, uint8_t * payload, size_t length) {
 
@@ -90,3 +105,20 @@ void setup() {
 void loop() {
 	webSocket.loop();
 }
+
+
+
+#ifndef ESP8266
+void hexdump(const void *mem, uint32_t len, uint8_t cols) {
+	const uint8_t* src = (const uint8_t*) mem;
+	USE_SERIAL.printf("\n[HEXDUMP] Address: 0x%08X len: 0x%X (%d)", (ptrdiff_t)src, len, len);
+	for(uint32_t i = 0; i < len; i++) {
+		if(i % cols == 0) {
+			USE_SERIAL.printf("\n[0x%08X] 0x%08X: ", (ptrdiff_t)src, i);
+		}
+		USE_SERIAL.printf("%02X ", *src);
+		src++;
+	}
+	USE_SERIAL.printf("\n");
+}
+#endif

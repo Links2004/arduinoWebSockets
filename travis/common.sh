@@ -25,6 +25,8 @@ function build_sketches()
 
 function get_core()
 {
+    echo Setup core for $1
+
     cd $HOME/arduino_ide/hardware
 
     if [ "$1" = "esp8266" ] ; then
@@ -42,5 +44,5 @@ function get_core()
         cd esp32/tools
         python get.py
     fi
-    
+
 }
