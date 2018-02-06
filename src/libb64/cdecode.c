@@ -9,6 +9,10 @@ For details, see http://sourceforge.net/projects/libb64
 #include <core_esp8266_features.h>
 #endif
 
+#if defined(ESP32)
+#define CORE_HAS_LIBB64
+#endif
+
 #ifndef CORE_HAS_LIBB64
 #include "cdecode_inc.h"
 
@@ -32,9 +36,9 @@ int base64_decode_block(const char* code_in, const int length_in, char* plaintex
 	const char* codechar = code_in;
 	char* plainchar = plaintext_out;
 	char fragment;
-	
+
 	*plainchar = state_in->plainchar;
-	
+
 	switch (state_in->step)
 	{
 		while (1)
