@@ -4,8 +4,7 @@ os:
   - linux
 env:
   global:
-    - IDE_VERSION=1.6.5
-    - IDE_VERSION=1.8.5
+    - IDE_VERSION=1.8.2
   matrix:
     - CPU="esp8266" BOARD="esp8266com:esp8266:generic"
     - CPU="esp32" BOARD="espressif:esp32:esp32:FlashFreq=80"
