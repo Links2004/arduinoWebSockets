@@ -5,7 +5,7 @@ os:
 env:
   matrix:
     - CPU="esp8266" BOARD="esp8266com:esp8266:generic:CpuFrequency=80" IDE_VERSION=1.6.5
-    - CPU="esp8266" BOARD="esp8266com:esp8266:generic:CpuFrequency=80" IDE_VERSION=1.8.5
+    - CPU="esp8266" BOARD="esp8266com:esp8266:generic:CpuFrequency=80,FlashSize=1M0" IDE_VERSION=1.8.5
     - CPU="esp8266" BOARD="esp8266com:esp8266:generic:CpuFrequency=80,Debug=Serial1" IDE_VERSION=1.6.5
     - CPU="esp32" BOARD="espressif:esp32:esp32:FlashFreq=80" IDE_VERSION=1.6.5
     - CPU="esp32" BOARD="espressif:esp32:esp32:FlashFreq=80" IDE_VERSION=1.8.5
