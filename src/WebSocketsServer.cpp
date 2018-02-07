@@ -54,6 +54,8 @@ WebSocketsServer::~WebSocketsServer() {
 
 #if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
     _server->close();
+#elif (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP32)
+    _server->end();
 #else
     // TODO how to close server?
 #endif
@@ -77,7 +79,7 @@ void WebSocketsServer::begin(void) {
         client->num = i;
         client->status = WSC_NOT_CONNECTED;
         client->tcp = NULL;
-#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
+#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP32)
         client->isSSL = false;
         client->ssl = NULL;
 #endif
@@ -100,6 +102,9 @@ void WebSocketsServer::begin(void) {
 
 #ifdef ESP8266
     randomSeed(RANDOM_REG32);
+#elif defined(ESP32)
+    #define DR_REG_RNG_BASE 0x3ff75144
+    randomSeed(READ_PERI_REG(DR_REG_RNG_BASE));
 #else
     // TODO find better seed
     randomSeed(millis());
@@ -388,7 +393,7 @@ void WebSocketsServer::setAuthorization(const char * auth) {
     }
 }
 
-#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266_ASYNC)
+#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266_ASYNC) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP32)
 /**
  * get an IP for a client
  * @param num uint8_t client id
@@ -425,7 +430,7 @@ bool WebSocketsServer::newClient(WEBSOCKETS_NETWORK_CLASS * TCPclient) {
 
             client->tcp = TCPclient;
 
-#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
+#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP32)
             client->isSSL = false;
             client->tcp->setNoDelay(true);
 #endif
@@ -434,7 +439,7 @@ bool WebSocketsServer::newClient(WEBSOCKETS_NETWORK_CLASS * TCPclient) {
             client->tcp->setTimeout(WEBSOCKETS_TCP_TIMEOUT);
 #endif
             client->status = WSC_HEADER;
-#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266_ASYNC)
+#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266_ASYNC) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP32)
             IPAddress ip = client->tcp->remoteIP();
             DEBUG_WEBSOCKETS("[WS-Server][%d] new client from %d.%d.%d.%d\n", client->num, ip[0], ip[1], ip[2], ip[3]);
 #else
@@ -498,7 +503,7 @@ void WebSocketsServer::messageReceived(WSclient_t * client, WSopcode_t opcode, u
 void WebSocketsServer::clientDisconnect(WSclient_t * client) {
 
 
-#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
+#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP32)
     if(client->isSSL && client->ssl) {
         if(client->ssl->connected()) {
             client->ssl->flush();
@@ -584,12 +589,12 @@ bool WebSocketsServer::clientIsConnected(WSclient_t * client) {
  */
 void WebSocketsServer::handleNewClients(void) {
 
-#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
+#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP32)
     while(_server->hasClient()) {
 #endif
         bool ok = false;
 
-#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
+#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP32)
         // store new connection
         WEBSOCKETS_NETWORK_CLASS * tcpClient = new WEBSOCKETS_NETWORK_CLASS(_server->available());
 #else
@@ -605,7 +610,7 @@ void WebSocketsServer::handleNewClients(void) {
 
         if(!ok) {
             // no free space to handle client
-#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
+#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP32)
             IPAddress ip = tcpClient->remoteIP();
             DEBUG_WEBSOCKETS("[WS-Server] no free space new client from %d.%d.%d.%d\n", ip[0], ip[1], ip[2], ip[3]);
 #else
@@ -614,7 +619,7 @@ void WebSocketsServer::handleNewClients(void) {
             tcpClient->stop();
         }
 
-#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
+#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP32)
         delay(0);
     }
 #endif

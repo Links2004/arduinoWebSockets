@@ -2,28 +2,31 @@ sudo: false
 language: bash
 os:
   - linux
+env:
+  matrix:
+    - CPU="esp8266" BOARD="esp8266com:esp8266:generic:CpuFrequency=80" IDE_VERSION=1.6.5
+    - CPU="esp8266" BOARD="esp8266com:esp8266:generic:CpuFrequency=80,FlashSize=1M0,FlashMode=qio,FlashFreq=80" IDE_VERSION=1.8.5
+    - CPU="esp8266" BOARD="esp8266com:esp8266:generic:CpuFrequency=80,Debug=Serial1" IDE_VERSION=1.6.5
+    - CPU="esp32" BOARD="espressif:esp32:esp32:FlashFreq=80" IDE_VERSION=1.6.5
+    - CPU="esp32" BOARD="espressif:esp32:esp32:FlashFreq=80" IDE_VERSION=1.8.5
 
 script:
   - /sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_1.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :1 -ac -screen 0 1280x1024x16
   - sleep 3
   - export DISPLAY=:1.0
-  - wget http://downloads.arduino.cc/arduino-1.6.5-linux64.tar.xz
-  - tar xf arduino-1.6.5-linux64.tar.xz
-  - mv arduino-1.6.5 $HOME/arduino_ide
+  - wget http://downloads.arduino.cc/arduino-$IDE_VERSION-linux64.tar.xz
+  - tar xf arduino-$IDE_VERSION-linux64.tar.xz
+  - mv arduino-$IDE_VERSION $HOME/arduino_ide
   - export PATH="$HOME/arduino_ide:$PATH"
   - which arduino
   - mkdir -p $HOME/Arduino/libraries
   - cp -r $TRAVIS_BUILD_DIR $HOME/Arduino/libraries/arduinoWebSockets
-  - cd $HOME/arduino_ide/hardware
-  - mkdir esp8266com
-  - cd esp8266com
-  - git clone https://github.com/esp8266/Arduino.git esp8266
-  - cd esp8266/tools
-  - python get.py
   - source $TRAVIS_BUILD_DIR/travis/common.sh
-  - arduino --board esp8266com:esp8266:generic --save-prefs
+  - get_core $CPU
+  - cd $TRAVIS_BUILD_DIR
+  - arduino --board $BOARD --save-prefs
   - arduino --get-pref sketchbook.path
-  - build_sketches arduino $HOME/Arduino/libraries/arduinoWebSockets esp8266
+  - build_sketches arduino $HOME/Arduino/libraries/arduinoWebSockets/examples/$CPU $CPU
 
 notifications:
   email:

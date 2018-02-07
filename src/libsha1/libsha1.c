@@ -18,7 +18,7 @@ A million repetitions of "a"
 /* #define LITTLE_ENDIAN * This should be #define'd already, if true. */
 /* #define SHA1HANDSOFF * Copies data before messing with it. */
 
-#ifndef ESP8266
+#if !defined(ESP8266) && !defined(ESP32)
 
 #define SHA1HANDSOFF
 
