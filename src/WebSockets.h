@@ -49,23 +49,28 @@
 #endif
 
 #if defined(ESP8266) || defined(ESP32)
+
 #define WEBSOCKETS_MAX_DATA_SIZE  (15*1024)
 #define WEBSOCKETS_USE_BIG_MEM
 #define GET_FREE_HEAP ESP.getFreeHeap()
 // moves all Header strings to Flash (~300 Byte)
 //#define WEBSOCKETS_SAVE_RAM
-#else
-#ifdef STM32_DEVICE
+
+#elif defined(STM32_DEVICE)
+
 #define WEBSOCKETS_MAX_DATA_SIZE  (15*1024)
 #define WEBSOCKETS_USE_BIG_MEM
 #define GET_FREE_HEAP System.freeMemory()
+
 #else
+
 //atmega328p has only 2KB ram!
 #define WEBSOCKETS_MAX_DATA_SIZE  (1024)
 // moves all Header strings to Flash
 #define WEBSOCKETS_SAVE_RAM
+
 #endif
-#endif
+
 
 #define WEBSOCKETS_TCP_TIMEOUT    (2000)
 
@@ -84,28 +89,35 @@
 #define WEBSOCKETS_NETWORK_TYPE NETWORK_ESP8266
 //#define WEBSOCKETS_NETWORK_TYPE NETWORK_ESP8266_ASYNC
 //#define WEBSOCKETS_NETWORK_TYPE NETWORK_W5100
+
 #elif defined(ESP32)
 #define WEBSOCKETS_NETWORK_TYPE NETWORK_ESP32
+
 #else
 #define WEBSOCKETS_NETWORK_TYPE NETWORK_W5100
+
 #endif
 #endif
 
+// Includes and defined based on Network Type
 #if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266_ASYNC)
 
 // Note:
 //   No SSL/WSS support for client in Async mode
 //   TLS lib need a sync interface!
 
-#if !defined(ESP8266) && !defined(ESP31B) && !defined(ESP32)
+
+#if defined(ESP8266)
+#include <ESP8266WiFi.h>
+#elif defined(ESP32)
+#include <WiFi.h>
+#include <WiFiClientSecure.h>
+#elif defined(ESP31B)
+#include <ESP31BWiFi.h>
+#else
 #error "network type ESP8266 ASYNC only possible on the ESP mcu!"
 #endif
 
-#ifdef ESP8266
-#include <ESP8266WiFi.h>
-#else
-#include <ESP31BWiFi.h>
-#endif
 #include <ESPAsyncTCP.h>
 #include <ESPAsyncTCPbuffer.h>
 #define WEBSOCKETS_NETWORK_CLASS AsyncTCPbuffer
