@@ -21,8 +21,5 @@
         ]
     },
     "frameworks": "arduino",
-    "platforms": "*",
-    "examples": [
-        "examples/*/*.ino"
-    ]
+    "platforms": "atmelavr, espressif8266, espressif32"
 }
