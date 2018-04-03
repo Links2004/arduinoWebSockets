@@ -27,7 +27,9 @@
 
 #include "WebSockets.h"
 
+#ifndef WEBSOCKETS_SERVER_CLIENT_MAX
 #define WEBSOCKETS_SERVER_CLIENT_MAX  (5)
+#endif
 
 
 
