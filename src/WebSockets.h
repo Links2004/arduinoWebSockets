@@ -27,12 +27,20 @@
 
 #include <Arduino.h>
 
-//#define DEBUG_WEBSOCKETS(...) Serial1.printf( __VA_ARGS__ )
+#define DEBUG_WEBSOCKETS
 
-#ifndef DEBUG_WEBSOCKETS
-#define DEBUG_WEBSOCKETS(...)
+#ifdef DEBUG_WEBSOCKETS
+#define WS_PRINT(x) Serial.print(x);
+#define WS_PRINTLN(x) Serial.println(x);
+#else 
+#define WS_PRINT(x)
+#define WS_PRINTLN(x)
 #define NODEBUG_WEBSOCKETS
 #endif
+
+
+        //Unmute to select Ethernet2 sheild library
+#define W5500_H
 
 #ifdef ESP8266
 #define WEBSOCKETS_MAX_DATA_SIZE  (15*1024)
@@ -47,11 +55,14 @@
 #define NETWORK_ESP8266     (1)
 #define NETWORK_W5100       (2)
 #define NETWORK_ENC28J60    (3)
+#define NETWORK_W5500       (4)
 
 
 // select Network type based
 #ifdef ESP8266
 #define WEBSOCKETS_NETWORK_TYPE NETWORK_ESP8266
+#elif defined W5500_H
+#define WEBSOCKETS_NETWORK_TYPE NETWORK_W5500
 #else
 #define WEBSOCKETS_NETWORK_TYPE NETWORK_W5100
 #endif
@@ -80,10 +91,17 @@
 #define WEBSOCKETS_NETWORK_CLASS UIPClient
 #define WEBSOCKETS_NETWORK_SERVER_CLASS UIPServer
 
+#elif (WEBSOCKETS_NETWORK_TYPE == NETWORK_W5500)
+#include <Ethernet2.h>
+#include <EthernetClient.h>
+#include <EthernetServer.h>
+#include <SPI.h>
+#define WEBSOCKETS_NETWORK_CLASS EthernetClient
+#define WEBSOCKETS_NETWORK_SERVER_CLASS EthernetServer
+
 #else
 #error "no network type selected!"
 #endif
-
 
 typedef enum {
     WSC_NOT_CONNECTED,
@@ -116,11 +134,11 @@ typedef struct {
         WSclientsStatus_t status;
 
         WEBSOCKETS_NETWORK_CLASS * tcp;
-
+/*
 #if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
         bool isSSL;             ///< run in ssl mode
         WiFiClientSecure * ssl;
-#endif
+#endif*/
 
         String cUrl;        ///< http url
         uint16_t cCode;     ///< http code
