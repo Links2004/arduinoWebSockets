@@ -85,9 +85,12 @@ protected:
 
         void clientDisconnect(WSclient_t * client);
         bool clientIsConnected(WSclient_t * client);
+        bool clientIsConnected2(WSclient_t & client);
 
-        void handleNewClients(void);
-        void handleClientData(void);
+        //void handleNewClients(void);
+        void handleNewClients(WSclient_t & client);
+        //void handleClientData(void);
+        void handleClientData(WSclient_t & client);
 
         void handleHeader(WSclient_t * client);
 
