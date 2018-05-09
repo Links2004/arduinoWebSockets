@@ -253,7 +253,7 @@ bool WebSockets::sendFrame(WSclient_t * client, WSopcode_t opcode, uint8_t * pay
         }
     }
 
-    DEBUG_WEBSOCKETS("[WS][%d][sendFrame] sending Frame Done (%uus).\n", client->num, (micros() - start));
+    DEBUG_WEBSOCKETS("[WS][%d][sendFrame] sending Frame Done (%luus).\n", client->num, (micros() - start));
 
 #ifdef WEBSOCKETS_USE_BIG_MEM
     if(useInternBuffer && payloadPtr) {
@@ -271,7 +271,7 @@ bool WebSockets::sendFrame(WSclient_t * client, WSopcode_t opcode, uint8_t * pay
 void WebSockets::headerDone(WSclient_t * client) {
     client->status = WSC_CONNECTED;
     client->cWsRXsize = 0;
-    DEBUG_WEBSOCKETS("[WS][%d][headerDone] Header Handling Done (%uus).\n", client->num);
+    DEBUG_WEBSOCKETS("[WS][%d][headerDone] Header Handling Done.\n", client->num);
 #if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266_ASYNC)
     client->cHttpLine = "";
     handleWebsocket(client);
@@ -547,7 +547,7 @@ bool WebSockets::readCb(WSclient_t * client, uint8_t * out, size_t n, WSreadWait
 #else
     unsigned long t = millis();
     size_t len;
-    DEBUG_WEBSOCKETS("[readCb] n: %d t: %d\n", n, t);
+    DEBUG_WEBSOCKETS("[readCb] n: %zu t: %lu\n", n, t);
     while(n > 0) {
         if(client->tcp == NULL) {
             DEBUG_WEBSOCKETS("[readCb] tcp is null!\n");
@@ -566,7 +566,7 @@ bool WebSockets::readCb(WSclient_t * client, uint8_t * out, size_t n, WSreadWait
         }
 
         if((millis() - t) > WEBSOCKETS_TCP_TIMEOUT) {
-            DEBUG_WEBSOCKETS("[readCb] receive TIMEOUT! %d\n", (millis() - t));
+            DEBUG_WEBSOCKETS("[readCb] receive TIMEOUT! %lu\n", (millis() - t));
             if(cb) {
                 cb(client, false);
             }
@@ -613,7 +613,7 @@ size_t WebSockets::write(WSclient_t * client, uint8_t *out, size_t n) {
 	unsigned long t = millis();
 	size_t len = 0;
 	size_t total = 0;
-	DEBUG_WEBSOCKETS("[write] n: %d t: %d\n", n, t);
+	DEBUG_WEBSOCKETS("[write] n: %zu t: %lu\n", n, t);
 	while(n > 0) {
 		if(client->tcp == NULL) {
 			DEBUG_WEBSOCKETS("[write] tcp is null!\n");
@@ -626,7 +626,7 @@ size_t WebSockets::write(WSclient_t * client, uint8_t *out, size_t n) {
 		}
 
 		if((millis() - t) > WEBSOCKETS_TCP_TIMEOUT) {
-			DEBUG_WEBSOCKETS("[write] write TIMEOUT! %d\n", (millis() - t));
+			DEBUG_WEBSOCKETS("[write] write TIMEOUT! %lu\n", (millis() - t));
 			break;
 		}
 
