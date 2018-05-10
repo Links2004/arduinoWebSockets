@@ -30,6 +30,7 @@
 #define bit(b) (1UL << (b)) // Taken directly from Arduino.h
 #else
 #include <Arduino.h>
+#include <IPAddress.h>
 #endif
 
 #include <functional>

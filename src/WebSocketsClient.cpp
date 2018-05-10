@@ -84,6 +84,10 @@ void WebSocketsClient::begin(String host, uint16_t port, String url, String prot
     begin(host.c_str(), port, url.c_str(), protocol.c_str());
 }
 
+void WebSocketsClient::begin(IPAddress host, uint16_t port, const char * url, const char * protocol) {
+	return begin(host.toString().c_str(), port, url, protocol);
+}
+
 #if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP32)
 void WebSocketsClient::beginSSL(const char *host, uint16_t port, const char * url, const char * fingerprint, const char * protocol) {
     begin(host, port, url, protocol);
