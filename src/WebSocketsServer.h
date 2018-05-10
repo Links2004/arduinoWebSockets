@@ -95,6 +95,8 @@ public:
         void setAuthorization(const char * user, const char * password);
         void setAuthorization(const char * auth);
 
+        int connectedClients(bool ping = false);
+
 #if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266_ASYNC) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP32)
         IPAddress remoteIP(uint8_t num);
 #endif

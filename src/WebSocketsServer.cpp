@@ -403,6 +403,24 @@ void WebSocketsServer::setAuthorization(const char * auth) {
     }
 }
 
+/**
+ * count the connected clients (optional ping them)
+ * @param ping bool ping the connected clients
+ */
+int WebSocketsServer::connectedClients(bool ping) {
+    WSclient_t * client;
+    int count = 0;
+	for(uint8_t i = 0; i < WEBSOCKETS_SERVER_CLIENT_MAX; i++) {
+		client = &_clients[i];
+		if(client->status == WSC_CONNECTED) {
+			if(ping != true || sendPing(i)) {
+				count++;
+			}
+		}
+	}
+    return count;
+}
+
 #if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266_ASYNC) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP32)
 /**
  * get an IP for a client
