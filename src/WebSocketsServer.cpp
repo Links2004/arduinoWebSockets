@@ -29,6 +29,7 @@ WebSocketsServer::WebSocketsServer(uint16_t port, String origin, String protocol
     _port = port;
     _origin = origin;
     _protocol = protocol;
+    _runnning = false;
 
     _server = new WEBSOCKETS_NETWORK_SERVER_CLASS(port);
 
@@ -50,15 +51,7 @@ WebSocketsServer::WebSocketsServer(uint16_t port, String origin, String protocol
 
 WebSocketsServer::~WebSocketsServer() {
     // disconnect all clients
-    disconnect();
-
-#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
-    _server->close();
-#elif (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP32)
-    _server->end();
-#else
-    // TODO how to close server?
-#endif
+	close();
 
     if (_mandatoryHttpHeaders)
         delete[] _mandatoryHttpHeaders;
@@ -110,9 +103,24 @@ void WebSocketsServer::begin(void) {
     randomSeed(millis());
 #endif
 
+    _runnning = true;
     _server->begin();
 
     DEBUG_WEBSOCKETS("[WS-Server] Server Started.\n");
+}
+
+void WebSocketsServer::close(void) {
+	_runnning = false;
+	 disconnect();
+
+#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
+    _server->close();
+#elif (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP32)
+    _server->end();
+#else
+    // TODO how to close server?
+#endif
+
 }
 
 #if (WEBSOCKETS_NETWORK_TYPE != NETWORK_ESP8266_ASYNC)
@@ -120,8 +128,10 @@ void WebSocketsServer::begin(void) {
  * called in arduino loop
  */
 void WebSocketsServer::loop(void) {
-    handleNewClients();
-    handleClientData();
+	if(_runnning) {
+		handleNewClients();
+		handleClientData();
+	}
 }
 #endif
 

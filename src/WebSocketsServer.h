@@ -49,6 +49,7 @@ public:
         virtual ~WebSocketsServer(void);
 
         void begin(void);
+        void close(void);
 
 #if (WEBSOCKETS_NETWORK_TYPE != NETWORK_ESP8266_ASYNC)
         void loop(void);
@@ -112,6 +113,8 @@ protected:
 
         WebSocketServerEvent _cbEvent;
         WebSocketServerHttpHeaderValFunc _httpHeaderValidationFunc;
+
+        bool _runnning;
 
         bool newClient(WEBSOCKETS_NETWORK_CLASS * TCPclient);
 
