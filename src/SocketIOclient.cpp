@@ -118,9 +118,33 @@ void SocketIOclient::runCbEvent(WStype_t type, uint8_t * payload, size_t length)
                 case eIOtype_PONG:
                     DEBUG_WEBSOCKETS("[wsIOc] get pong\n");
                     break;
+                case eIOtype_MESSAGE: {
+                    if(length < 2) {
+                        break;
+                    }
+                    socketIOmessageType_t ioType = (socketIOmessageType_t) payload[1];
+                    uint8_t * data = &payload[2];
+                    size_t lData = length - 2;
+                    switch(ioType) {
+                        case sIOtype_EVENT:
+                            DEBUG_WEBSOCKETS("[wsIOc] get event (%d): %s\n", lData, data);
+                            break;
+                        case sIOtype_CONNECT:
+                        case sIOtype_DISCONNECT:
+                        case sIOtype_ACK:
+                        case sIOtype_ERROR:
+                        case sIOtype_BINARY_EVENT:
+                        case sIOtype_BINARY_ACK:
+                        default:
+                            DEBUG_WEBSOCKETS("[wsIOc] Socket.IO Message Type %c (%02X) is not implemented\n", ioType, ioType);
+                            DEBUG_WEBSOCKETS("[wsIOc] get text: %s\n", payload);
+                            break;
+                    }
+
+                }
+                    break;
                 case eIOtype_OPEN:
                 case eIOtype_CLOSE:
-                case eIOtype_MESSAGE:
                 case eIOtype_UPGRADE:
                 case eIOtype_NOOP:
                 default:
