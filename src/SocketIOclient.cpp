@@ -42,7 +42,7 @@ void SocketIOclient::runCbEvent(WStype_t type, uint8_t * payload, size_t length)
         case WStype_CONNECTED: {
             DEBUG_WEBSOCKETS("[wsIOc] Connected to url: %s\n", payload);
             // send message to server when Connected
-            // socket.io upgrade confirmation message (required)
+            // Engine.io upgrade confirmation message (required)
             sendTXT(eIOtype_UPGRADE);
         }
             break;

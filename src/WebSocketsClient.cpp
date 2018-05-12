@@ -216,7 +216,9 @@ bool WebSocketsClient::sendTXT(String & payload) {
 }
 
 bool WebSocketsClient::sendTXT(char payload) {
-    return sendTXT((uint8_t *) &payload, 1);
+    uint8_t buf[WEBSOCKETS_MAX_HEADER_SIZE + 2] = {0x00};
+    buf[WEBSOCKETS_MAX_HEADER_SIZE] = payload;
+    return sendTXT(buf, 1, true);
 }
 
 /**
