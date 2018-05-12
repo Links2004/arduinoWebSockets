@@ -86,30 +86,30 @@ protected:
 
         WebSocketServerEvent _cbEvent;
 
-        void messageRecived(WSclient_t * client, WSopcode_t opcode, uint8_t * payload, size_t length);
+        void messageReceived(WSclient_t * client, WSopcode_t opcode, uint8_t * payload, size_t length) { return messageReceived(*client, opcode, payload, length); };// to be deprecated
+        void messageReceived(WSclient_t & client, WSopcode_t opcode, uint8_t * payload, size_t length);
 
-        void clientDisconnect(WSclient_t * client);
-        bool clientIsConnected(WSclient_t * client);
-        bool clientIsConnected2(WSclient_t & client);
+        void clientDisconnect(WSclient_t * client) { return clientDisconnect(*client); }; // to be deprecated
+        void clientDisconnect(WSclient_t & client);
+        bool clientIsConnected(WSclient_t * client) { return clientIsConnected(*client); };// to be deprecated
+        bool clientIsConnected(WSclient_t & client);
 
-        //void handleNewClients(void);
         void handleNewClients(WSclient_t & client);
-        //void handleClientData(void);
         void handleClientData(WSclient_t & client);
 
-        void handleHeader(WSclient_t * client);
+        void handleHeader(WSclient_t & client);
 
         /**
          * called if a non Websocket connection is comming in.
          * Note: can be overrided
          * @param client WSclient_t *  ptr to the client struct
          */
-        virtual void handleNonWebsocketConnection(WSclient_t * client) {
+        virtual void handleNonWebsocketConnection(WSclient_t & client) {
             //DEBUG_WEBSOCKETS("[WS-Server][%d][handleHeader] no Websocket connection close.\n", client->num);
             WS_PRINT("[WS-Server][");
-            WS_PRINT(client->num);
+            WS_PRINT(client.num);
             WS_PRINTLN("][handleHeader] no Websocket connection close.");
-            client->tcp->write("HTTP/1.1 400 Bad Request\r\n"
+            client._client.write("HTTP/1.1 400 Bad Request\r\n"
                     "Server: arduino-WebSocket-Server\r\n"
                     "Content-Type: text/plain\r\n"
                     "Content-Length: 32\r\n"

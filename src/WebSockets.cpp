@@ -417,7 +417,7 @@ void WebSockets::handleWebsocket(WSclient_t * client) {
             WS_PRINTLN(reinterpret_cast<char*>(payload));//<<<------------------------------------------------
             // no break here!
         case WSop_binary:
-            messageRecived(client, opCode, payload, payloadLen);
+            messageReceived(client, opCode, payload, payloadLen);
             break;
         case WSop_ping:
             // send pong back
