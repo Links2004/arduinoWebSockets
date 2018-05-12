@@ -70,6 +70,7 @@ class WebSocketsClient: private WebSockets {
         bool sendTXT(char * payload, size_t length = 0, bool headerToPayload = false);
         bool sendTXT(const char * payload, size_t length = 0);
         bool sendTXT(String & payload);
+        bool sendTXT(char payload);
 
         bool sendBIN(uint8_t * payload, size_t length, bool headerToPayload = false);
         bool sendBIN(const uint8_t * payload, size_t length);

@@ -215,6 +215,10 @@ bool WebSocketsClient::sendTXT(String & payload) {
     return sendTXT((uint8_t *) payload.c_str(), payload.length());
 }
 
+bool WebSocketsClient::sendTXT(char payload) {
+    return sendTXT((uint8_t *) &payload, 1);
+}
+
 /**
  * send binary data to client
  * @param num uint8_t client id
