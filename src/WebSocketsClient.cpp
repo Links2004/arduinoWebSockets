@@ -310,6 +310,10 @@ void WebSocketsClient::setReconnectInterval(unsigned long time) {
     _reconnectInterval = time;
 }
 
+bool WebSocketsClient::isConnected(void) {
+    return (_client.status == WSC_CONNECTED);
+}
+
 //#################################################################################
 //#################################################################################
 //#################################################################################
@@ -666,6 +670,13 @@ void WebSocketsClient::handleHeader(WSclient_t * client, String * headerLine) {
             runCbEvent(WStype_CONNECTED, (uint8_t *) client->cUrl.c_str(), client->cUrl.length());
 
         } else if(clientIsConnected(client) && client->isSocketIO && client->cSessionId.length() > 0) {
+            if(_client.tcp->available()) {
+                // read not needed data
+                DEBUG_WEBSOCKETS("[WS-Client][handleHeader] still data in buffer (%d), clean up.\n", _client.tcp->available());
+                while(_client.tcp->available() > 0) {
+                    _client.tcp->read();
+                }
+            }
             sendHeader(client);
         } else {
             DEBUG_WEBSOCKETS("[WS-Client][handleHeader] no Websocket connection close.\n");

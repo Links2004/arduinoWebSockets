@@ -12,6 +12,9 @@
 
 #define EIO_HEARTBEAT_INTERVAL 10000
 
+#define EIO_MAX_HEADER_SIZE  (WEBSOCKETS_MAX_HEADER_SIZE + 1)
+#define SIO_MAX_HEADER_SIZE  (EIO_MAX_HEADER_SIZE + 1)
+
 typedef enum {
     eIOtype_OPEN = '0', ///< Sent from the server when a new transport is opened (recheck)
     eIOtype_CLOSE = '1', ///< Request the close of this transport but does not shutdown the connection itself.
@@ -33,7 +36,7 @@ typedef enum {
     sIOtype_BINARY_ACK = '6',
 } socketIOmessageType_t;
 
-class SocketIOclient: private WebSocketsClient {
+class SocketIOclient: protected WebSocketsClient {
 
     public:
 #ifdef __AVR__
@@ -48,9 +51,17 @@ class SocketIOclient: private WebSocketsClient {
         void begin(const char *host, uint16_t port, const char * url = "/socket.io/?EIO=3", const char * protocol = "arduino");
         void begin(String host, uint16_t port, String url = "/socket.io/?EIO=3", String protocol = "arduino");
 
+        bool isConnected(void);
+
+        bool sendEVENT(uint8_t * payload, size_t length = 0, bool headerToPayload = false);
+        bool sendEVENT(const uint8_t * payload, size_t length = 0);
+        bool sendEVENT(char * payload, size_t length = 0, bool headerToPayload = false);
+        bool sendEVENT(const char * payload, size_t length = 0);
+        bool sendEVENT(String & payload);
 
         void loop(void);
-    private:
+
+    protected:
         void runCbEvent(WStype_t type, uint8_t * payload, size_t length);
         uint64_t _lastHeartbeat = 0;
 };

@@ -27,7 +27,7 @@
 
 #include "WebSockets.h"
 
-class WebSocketsClient: private WebSockets {
+class WebSocketsClient: protected WebSockets {
     public:
 #ifdef __AVR__
         typedef void (*WebSocketClientEvent)(WStype_t type, uint8_t * payload, size_t length);
@@ -86,6 +86,8 @@ class WebSocketsClient: private WebSockets {
         void setExtraHeaders(const char * extraHeaders = NULL);
 
         void setReconnectInterval(unsigned long time);
+
+        bool isConnected(void);
 
     protected:
         String _host;
