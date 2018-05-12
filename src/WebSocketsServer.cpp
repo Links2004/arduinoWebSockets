@@ -90,7 +90,6 @@ void WebSocketsServer::loop(void) {
     if (wsClient._client) {
         for(uint8_t i = 0; i < WEBSOCKETS_SERVER_CLIENT_MAX; i++) {
             if( _clients[i]._client == wsClient._client ) { //not a new client, handle data
-                wsClient.num = i;
                 handleClientData(_clients[i]);
                 return;
             }
@@ -98,6 +97,7 @@ void WebSocketsServer::loop(void) {
         //if you got to that point, it is a new client
         for(uint8_t i = 0; i < WEBSOCKETS_SERVER_CLIENT_MAX; i++) {
             if (!_clients[i]._client) { //if emty slot, assing new client then handle it.
+                wsClient.num = i;
                 _clients[i] = wsClient;
                 _clients[i].tcp = &_clients[i]._client;
                 handleNewClients(_clients[i]);
@@ -323,7 +323,7 @@ void WebSocketsServer::clientDisconnect(WSclient_t * client) {
             client->ssl->flush();
             client->ssl->stop();
         }
-        delete client->ssl;
+        //delete client->ssl;
         client->ssl = NULL;
         client->tcp = NULL;
     }
@@ -334,7 +334,7 @@ void WebSocketsServer::clientDisconnect(WSclient_t * client) {
             client->tcp->flush();
             client->tcp->stop();
         }
-        delete client->tcp;
+        //delete client->tcp;
         client->tcp = NULL;
     }
 
@@ -353,7 +353,7 @@ void WebSocketsServer::clientDisconnect(WSclient_t * client) {
     WS_PRINTLN("] client disconnected.");
 
     runCbEvent(client->num, WStype_DISCONNECTED, NULL, 0);
-
+    client->num = WEBSOCKETS_SERVER_CLIENT_MAX;
 }
 
 /**

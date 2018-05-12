@@ -28,8 +28,13 @@
 #include <Arduino.h>
 #include "WebSockets.h"
 
-#define WEBSOCKETS_SERVER_CLIENT_MAX  (5)
-
+#if     (WEBSOCKETS_NETWORK_TYPE == NETWORK_W5500)
+    #define WEBSOCKETS_SERVER_CLIENT_MAX  (8)
+#elif   (WEBSOCKETS_NETWORK_TYPE == NETWORK_W5100)
+    #define WEBSOCKETS_SERVER_CLIENT_MAX  (4)
+#else
+    #define WEBSOCKETS_SERVER_CLIENT_MAX  (5)
+#endif
 
 
 
