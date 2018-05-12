@@ -712,60 +712,60 @@ void WebSocketsServer::handleHeader(WSclient_t * client, String * headerLine) {
 
 	static const char * NEW_LINE = "\r\n";
 
-    headerLine->trim(); // remove \r
+	headerLine->trim(); // remove \r
 
-    if(headerLine->length() > 0) {
-        DEBUG_WEBSOCKETS("[WS-Server][%d][handleHeader] RX: %s\n", client->num, headerLine->c_str());
+	if(headerLine->length() > 0) {
+		DEBUG_WEBSOCKETS("[WS-Server][%d][handleHeader] RX: %s\n", client->num, headerLine->c_str());
 
-        // websocket requests always start with GET see rfc6455
-        if(headerLine->startsWith("GET ")) {
+		// websocket requests always start with GET see rfc6455
+		if(headerLine->startsWith("GET ")) {
 
-            // cut URL out
-            client->cUrl = headerLine->substring(4, headerLine->indexOf(' ', 4));
+			// cut URL out
+			client->cUrl = headerLine->substring(4, headerLine->indexOf(' ', 4));
 
-            //reset non-websocket http header validation state for this client
+			//reset non-websocket http header validation state for this client
 			client->cHttpHeadersValid = true;
 			client->cMandatoryHeadersCount = 0;
 
-        } else if(headerLine->indexOf(':')) {
-            String headerName = headerLine->substring(0, headerLine->indexOf(':'));
-            String headerValue = headerLine->substring(headerLine->indexOf(':') + 1);
+		} else if(headerLine->indexOf(':')) {
+			String headerName = headerLine->substring(0, headerLine->indexOf(':'));
+			String headerValue = headerLine->substring(headerLine->indexOf(':') + 1);
 
 			// remove space in the beginning (RFC2616)
 			if(headerValue[0] == ' ') {
 				headerValue.remove(0, 1);
 			}
 
-            if(headerName.equalsIgnoreCase(WEBSOCKETS_STRING("Connection"))) {
-                headerValue.toLowerCase();
-            	if(headerValue.indexOf(WEBSOCKETS_STRING("upgrade")) >= 0) {
-                    client->cIsUpgrade = true;
-                }
-            } else if(headerName.equalsIgnoreCase(WEBSOCKETS_STRING("Upgrade"))) {
-                if(headerValue.equalsIgnoreCase(WEBSOCKETS_STRING("websocket"))) {
-                    client->cIsWebsocket = true;
-                }
-            } else if(headerName.equalsIgnoreCase(WEBSOCKETS_STRING("Sec-WebSocket-Version"))) {
-                client->cVersion = headerValue.toInt();
-            } else if(headerName.equalsIgnoreCase(WEBSOCKETS_STRING("Sec-WebSocket-Key"))) {
-                client->cKey = headerValue;
-                client->cKey.trim(); // see rfc6455
-            } else if(headerName.equalsIgnoreCase(WEBSOCKETS_STRING("Sec-WebSocket-Protocol"))) {
-                client->cProtocol = headerValue;
-            } else if(headerName.equalsIgnoreCase(WEBSOCKETS_STRING("Sec-WebSocket-Extensions"))) {
-                client->cExtensions = headerValue;
-            } else if(headerName.equalsIgnoreCase(WEBSOCKETS_STRING("Authorization"))) {
-                client->base64Authorization = headerValue;
-            } else {
-            	client->cHttpHeadersValid &= execHttpHeaderValidation(headerName, headerValue);
-            	if (_mandatoryHttpHeaderCount > 0 && hasMandatoryHeader(headerName)) {
-            		client->cMandatoryHeadersCount++;
-            	}
-            }
+			if(headerName.equalsIgnoreCase(WEBSOCKETS_STRING("Connection"))) {
+				headerValue.toLowerCase();
+				if(headerValue.indexOf(WEBSOCKETS_STRING("upgrade")) >= 0) {
+					client->cIsUpgrade = true;
+				}
+			} else if(headerName.equalsIgnoreCase(WEBSOCKETS_STRING("Upgrade"))) {
+				if(headerValue.equalsIgnoreCase(WEBSOCKETS_STRING("websocket"))) {
+					client->cIsWebsocket = true;
+				}
+			} else if(headerName.equalsIgnoreCase(WEBSOCKETS_STRING("Sec-WebSocket-Version"))) {
+				client->cVersion = headerValue.toInt();
+			} else if(headerName.equalsIgnoreCase(WEBSOCKETS_STRING("Sec-WebSocket-Key"))) {
+				client->cKey = headerValue;
+				client->cKey.trim(); // see rfc6455
+			} else if(headerName.equalsIgnoreCase(WEBSOCKETS_STRING("Sec-WebSocket-Protocol"))) {
+				client->cProtocol = headerValue;
+			} else if(headerName.equalsIgnoreCase(WEBSOCKETS_STRING("Sec-WebSocket-Extensions"))) {
+				client->cExtensions = headerValue;
+			} else if(headerName.equalsIgnoreCase(WEBSOCKETS_STRING("Authorization"))) {
+				client->base64Authorization = headerValue;
+			} else {
+				client->cHttpHeadersValid &= execHttpHeaderValidation(headerName, headerValue);
+				if(_mandatoryHttpHeaderCount > 0 && hasMandatoryHeader(headerName)) {
+					client->cMandatoryHeadersCount++;
+				}
+			}
 
-        } else {
-            DEBUG_WEBSOCKETS("[WS-Client][handleHeader] Header error (%s)\n", headerLine->c_str());
-        }
+		} else {
+			DEBUG_WEBSOCKETS("[WS-Client][handleHeader] Header error (%s)\n", headerLine->c_str());
+		}
 
         (*headerLine) = "";
 #if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266_ASYNC)
@@ -787,11 +787,11 @@ void WebSocketsServer::handleHeader(WSclient_t * client, String * headerLine) {
 
         bool ok = (client->cIsUpgrade && client->cIsWebsocket);
 
-        if(ok) {
-            if(client->cUrl.length() == 0) {
-                ok = false;
-            }
-            if(client->cKey.length() == 0) {
+		if(ok) {
+			if(client->cUrl.length() == 0) {
+				ok = false;
+			}
+			if(client->cKey.length() == 0) {
                 ok = false;
             }
             if(client->cVersion != 13) {
