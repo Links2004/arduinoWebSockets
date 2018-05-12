@@ -20,7 +20,6 @@
 
 #define USE_SERIAL Serial
 
-
 ESP8266WiFiMulti WiFiMulti;
 
 ESP8266WebServer server(80);
@@ -49,9 +48,9 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length
                 // decode rgb data
                 uint32_t rgb = (uint32_t) strtol((const char *) &payload[1], NULL, 16);
 
-                analogWrite(LED_RED,    ((rgb >> 16) & 0xFF));
-                analogWrite(LED_GREEN,  ((rgb >> 8) & 0xFF));
-                analogWrite(LED_BLUE,   ((rgb >> 0) & 0xFF));
+                analogWrite(LED_RED, ((rgb >> 16) & 0xFF));
+                analogWrite(LED_GREEN, ((rgb >> 8) & 0xFF));
+                analogWrite(LED_BLUE, ((rgb >> 0) & 0xFF));
             }
 
             break;
@@ -119,15 +118,15 @@ unsigned long last_10sec = 0;
 unsigned int counter = 0;
 
 void loop() {
-	unsigned long t = millis();
-	webSocket.loop();
-	server.handleClient();
+    unsigned long t = millis();
+    webSocket.loop();
+    server.handleClient();
 
-	if((t - last_10sec) > 10 * 1000) {
-		counter++;
-		bool ping = (counter % 2);
-		int i = webSocket.connectedClients(ping);
-		USE_SERIAL.printf("%d Connected websocket clients ping: %d", i, ping);
-		last_10sec = millis();
-	}
+    if((t - last_10sec) > 10 * 1000) {
+        counter++;
+        bool ping = (counter % 2);
+        int i = webSocket.connectedClients(ping);
+        USE_SERIAL.printf("%d Connected websocket clients ping: %d\n", i, ping);
+        last_10sec = millis();
+    }
 }
