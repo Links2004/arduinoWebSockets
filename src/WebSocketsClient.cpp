@@ -318,6 +318,8 @@ void WebSocketsClient::setReconnectInterval(unsigned long time) {
 void WebSocketsClient::messageReceived(WSclient_t * client, WSopcode_t opcode, uint8_t * payload, size_t length, bool fin) {
     WStype_t type = WStype_ERROR;
 
+    UNUSED(client);
+
     switch(opcode) {
         case WSop_text:
             type = fin ? WStype_TEXT : WStype_FRAGMENT_TEXT_START;
@@ -327,6 +329,11 @@ void WebSocketsClient::messageReceived(WSclient_t * client, WSopcode_t opcode, u
             break;
         case WSop_continuation:
             type = fin ? WStype_FRAGMENT_FIN : WStype_FRAGMENT;
+            break;
+        case WSop_close:
+        case WSop_ping:
+        case WSop_pong:
+        default:
             break;
     }
 

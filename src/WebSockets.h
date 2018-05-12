@@ -299,4 +299,7 @@ class WebSockets {
 
 };
 
+#ifndef UNUSED
+#define UNUSED(var) (void)(var)
+#endif
 #endif /* WEBSOCKETS_H_ */
