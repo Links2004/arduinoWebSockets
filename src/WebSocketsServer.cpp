@@ -729,7 +729,12 @@ void WebSocketsServer::handleHeader(WSclient_t * client, String * headerLine) {
 
         } else if(headerLine->indexOf(':')) {
             String headerName = headerLine->substring(0, headerLine->indexOf(':'));
-            String headerValue = headerLine->substring(headerLine->indexOf(':') + 2);
+            String headerValue = headerLine->substring(headerLine->indexOf(':') + 1);
+
+			// remove space in the beginning (RFC2616)
+			if(headerValue[0] == ' ') {
+				headerValue.remove(0, 1);
+			}
 
             if(headerName.equalsIgnoreCase(WEBSOCKETS_STRING("Connection"))) {
                 headerValue.toLowerCase();
