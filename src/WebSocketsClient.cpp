@@ -94,7 +94,6 @@ void WebSocketsClient::loop(void) {
 #if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
         if(_client.isSSL) {
 #ifdef WS_CLIENT_DEBUG
-            //DEBUG_WEBSOCKETS("[WS-Client] connect wss...\n");
             WS_PRINTLN("[WS-Client] connect wss...");
 #endif
             if(_client.ssl) {
@@ -106,7 +105,6 @@ void WebSocketsClient::loop(void) {
             _client.tcp = _client.ssl;
         } else {
 #ifdef WS_CLIENT_DEBUG
-            //DEBUG_WEBSOCKETS("[WS-Client] connect ws...\n");
             WS_PRINTLN("[WS-Client] connect ws...");
 #endif
             if(_client.tcp) {
@@ -120,14 +118,12 @@ void WebSocketsClient::loop(void) {
 #endif
 
         if(!_client.tcp) {
-            //DEBUG_WEBSOCKETS("[WS-Client] creating Network class failed!");
             WS_PRINTLN("[WS-Client] creating Network class failed!");
             return;
         }
 
         if(_client.tcp->connect(_host.c_str(), _port)) {
 #ifdef WS_CLIENT_DEBUG
-            //DEBUG_WEBSOCKETS("[WS-Client] connected to %s:%u.\n", _host.c_str(), _port);
             WS_PRINT("[WS-Client] connected to ");
             WS_PRINT(_host.c_str());
             WS_PRINT(":");
@@ -145,7 +141,6 @@ void WebSocketsClient::loop(void) {
             if(_client.isSSL && _fingerprint.length()) {
                 if(!_client.ssl->verify(_fingerprint.c_str(), _host.c_str())) {
 #ifdef WS_CLIENT_DEBUG
-                    //DEBUG_WEBSOCKETS("[WS-Client] creating Network class failed!\n");
                     WS_PRINTLN("[WS-Client] creating Network class failed!");
 #endif
                     WebSockets::clientDisconnect(&_client, 1000);
@@ -159,7 +154,6 @@ void WebSocketsClient::loop(void) {
 
         } else {
 #ifdef WS_CLIENT_DEBUG
-            //DEBUG_WEBSOCKETS("[WS-Client] connection to %s:%u Faild\n", _host.c_str(), _port);
             WS_PRINT("[WS-Client] connection to ");
             WS_PRINT(_host.c_str());
             WS_PRINT(":");
@@ -298,7 +292,6 @@ void WebSocketsClient::clientDisconnect(WSclient_t & client) {
     client.cIsWebsocket = false;
     client.status = WSC_NOT_CONNECTED;
 #ifdef WS_CLIENT_DEBUG
-    //DEBUG_WEBSOCKETS("[WS-Client] client disconnected.\n");
     WS_PRINTLN("[WS-Client] client disconnected.");
 #endif
     runCbEvent(WStype_DISCONNECTED, NULL, 0);
@@ -321,7 +314,6 @@ bool WebSocketsClient::clientIsConnected(WSclient_t & client) {
         // client lost
         if(client.status != WSC_NOT_CONNECTED) {
 #ifdef WS_CLIENT_DEBUG
-            //DEBUG_WEBSOCKETS("[WS-Client] connection lost.\n");
             WS_PRINTLN("[WS-Client] connection lost.");
 #endif
             // do cleanup
@@ -364,7 +356,6 @@ void WebSocketsClient::handleClientData(void) {
  */
 void WebSocketsClient::sendHeader(WSclient_t & client) {
 #ifdef WS_CLIENT_DEBUG
-    //DEBUG_WEBSOCKETS("[WS-Client][sendHeader] sending header...\n");
     WS_PRINTLN("[WS-Client][sendHeader] sending header...");
 #endif
     uint8_t randomKey[16] = { 0 };
@@ -396,7 +387,6 @@ void WebSocketsClient::sendHeader(WSclient_t & client) {
 
     client.tcp->write(handshake.c_str(), handshake.length());
 #ifdef WS_CLIENT_DEBUG
-    //DEBUG_WEBSOCKETS("[WS-Client][sendHeader] sending header... Done (%uus).\n", (micros() - start));
     WS_PRINT("[WS-Client][sendHeader] sending header... Done (");
     WS_PRINT((micros() - start));
     WS_PRINTLN("us).");
@@ -413,7 +403,6 @@ void WebSocketsClient::handleHeader(WSclient_t & client) {
 
     if(headerLine.length() > 0) {
 #ifdef WS_CLIENT_DEBUG
-        //DEBUG_WEBSOCKETS("[WS-Client][handleHeader] RX: %s\n", headerLine.c_str());
         WS_PRINT("[WS-Client][handleHeader] RX: ");
         WS_PRINTLN(headerLine.c_str());
 #endif
@@ -444,7 +433,6 @@ void WebSocketsClient::handleHeader(WSclient_t & client) {
             }
         } else {
 #ifdef WS_CLIENT_DEBUG
-            //DEBUG_WEBSOCKETS("[WS-Client][handleHeader] Header error (%s)\n", headerLine.c_str());
             WS_PRINT("[WS-Client][handleHeader] Header error (");
             WS_PRINT(headerLine.c_str());
             WS_PRINTLN(")");
@@ -453,39 +441,25 @@ void WebSocketsClient::handleHeader(WSclient_t & client) {
 
     } else {
 #ifdef WS_CLIENT_DEBUG
-        //DEBUG_WEBSOCKETS("[WS-Client][handleHeader] Header read fin.\n");
-        //DEBUG_WEBSOCKETS("[WS-Client][handleHeader] Client settings:\n");
         WS_PRINTLN("[WS-Client][handleHeader] Header read fin.");
         WS_PRINTLN("[WS-Client][handleHeader] Client settings:");
-
-        //DEBUG_WEBSOCKETS("[WS-Client][handleHeader]  - cURL: %s\n", client->cUrl.c_str());
         WS_PRINT("[WS-Client][handleHeader]  - cURL: ");
         WS_PRINTLN(client.cUrl.c_str());
-        //DEBUG_WEBSOCKETS("[WS-Client][handleHeader]  - cKey: %s\n", client->cKey.c_str());
         WS_PRINTLN("[WS-Client][handleHeader]  - cKey: ");
         WS_PRINTLN(client.cKey.c_str());
-
-        //DEBUG_WEBSOCKETS("[WS-Client][handleHeader] Server header:\n");
         WS_PRINTLN("[WS-Client][handleHeader] Server header:");
-        //DEBUG_WEBSOCKETS("[WS-Client][handleHeader]  - cCode: %d\n", client->cCode);
         WS_PRINT("[WS-Client][handleHeader]  - cCode: ");
         WS_PRINTLN(client.cCode);
-        //DEBUG_WEBSOCKETS("[WS-Client][handleHeader]  - cIsUpgrade: %d\n", client->cIsUpgrade);
         WS_PRINT("[WS-Client][handleHeader]  - cIsUpgrade: ");
         WS_PRINTLN(client.cIsUpgrade);
-        //DEBUG_WEBSOCKETS("[WS-Client][handleHeader]  - cIsWebsocket: %d\n", client->cIsWebsocket);
         WS_PRINT("[WS-Client][handleHeader]  - cIsWebsocket: ");
         WS_PRINTLN(client.cIsWebsocket);
-        //DEBUG_WEBSOCKETS("[WS-Client][handleHeader]  - cAccept: %s\n", client->cAccept.c_str());
         WS_PRINT("[WS-Client][handleHeader]  - cAccept: ");
         WS_PRINTLN(client.cAccept.c_str());
-        //DEBUG_WEBSOCKETS("[WS-Client][handleHeader]  - cProtocol: %s\n", client->cProtocol.c_str());
         WS_PRINT("[WS-Client][handleHeader]  - cProtocol: ");
         WS_PRINTLN(client.cProtocol.c_str());
-        //DEBUG_WEBSOCKETS("[WS-Client][handleHeader]  - cExtensions: %s\n", client->cExtensions.c_str());
         WS_PRINT("[WS-Client][handleHeader]  - cExtensions: ");
         WS_PRINTLN(client.cExtensions.c_str());
-        //DEBUG_WEBSOCKETS("[WS-Client][handleHeader]  - cVersion: %d\n", client->cVersion);
         WS_PRINT("[WS-Client][handleHeader]  - cVersion: ");
         WS_PRINTLN(client.cVersion);
 #endif
@@ -501,7 +475,6 @@ void WebSocketsClient::handleHeader(WSclient_t & client) {
                 default:   ///< Server dont unterstand requrst
                     ok = false;
 #ifdef WS_CLIENT_DEBUG
-                    //DEBUG_WEBSOCKETS("[WS-Client][handleHeader] serverCode is not 101 (%d)\n", client->cCode);
                     WS_PRINT("[WS-Client][handleHeader] serverCode is not 101 (");
                     WS_PRINT(client.cCode);
                     WS_PRINTLN(")");
@@ -519,7 +492,6 @@ void WebSocketsClient::handleHeader(WSclient_t & client) {
                 String sKey = acceptKey(client.cKey);
                 if(sKey != client.cAccept) {
 #ifdef WS_CLIENT_DEBUG
-                    //DEBUG_WEBSOCKETS("[WS-Client][handleHeader] Sec-WebSocket-Accept is wrong\n");
                     WS_PRINTLN("[WS-Client][handleHeader] Sec-WebSocket-Accept is wrong");
 #endif
                     ok = false;
@@ -529,7 +501,6 @@ void WebSocketsClient::handleHeader(WSclient_t & client) {
 
         if(ok) {
 #ifdef WS_CLIENT_DEBUG
-            //DEBUG_WEBSOCKETS("[WS-Client][handleHeader] Websocket connection init done.\n");
             WS_PRINTLN("[WS-Client][handleHeader] Websocket connection init done.");
 #endif
             client.status = WSC_CONNECTED;
@@ -538,7 +509,6 @@ void WebSocketsClient::handleHeader(WSclient_t & client) {
 
         } else {
 #ifdef WS_CLIENT_DEBUG
-            //DEBUG_WEBSOCKETS("[WS-Client][handleHeader] no Websocket connection close.\n");
             WS_PRINTLN("[WS-Client][handleHeader] no Websocket connection close.");
 #endif
             client.tcp->write("This is a webSocket client!");

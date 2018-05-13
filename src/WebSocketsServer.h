@@ -103,7 +103,6 @@ protected:
          */
         virtual void handleNonWebsocketConnection(WSclient_t & client) {
 #ifdef WS_SERVER_DEBUG
-            //DEBUG_WEBSOCKETS("[WS-Server][%d][handleHeader] no Websocket connection close.\n", client->num);
             WS_PRINT("[WS-Server][");
             WS_PRINT(client.num);
             WS_PRINTLN("][handleHeader] no Websocket connection close.");
@@ -118,7 +117,6 @@ protected:
                     "This is a Websocket server only!");
             clientDisconnect(client);
         }
-
         /**
          * called for sending a Event to the app
          * @param num uint8_t
@@ -131,9 +129,5 @@ protected:
                 _cbEvent(num, type, payload, length);
             }
         }
-
 };
-
-
-
 #endif /* WEBSOCKETSSERVER_H_ */
