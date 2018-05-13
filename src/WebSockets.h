@@ -29,6 +29,11 @@
 
 //#define DEBUG_WEBSOCKETS
 
+//                      those macro have been added so the lib fit on arduino UNO
+//#define WS_DEBUG        //unmute this to display debugprint from websockets.h and cpp
+//#define WS_CLIENT_DEBUG //unmute this to display debugprint from websocketsClient.h and cpp
+//#define WS_SERVER_DEBUG //unmute this to display debugprint from websocketsServer
+
 #ifdef DEBUG_WEBSOCKETS
 #define WS_PRINT(x) Serial.print(x);
 #define WS_PRINTLN(x) Serial.println(x);
@@ -81,7 +86,7 @@
 #elif (WEBSOCKETS_NETWORK_TYPE == NETWORK_W5100)
 
 #include <Ethernet.h>
-#include <SPI.h>
+//#include <SPI.h>
 #define WEBSOCKETS_NETWORK_CLASS EthernetClient
 #define WEBSOCKETS_NETWORK_SERVER_CLASS EthernetServer
 
@@ -95,7 +100,7 @@
 #include <Ethernet2.h>
 #include <EthernetClient.h>
 #include <EthernetServer.h>
-#include <SPI.h>
+//#include <SPI.h>
 #define WEBSOCKETS_NETWORK_CLASS EthernetClient
 #define WEBSOCKETS_NETWORK_SERVER_CLASS EthernetServer
 

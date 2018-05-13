@@ -105,10 +105,12 @@ protected:
          * @param client WSclient_t *  ptr to the client struct
          */
         virtual void handleNonWebsocketConnection(WSclient_t & client) {
+#ifdef WS_SERVER_DEBUG
             //DEBUG_WEBSOCKETS("[WS-Server][%d][handleHeader] no Websocket connection close.\n", client->num);
             WS_PRINT("[WS-Server][");
             WS_PRINT(client.num);
             WS_PRINTLN("][handleHeader] no Websocket connection close.");
+#endif
             client._client.write("HTTP/1.1 400 Bad Request\r\n"
                     "Server: arduino-WebSocket-Server\r\n"
                     "Content-Type: text/plain\r\n"

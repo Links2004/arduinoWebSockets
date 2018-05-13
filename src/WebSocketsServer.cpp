@@ -75,9 +75,10 @@ void WebSocketsServer::begin(void) {
 #endif
 
     _server->begin();
-
+#ifdef WS_SERVER_DEBUG
     //DEBUG_WEBSOCKETS("[WS-Server] Server Started.\n");
     WS_PRINTLN("[WS-Server] Server Started.");
+#endif
 }
 
 /**
@@ -107,9 +108,10 @@ void WebSocketsServer::loop(void) {
 
         }
         wsClient._client.stop(); //close connection is no free spot
+#ifdef WS_SERVER_DEBUG
         WS_PRINTLN("[WS-Server] No free socket, connection close");
+#endif
     }
-    //WS_PRINTLN("[WS-Server] No Client");
 }
 
 /**
@@ -312,9 +314,7 @@ void WebSocketsServer::messageReceived(WSclient_t & client, WSopcode_t opcode, u
  * Disconnect an client
  * @param client WSclient_t *  ptr to the client struct
  */
-
 void WebSocketsServer::clientDisconnect(WSclient_t & client) {
-
 
 #if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
     if(client.isSSL && client.ssl) {
@@ -328,14 +328,6 @@ void WebSocketsServer::clientDisconnect(WSclient_t & client) {
     }
 #endif
 
-/*    if(client.tcp) {
-        if(client.tcp->connected()) {
-            client.tcp->flush();
-            client.tcp->stop();
-        }
-        //delete client->tcp;
-        client.tcp = NULL;
-    }*/
     if(client._client) {
         if(client._client.connected()) {
             client._client.flush();
@@ -353,12 +345,12 @@ void WebSocketsServer::clientDisconnect(WSclient_t & client) {
     client.cIsWebsocket = false;
 
     client.status = WSC_NOT_CONNECTED;
-
+#ifdef WS_SERVER_DEBUG
     //DEBUG_WEBSOCKETS("[WS-Server][%d] client disconnected.\n", client->num);
     WS_PRINT("[WS-Server][");
     WS_PRINT(client.num);
     WS_PRINTLN("] client disconnected.");
-
+#endif
     runCbEvent(client.num, WStype_DISCONNECTED, NULL, 0);
     client.num = WEBSOCKETS_SERVER_CLIENT_MAX;
 }
@@ -380,10 +372,12 @@ bool WebSocketsServer::clientIsConnected(WSclient_t & client) {
     } else {
         // client lost
         if(client.status != WSC_NOT_CONNECTED) {
+#ifdef WS_SERVER_DEBUG
             //DEBUG_WEBSOCKETS("[WS-Server][%d] client connection lost.\n", client->num);
             WS_PRINT("[WS-Server][");
             WS_PRINT(client.num);
             WS_PRINTLN("] client connection lost.");
+#endif
             // do cleanup
             clientDisconnect(client);
         }
@@ -407,7 +401,9 @@ void WebSocketsServer::handleNewClients(WSclient_t & client) {
     //while(_server->hasClient()) {   ///<<----this conditionnal while make code not compile on arduino
 #endif 
         if(!clientIsConnected(client)) {
+#ifdef WS_SERVER_DEBUG
             WS_PRINTLN("fail to make new connection");
+#endif
             return;
         }
 
@@ -420,6 +416,7 @@ void WebSocketsServer::handleNewClients(WSclient_t & client) {
                 client.status = WSC_HEADER;
 #if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
                 IPAddress ip = client._client.remoteIP();
+#ifdef WS_SERVER_DEBUG
                 //DEBUG_WEBSOCKETS("[WS-Server][%d] new client from %d.%d.%d.%d\n", client->num, ip[0], ip[1], ip[2], ip[3]);
                 WS_PRINT("[WS-Server][");
                 WS_PRINT(client.num);
@@ -431,11 +428,14 @@ void WebSocketsServer::handleNewClients(WSclient_t & client) {
                 WS_PRINT(ip[2]);
                 WS_PRINT(".");
                 WS_PRINTLN(ip[3]);
+#endif
 #else
  //------------->>>>>>to debug               //DEBUG_WEBSOCKETS("[WS-Server][%d] new client\n", client->num);
+#ifdef WS_SERVER_DEBUG
                 WS_PRINT("[WS-Server][");
                 WS_PRINT(client.num);
                 WS_PRINTLN("] new client");
+#endif
 #endif
         
         ok = true;
@@ -484,12 +484,13 @@ void WebSocketsServer::handleHeader(WSclient_t & client) {
     headerLine.trim(); // remove \r
 
     if(headerLine.length() > 0) {
+#ifdef WS_SERVER_DEBUG
         //DEBUG_WEBSOCKETS("[WS-Server][%d][handleHeader] RX: %s\n", client->num, headerLine.c_str());
         WS_PRINT("[WS-Server][");
         WS_PRINT(client.num);
         WS_PRINT("][handleHeader] RX: ");
         WS_PRINTLN(headerLine.c_str());
-
+#endif
         // websocket request starts allways with GET see rfc6455
         if(headerLine.startsWith("GET ")) {
             // cut URL out
@@ -517,13 +518,16 @@ void WebSocketsServer::handleHeader(WSclient_t & client) {
                 client.cExtensions = headerValue;
             }
         } else {
+#ifdef WS_SERVER_DEBUG
             //DEBUG_WEBSOCKETS("[WS-Client][handleHeader] Header error (%s)\n", headerLine.c_str());
             WS_PRINT("[WS-Client][handleHeader] Header error (");
             WS_PRINT(headerLine.c_str());
             WS_PRINTLN(")");
+#endif
         }
 
     } else {
+#ifdef WS_SERVER_DEBUG
         //DEBUG_WEBSOCKETS("[WS-Server][%d][handleHeader] Header read fin.\n", client->num);
         WS_PRINT("[WS-Server][");
         WS_PRINT(client.num);
@@ -564,7 +568,7 @@ void WebSocketsServer::handleHeader(WSclient_t & client) {
         WS_PRINT(client.num);
         WS_PRINT("][handleHeader]  - cVersion: ");
         WS_PRINTLN(client.cVersion);
-
+#endif
         bool ok = (client.cIsUpgrade && client.cIsWebsocket);
 
         if(ok) {
@@ -580,21 +584,21 @@ void WebSocketsServer::handleHeader(WSclient_t & client) {
         }
 
         if(ok) {
-
+#ifdef WS_SERVER_DEBUG
             //DEBUG_WEBSOCKETS("[WS-Server][%d][handleHeader] Websocket connection incomming.\n", client->num);
             WS_PRINT("[WS-Server][");
             WS_PRINT(client.num);
             WS_PRINTLN("][handleHeader] Websocket connection incomming.");
-
+#endif
             // generate Sec-WebSocket-Accept key
             String sKey = acceptKey(client.cKey);
-
+#ifdef WS_SERVER_DEBUG
             //DEBUG_WEBSOCKETS("[WS-Server][%d][handleHeader]  - sKey: %s\n", client->num, sKey.c_str());
             WS_PRINT("[WS-Server][");
             WS_PRINT(client.num);
             WS_PRINT("][handleHeader]  - sKey: ");
             WS_PRINTLN(sKey.c_str());
-
+#endif
             client.status = WSC_CONNECTED;
 
             client._client.write("HTTP/1.1 101 Switching Protocols\r\n"
