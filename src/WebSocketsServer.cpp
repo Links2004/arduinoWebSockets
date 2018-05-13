@@ -36,7 +36,6 @@ WebSocketsServer::WebSocketsServer(uint16_t port) {
 WebSocketsServer::~WebSocketsServer() {
     // disconnect all clients
     disconnect();
-
     // TODO how to close server?
 }
 
@@ -44,8 +43,6 @@ WebSocketsServer::~WebSocketsServer() {
  * calles to init the Websockets server
  */
 void WebSocketsServer::begin(void) {
-    //WSclient_t & client;
-
     // init client storage
     for(uint8_t i = 0; i < WEBSOCKETS_SERVER_CLIENT_MAX; i++) {
         
@@ -138,7 +135,7 @@ void WebSocketsServer::sendTXT(uint8_t num, uint8_t * payload, size_t length, bo
     }
     WSclient_t & client = _clients[num];
     if(clientIsConnected(client)) {
-        sendFrame(&client, WSop_text, payload, length, false, true, headerToPayload);
+        sendFrame(client, WSop_text, payload, length, false, true, headerToPayload);
     }
 }
 
@@ -172,7 +169,7 @@ void WebSocketsServer::broadcastTXT(uint8_t * payload, size_t length, bool heade
     for(uint8_t i = 0; i < WEBSOCKETS_SERVER_CLIENT_MAX; i++) {
         WSclient_t & client = _clients[i];
         if(clientIsConnected(client)) {
-            sendFrame(&client, WSop_text, payload, length, false, true, headerToPayload);
+            sendFrame(client, WSop_text, payload, length, false, true, headerToPayload);
         }
 #ifdef ESP8266
         delay(0);
@@ -209,7 +206,7 @@ void WebSocketsServer::sendBIN(uint8_t num, uint8_t * payload, size_t length, bo
     }
     WSclient_t & client = _clients[num];
     if(clientIsConnected(client)) {
-        sendFrame(&client, WSop_binary, payload, length, false, true, headerToPayload);
+        sendFrame(client, WSop_binary, payload, length, false, true, headerToPayload);
     }
 }
 
@@ -227,7 +224,7 @@ void WebSocketsServer::broadcastBIN(uint8_t * payload, size_t length, bool heade
     for(uint8_t i = 0; i < WEBSOCKETS_SERVER_CLIENT_MAX; i++) {
         WSclient_t & client = _clients[i];
         if(clientIsConnected(client)) {
-            sendFrame(&client, WSop_binary, payload, length, false, true, headerToPayload);
+            sendFrame(client, WSop_binary, payload, length, false, true, headerToPayload);
         }
 #ifdef ESP8266
         delay(0);
@@ -247,7 +244,7 @@ void WebSocketsServer::disconnect(void) {
     for(uint8_t i = 0; i < WEBSOCKETS_SERVER_CLIENT_MAX; i++) {
         WSclient_t & client = _clients[i];
         if(clientIsConnected(client)) {
-            WebSockets::clientDisconnect(&client, 1000);
+            WebSockets::clientDisconnect(client, 1000);
         }
     }
 }
@@ -262,7 +259,7 @@ void WebSocketsServer::disconnect(uint8_t num) {
     }
     WSclient_t & client = _clients[num];
     if(clientIsConnected(client)) {
-        WebSockets::clientDisconnect(&client, 1000);
+        WebSockets::clientDisconnect(client, 1000);
     }
 }
 
@@ -452,7 +449,6 @@ void WebSocketsServer::handleNewClients(WSclient_t & client) {
 
 void WebSocketsServer::handleClientData(WSclient_t & client) {
         if(clientIsConnected(client)) {
-            //int len = client.tcp->available();
             int len = client._client.available();
             if(len > 0) {
 
@@ -461,10 +457,10 @@ void WebSocketsServer::handleClientData(WSclient_t & client) {
                         handleHeader(client);
                         break;
                     case WSC_CONNECTED:
-                        WebSockets::handleWebsocket(&client);
+                        WebSockets::handleWebsocket(client);
                         break;
                     default:
-                        WebSockets::clientDisconnect(&client, 1002);
+                        WebSockets::clientDisconnect(client, 1002);
                         break;
                 }
             }
@@ -619,7 +615,7 @@ void WebSocketsServer::handleHeader(WSclient_t & client) {
             client._client.write("\r\n");
 
             // send ping
-            WebSockets::sendFrame(&client, WSop_ping);
+            WebSockets::sendFrame(client, WSop_ping);
 
             runCbEvent(client.num, WStype_CONNECTED, (uint8_t *) client.cUrl.c_str(), client.cUrl.length());
 

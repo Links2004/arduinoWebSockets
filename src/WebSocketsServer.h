@@ -86,12 +86,9 @@ protected:
 
         WebSocketServerEvent _cbEvent;
 
-        void messageReceived(WSclient_t * client, WSopcode_t opcode, uint8_t * payload, size_t length) { return messageReceived(*client, opcode, payload, length); };// to be deprecated
         void messageReceived(WSclient_t & client, WSopcode_t opcode, uint8_t * payload, size_t length);
 
-        void clientDisconnect(WSclient_t * client) { return clientDisconnect(*client); }; // to be deprecated
         void clientDisconnect(WSclient_t & client);
-        bool clientIsConnected(WSclient_t * client) { return clientIsConnected(*client); };// to be deprecated
         bool clientIsConnected(WSclient_t & client);
 
         void handleNewClients(WSclient_t & client);
