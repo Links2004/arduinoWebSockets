@@ -70,16 +70,16 @@ class WebSocketsClient: private WebSockets {
 
         WebSocketClientEvent _cbEvent;
 
-        void messageRecived(WSclient_t * client, WSopcode_t opcode, uint8_t * payload, size_t length);
+        void messageReceived(WSclient_t & client, WSopcode_t opcode, uint8_t * payload, size_t length);
 
-        void clientDisconnect(WSclient_t * client);
-        bool clientIsConnected(WSclient_t * client);
+        void clientDisconnect(WSclient_t & client);
+        bool clientIsConnected(WSclient_t & client);
 
         void handleNewClients(void);
         void handleClientData(void);
 
-        void sendHeader(WSclient_t * client);
-        void handleHeader(WSclient_t * client);
+        void sendHeader(WSclient_t & client);
+        void handleHeader(WSclient_t & client);
 
         /**
          * called for sending a Event to the app

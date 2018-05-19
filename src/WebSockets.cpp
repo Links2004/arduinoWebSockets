@@ -55,9 +55,12 @@ extern "C" {
  * @param reason
  * @param reasonLen
  */
-void WebSockets::clientDisconnect(WSclient_t * client, uint16_t code, char * reason, size_t reasonLen) {
-    DEBUG_WEBSOCKETS("[WS][%d][handleWebsocket] clientDisconnect code: %u\n", client->num, code);
-    if(client->status == WSC_CONNECTED && code) {
+void WebSockets::clientDisconnect(WSclient_t & client, uint16_t code, char * reason, size_t reasonLen) {
+    WS_PRINT("[WS][");
+    WS_PRINT(client.num);
+    WS_PRINT("][handleWebsocket] clientDisconnect code: ");
+    WS_PRINTLN(code);
+    if(client.status == WSC_CONNECTED && code) {
         if(reason) {
             sendFrame(client, WSop_close, (uint8_t *) reason, reasonLen);
         } else {
@@ -80,23 +83,48 @@ void WebSockets::clientDisconnect(WSclient_t * client, uint16_t code, char * rea
  * @param fin bool              can be used to send data in more then one frame (set fin on the last frame)
  * @param headerToPayload bool  set true if the payload has reserved 14 Byte at the beginning to dynamically add the Header (payload neet to be in RAM!)
  */
-void WebSockets::sendFrame(WSclient_t * client, WSopcode_t opcode, uint8_t * payload, size_t length, bool mask, bool fin, bool headerToPayload) {
-
-    if(client->tcp && !client->tcp->connected()) {
-        DEBUG_WEBSOCKETS("[WS][%d][sendFrame] not Connected!?\n", client->num);
+void WebSockets::sendFrame(WSclient_t & client, WSopcode_t opcode, uint8_t * payload, size_t length, bool mask, bool fin, bool headerToPayload) {
+       if(client.tcp && !client.tcp->connected()) {
+#ifdef WS_DEBUG
+        WS_PRINT("[WS][");
+        WS_PRINT(client.num);
+        WS_PRINTLN("][sendFrame] not Connected!?");
+#endif
         return;
     }
 
-    if(client->status != WSC_CONNECTED) {
-        DEBUG_WEBSOCKETS("[WS][%d][sendFrame] not in WSC_CONNECTED state!?\n", client->num);
+    if(client.status != WSC_CONNECTED) {
+#ifdef WS_DEBUG
+        WS_PRINT("[WS][");
+        WS_PRINT(client.num);
+        WS_PRINTLN("][sendFrame] not in WSC_CONNECTED state!?");
+#endif
         return;
     }
-
-    DEBUG_WEBSOCKETS("[WS][%d][sendFrame] ------- send massage frame -------\n", client->num);
-    DEBUG_WEBSOCKETS("[WS][%d][sendFrame] fin: %u opCode: %u mask: %u length: %u headerToPayload: %u\n", client->num, fin, opcode, mask, length, headerToPayload);
-
+#ifdef WS_DEBUG
+    WS_PRINT("[WS][");
+    WS_PRINT(client.num);
+    WS_PRINTLN("][sendFrame] ------- send message frame -------");
+    WS_PRINT("[WS][");
+    WS_PRINT(client.num);
+    WS_PRINT("][sendFrame] fin: ");
+    WS_PRINT(fin);
+    WS_PRINT(" opCode: ");
+    WS_PRINT(opcode);
+    WS_PRINT(" mask: ");
+    WS_PRINT(mask);
+    WS_PRINT(" length: ");
+    WS_PRINT(length);
+    WS_PRINT(" headerToPayload: ");
+    WS_PRINTLN(headerToPayload);
+#endif
     if(opcode == WSop_text) {
-        DEBUG_WEBSOCKETS("[WS][%d][sendFrame] text: %s\n", client->num, (payload + (headerToPayload ? 14 : 0)));
+#ifdef WS_DEBUG
+        WS_PRINT("[WS][");
+        WS_PRINT(client.num);
+        WS_PRINT("][sendFrame] text: ");
+        WS_PRINTLN(reinterpret_cast<char*>(payload + (headerToPayload ? 14 : 0)));//<<<------------------------------------------------
+#endif
     }
 
     uint8_t maskKey[4] = { 0x00, 0x00, 0x00, 0x00 };
@@ -125,7 +153,11 @@ void WebSockets::sendFrame(WSclient_t * client, WSopcode_t opcode, uint8_t * pay
     // only for ESP since AVR has less HEAP
     // try to send data in one TCP package (only if some free Heap is there)
     if(!headerToPayload && ((length > 0) && (length < 1400)) && (ESP.getFreeHeap() > 6000)) {
-        DEBUG_WEBSOCKETS("[WS][%d][sendFrame] pack to one TCP package...\n", client->num);
+#ifdef WS_DEBUG
+        WS_PRINT("[WS][");
+        WS_PRINT(client.num);
+        WS_PRINTLN("][sendFrame] pack to one TCP package...");
+#endif
         uint8_t * dataPtr = (uint8_t *) malloc(length + WEBSOCKETS_MAX_HEADER_SIZE);
         if(dataPtr) {
             memcpy((dataPtr + WEBSOCKETS_MAX_HEADER_SIZE), payload, length);
@@ -216,18 +248,18 @@ void WebSockets::sendFrame(WSclient_t * client, WSopcode_t opcode, uint8_t * pay
         // header has be added to payload
         // payload is forced to reserved 14 Byte but we may not need all based on the length and mask settings
         // offset in payload is calculatetd 14 - headerSize
-        client->tcp->write(&payloadPtr[(WEBSOCKETS_MAX_HEADER_SIZE - headerSize)], (length + headerSize));
+        client.tcp->write(&payloadPtr[(WEBSOCKETS_MAX_HEADER_SIZE - headerSize)], (length + headerSize));
     } else {
         // send header
-        client->tcp->write(&buffer[0], headerSize);
+        client.tcp->write(&buffer[0], headerSize);
 
         if(payloadPtr && length > 0) {
             // send payload
-            client->tcp->write(&payloadPtr[0], length);
+            client.tcp->write(&payloadPtr[0], length);
         }
     }
 
-    DEBUG_WEBSOCKETS("[WS][%d][sendFrame] sending Frame Done (%uus).\n", client->num, (micros() - start));
+    ////////////DEBUG_WEBSOCKETS("[WS][%d][sendFrame] sending Frame Done (%uus).\n", client->num, (micros() - start));
 
 #ifdef WEBSOCKETS_USE_BIG_MEM
     if(useInternBuffer && payloadPtr) {
@@ -241,8 +273,7 @@ void WebSockets::sendFrame(WSclient_t * client, WSopcode_t opcode, uint8_t * pay
  * handle the WebSocket stream
  * @param client WSclient_t *  ptr to the client struct
  */
-void WebSockets::handleWebsocket(WSclient_t * client) {
-
+void WebSockets::handleWebsocket(WSclient_t & client) {
     uint8_t buffer[8] = { 0 };
 
     bool fin;
@@ -256,9 +287,11 @@ void WebSockets::handleWebsocket(WSclient_t * client) {
     uint8_t maskKey[4];
 
     uint8_t * payload = NULL;
-
-    DEBUG_WEBSOCKETS("[WS][%d][handleWebsocket] ------- read massage frame -------\n", client->num);
-
+#ifdef WS_DEBUG
+    WS_PRINT("[WS][");
+    WS_PRINT(client.num);
+    WS_PRINTLN("][handleWebsocket] ------- read massage frame -------");
+#endif
     if(!readWait(client, buffer, 2)) {
         //timeout
         clientDisconnect(client, 1002);
@@ -297,13 +330,35 @@ void WebSockets::handleWebsocket(WSclient_t * client) {
             payloadLen = buffer[4] << 24 | buffer[5] << 16 | buffer[6] << 8 | buffer[7];
         }
     }
-
-    DEBUG_WEBSOCKETS("[WS][%d][handleWebsocket] fin: %u rsv1: %u rsv2: %u rsv3 %u  opCode: %u\n", client->num, fin, rsv1, rsv2, rsv3, opCode);
-    DEBUG_WEBSOCKETS("[WS][%d][handleWebsocket] mask: %u payloadLen: %u\n", client->num, mask, payloadLen);
-
+#ifdef WS_DEBUG
+    WS_PRINT("[WS][");
+    WS_PRINT(client.num);
+    WS_PRINT("][handleWebsocket] fin: ");
+    WS_PRINT(fin);
+    WS_PRINT(" rsv1: ");
+    WS_PRINT(rsv1);
+    WS_PRINT(" rsv2: ");
+    WS_PRINT(rsv2);
+    WS_PRINT(" rsv3: ");
+    WS_PRINT(rsv3);
+    WS_PRINT("  opCode: ");
+    WS_PRINTLN(opCode);
+    WS_PRINT("[WS][");
+    WS_PRINT(client.num);
+    WS_PRINT("][handleWebsocket] mask: ");
+    WS_PRINT(mask);
+    WS_PRINT(" payloadLen: ");
+    WS_PRINTLN(payloadLen);
+#endif
     if(payloadLen > WEBSOCKETS_MAX_DATA_SIZE) {
-        DEBUG_WEBSOCKETS("[WS][%d][handleWebsocket] payload to big! (%u)\n", client->num, payloadLen);
+#ifdef WS_DEBUG
+        WS_PRINT("[WS][");
+        WS_PRINT(client.num);
+        WS_PRINT("][handleWebsocket] payload to big! (");
+        WS_PRINT(payloadLen);
+        WS_PRINTLN(")");
         clientDisconnect(client, 1009);
+#endif
         return;
     }
 
@@ -320,13 +375,23 @@ void WebSockets::handleWebsocket(WSclient_t * client) {
         payload = (uint8_t *) malloc(payloadLen + 1);
 
         if(!payload) {
-            DEBUG_WEBSOCKETS("[WS][%d][handleWebsocket] to less memory to handle payload %d!\n", client->num, payloadLen);
+#ifdef WS_DEBUG
+            WS_PRINT("[WS][");
+            WS_PRINT(client.num);
+            WS_PRINT("][handleWebsocket] to less memory to handle payload ");
+            WS_PRINT(payloadLen);
+            WS_PRINTLN("!");
+#endif
             clientDisconnect(client, 1011);
             return;
         }
 
         if(!readWait(client, payload, payloadLen)) {
-            DEBUG_WEBSOCKETS("[WS][%d][handleWebsocket] missing data!\n", client->num);
+#ifdef WS_DEBUG
+            WS_PRINT("[WS][");
+            WS_PRINT(client.num);
+            WS_PRINTLN("][handleWebsocket] missing data!");
+#endif
             free(payload);
             clientDisconnect(client, 1002);
             return;
@@ -344,17 +409,28 @@ void WebSockets::handleWebsocket(WSclient_t * client) {
 
     switch(opCode) {
         case WSop_text:
-            DEBUG_WEBSOCKETS("[WS][%d][handleWebsocket] text: %s\n", client->num, payload);
+#ifdef WS_DEBUG
+            WS_PRINT("[WS][");
+            WS_PRINT(client.num);
+            WS_PRINT("][handleWebsocket] text: ");
+            WS_PRINTLN(reinterpret_cast<char*>(payload));//<<<------------------------------------------------
+#endif
             // no break here!
         case WSop_binary:
-            messageRecived(client, opCode, payload, payloadLen);
+            messageReceived(client, opCode, payload, payloadLen);
             break;
         case WSop_ping:
             // send pong back
             sendFrame(client, WSop_pong, payload, payloadLen);
             break;
         case WSop_pong:
-            DEBUG_WEBSOCKETS("[WS][%d][handleWebsocket] get pong  (%s)\n", client->num, payload);
+#ifdef WS_DEBUG
+            WS_PRINT("[WS][");
+            WS_PRINT(client.num);
+            WS_PRINT("][handleWebsocket] get pong  (");
+            WS_PRINT(reinterpret_cast<char*>(payload));//<<<------------------------------------------------
+            WS_PRINTLN(")");
+#endif
             break;
         case WSop_close:
             {
@@ -362,12 +438,22 @@ void WebSockets::handleWebsocket(WSclient_t * client) {
                 if(payloadLen >= 2) {
                     reasonCode = payload[0] << 8 | payload[1];
                 }
-
-                DEBUG_WEBSOCKETS("[WS][%d][handleWebsocket] get ask for close. Code: %d", client->num, reasonCode);
+#ifdef WS_DEBUG
+                WS_PRINT("[WS][");
+                WS_PRINT(client.num);
+                WS_PRINT("][handleWebsocket] get ask for close. Code: ");
+                WS_PRINTLN(reasonCode);
+#endif
                 if(payloadLen > 2) {
-                    DEBUG_WEBSOCKETS(" (%s)\n", (payload+2));
+#ifdef WS_DEBUG
+                    WS_PRINT(" (");
+                    WS_PRINT(reinterpret_cast<char*>(payload+2));//<<<------------------------------------------------
+                    WS_PRINTLN(")");
+#endif
                 } else {
-                    DEBUG_WEBSOCKETS("\n");
+#ifdef WS_DEBUG
+                    WS_PRINTLN();
+#endif
                 }
                 clientDisconnect(client, 1000);
             }
@@ -439,41 +525,45 @@ String WebSockets::base64_encode(uint8_t * data, size_t length) {
  * @param n size_t byte count
  * @return true if ok
  */
-bool WebSockets::readWait(WSclient_t * client, uint8_t *out, size_t n) {
+bool WebSockets::readWait(WSclient_t & client, uint8_t *out, size_t n) {
     unsigned long t = millis();
     size_t len;
 
     while(n > 0) {
-        if(!client->tcp) {
-            DEBUG_WEBSOCKETS("[readWait] tcp is null!\n");
+        if(!client.tcp) {
+#ifdef WS_DEBUG
+            WS_PRINTLN("[readWait] tcp is null!");
+#endif
             return false;
         }
 
-        if(!client->tcp->connected()) {
-            DEBUG_WEBSOCKETS("[readWait] not connected!\n");
+        if(!client.tcp->connected()) {
+#ifdef WS_DEBUG
+            WS_PRINTLN("[readWait] not connected!");
+#endif
             return false;
         }
 
         if((millis() - t) > WEBSOCKETS_TCP_TIMEOUT) {
-            DEBUG_WEBSOCKETS("[readWait] receive TIMEOUT!\n");
+#ifdef WS_DEBUG
+            WS_PRINTLN("[readWait] receive TIMEOUT!");
+#endif
             return false;
         }
 
-        if(!client->tcp->available()) {
+        if(!client.tcp->available()) {
 #ifdef ESP8266
             delay(0);
 #endif
             continue;
         }
 
-        len = client->tcp->read((uint8_t*) out, n);
+        len = client.tcp->read((uint8_t*) out, n);
         if(len) {
             t = millis();
             out += len;
             n -= len;
-            //DEBUG_WEBSOCKETS("Receive %d left %d!\n", len, n);
         } else {
-            //DEBUG_WEBSOCKETS("Receive %d left %d!\n", len, n);
         }
 #ifdef ESP8266
         delay(0);

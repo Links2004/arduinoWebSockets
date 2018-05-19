@@ -1,86 +1,60 @@
-/*
- * WebSocketServer.ino
- *
- *  Created on: 22.05.2015
- *
- */
-
-#include <Arduino.h>
-
-#include <ESP8266WiFi.h>
-#include <ESP8266WiFiMulti.h>
+#include <Ethernet2.h>
 #include <WebSocketsServer.h>
-#include <Hash.h>
+#include <Streaming.h>
 
-ESP8266WiFiMulti WiFiMulti;
+#define USE_SERIAL Serial
+byte mac[] = {0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xEF};
+IPAddress ip(192, 168, 0, 110);
 
-WebSocketsServer webSocket = WebSocketsServer(81);
-
-#define USE_SERIAL Serial1
+WebSocketsServer webSocket = WebSocketsServer(8081);
 
 void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t lenght) {
 
-    switch(type) {
-        case WStype_DISCONNECTED:
-            USE_SERIAL.printf("[%u] Disconnected!\n", num);
-            break;
-        case WStype_CONNECTED:
-            {
-                IPAddress ip = webSocket.remoteIP(num);
-                USE_SERIAL.printf("[%u] Connected from %d.%d.%d.%d url: %s\n", num, ip[0], ip[1], ip[2], ip[3], payload);
-				
-				// send message to client
-				webSocket.sendTXT(num, "Connected");
-            }
-            break;
-        case WStype_TEXT:
-            USE_SERIAL.printf("[%u] get Text: %s\n", num, payload);
+  switch (type) {
+    case WStype_DISCONNECTED:
+      USE_SERIAL << num << " Disconnected!" << endl;
+      break;
+    case WStype_CONNECTED:
+      {
+        //IPAddress ip = webSocket.remoteIP(num);
+        USE_SERIAL << num << " Connected url: " << (char*)payload << endl;
+        // send message to client
+        webSocket.sendTXT(num, "Connected");
+      }
+      break;
+    case WStype_TEXT:
+      USE_SERIAL << num << " get Text: " << (char*)payload << endl;
 
-            // send message to client
-            // webSocket.sendTXT(num, "message here");
+      // send message to client
+      webSocket.sendTXT(num, "message here");
 
-            // send data to all connected clients
-            // webSocket.broadcastTXT("message here");
-            break;
-        case WStype_BIN:
-            USE_SERIAL.printf("[%u] get binary lenght: %u\n", num, lenght);
-            hexdump(payload, lenght);
+      // send data to all connected clients
+      webSocket.broadcastTXT("broadcast message here");
+      break;
+    case WStype_BIN:
+      USE_SERIAL << num << " get binary lenght: ";
 
-            // send message to client
-            // webSocket.sendBIN(num, payload, lenght);
-            break;
-    }
-
+      // send message to client
+      webSocket.sendBIN(num, payload, lenght);
+      break;
+  }
 }
 
 void setup() {
-    // USE_SERIAL.begin(921600);
-    USE_SERIAL.begin(115200);
+  USE_SERIAL.begin(115200);
+  Ethernet.begin(mac, ip);
+  USE_SERIAL.println("\n\n");
+  USE_SERIAL.println(Ethernet.localIP());
 
-    //Serial.setDebugOutput(true);
-    USE_SERIAL.setDebugOutput(true);
+  for (uint8_t t = 4; t > 0; t--) {
+    USE_SERIAL.flush();
+    delay(1000);
+  }
 
-    USE_SERIAL.println();
-    USE_SERIAL.println();
-    USE_SERIAL.println();
-
-    for(uint8_t t = 4; t > 0; t--) {
-        USE_SERIAL.printf("[SETUP] BOOT WAIT %d...\n", t);
-        USE_SERIAL.flush();
-        delay(1000);
-    }
-
-    WiFiMulti.addAP("SSID", "passpasspass");
-
-    while(WiFiMulti.run() != WL_CONNECTED) {
-        delay(100);
-    }
-
-    webSocket.begin();
-    webSocket.onEvent(webSocketEvent);
+  webSocket.begin();
+  webSocket.onEvent(webSocketEvent);
 }
 
 void loop() {
-    webSocket.loop();
+  webSocket.loop();
 }
-

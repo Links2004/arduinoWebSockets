@@ -28,8 +28,13 @@
 #include <Arduino.h>
 #include "WebSockets.h"
 
-#define WEBSOCKETS_SERVER_CLIENT_MAX  (5)
-
+#if     (WEBSOCKETS_NETWORK_TYPE == NETWORK_W5500)
+    #define WEBSOCKETS_SERVER_CLIENT_MAX  (8)
+#elif   (WEBSOCKETS_NETWORK_TYPE == NETWORK_W5100)
+    #define WEBSOCKETS_SERVER_CLIENT_MAX  (4)
+#else
+    #define WEBSOCKETS_SERVER_CLIENT_MAX  (5)
+#endif
 
 
 
@@ -81,24 +86,28 @@ protected:
 
         WebSocketServerEvent _cbEvent;
 
-        void messageRecived(WSclient_t * client, WSopcode_t opcode, uint8_t * payload, size_t length);
+        void messageReceived(WSclient_t & client, WSopcode_t opcode, uint8_t * payload, size_t length);
 
-        void clientDisconnect(WSclient_t * client);
-        bool clientIsConnected(WSclient_t * client);
+        void clientDisconnect(WSclient_t & client);
+        bool clientIsConnected(WSclient_t & client);
 
-        void handleNewClients(void);
-        void handleClientData(void);
+        void handleNewClients(WSclient_t & client);
+        void handleClientData(WSclient_t & client);
 
-        void handleHeader(WSclient_t * client);
+        void handleHeader(WSclient_t & client);
 
         /**
          * called if a non Websocket connection is comming in.
          * Note: can be overrided
          * @param client WSclient_t *  ptr to the client struct
          */
-        virtual void handleNonWebsocketConnection(WSclient_t * client) {
-            DEBUG_WEBSOCKETS("[WS-Server][%d][handleHeader] no Websocket connection close.\n", client->num);
-            client->tcp->write("HTTP/1.1 400 Bad Request\r\n"
+        virtual void handleNonWebsocketConnection(WSclient_t & client) {
+#ifdef WS_SERVER_DEBUG
+            WS_PRINT("[WS-Server][");
+            WS_PRINT(client.num);
+            WS_PRINTLN("][handleHeader] no Websocket connection close.");
+#endif
+            client._client.write("HTTP/1.1 400 Bad Request\r\n"
                     "Server: arduino-WebSocket-Server\r\n"
                     "Content-Type: text/plain\r\n"
                     "Content-Length: 32\r\n"
@@ -108,7 +117,6 @@ protected:
                     "This is a Websocket server only!");
             clientDisconnect(client);
         }
-
         /**
          * called for sending a Event to the app
          * @param num uint8_t
@@ -121,9 +129,5 @@ protected:
                 _cbEvent(num, type, payload, length);
             }
         }
-
 };
-
-
-
 #endif /* WEBSOCKETSSERVER_H_ */
