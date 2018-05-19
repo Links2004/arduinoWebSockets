@@ -43,7 +43,7 @@ void WebSocketsClient::begin(const char *host, uint16_t port, const char * url) 
 #if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
     _fingerprint = "";
 #endif
-    
+/*    ///------ not needed anymore, initialized list 
     _client.num = 0;
     _client.status = WSC_NOT_CONNECTED;
     _client.tcp = NULL;
@@ -60,7 +60,7 @@ void WebSocketsClient::begin(const char *host, uint16_t port, const char * url) 
     _client.cProtocol = "";
     _client.cExtensions = "";
     _client.cVersion = 0;
-
+*/
 #ifdef ESP8266
     randomSeed(RANDOM_REG32);
 #else
@@ -271,8 +271,8 @@ void WebSocketsClient::clientDisconnect(WSclient_t & client) {
             client.ssl->stop();
         }
         delete client.ssl;
-        client.ssl = NULL;
-        client.tcp = NULL;
+        //client.ssl = NULL;
+        //client.tcp = NULL;
     }
 #endif
     if(client.tcp) {
@@ -281,16 +281,17 @@ void WebSocketsClient::clientDisconnect(WSclient_t & client) {
             client.tcp->stop();
         }
         delete client.tcp;
-        client.tcp = NULL;
+        //client.tcp = NULL;
     }
-    client.cCode = 0;
+    /*client.cCode = 0;
     client.cKey = "";
     client.cAccept = "";
     client.cProtocol = "";
     client.cVersion = 0;
     client.cIsUpgrade = false;
     client.cIsWebsocket = false;
-    client.status = WSC_NOT_CONNECTED;
+    client.status = WSC_NOT_CONNECTED;*/
+    client = WSclient_t(); //reset client to 0
 #ifdef WS_CLIENT_DEBUG
     WS_PRINTLN("[WS-Client] client disconnected.");
 #endif

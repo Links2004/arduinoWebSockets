@@ -25,12 +25,9 @@
 #include "WebSockets.h"
 #include "WebSocketsServer.h"
 
-WebSocketsServer::WebSocketsServer(uint16_t port) {
-    _port = port;
-    _server = new WEBSOCKETS_NETWORK_SERVER_CLASS(port);
-
-    _cbEvent = NULL;
-
+WebSocketsServer::WebSocketsServer(uint16_t port) :
+    _port(port), _server(new WEBSOCKETS_NETWORK_SERVER_CLASS(port)), _cbEvent(NULL)
+{
 }
 
 WebSocketsServer::~WebSocketsServer() {
@@ -43,11 +40,9 @@ WebSocketsServer::~WebSocketsServer() {
  * calles to init the Websockets server
  */
 void WebSocketsServer::begin(void) {
-    // init client storage
-    for(uint8_t i = 0; i < WEBSOCKETS_SERVER_CLIENT_MAX; i++) {
-        
+    // init client storage /////////---- not needed anymore, client are already initialize when created
+ /*  for(uint8_t i = 0; i < WEBSOCKETS_SERVER_CLIENT_MAX; i++) {
         WSclient_t & client = _clients[i];
-
         client.num = WEBSOCKETS_SERVER_CLIENT_MAX; //if MAX -> means unconnected
         client.status = WSC_NOT_CONNECTED;
         client.tcp = NULL;
@@ -62,7 +57,7 @@ void WebSocketsServer::begin(void) {
         client.cVersion = 0;
         client.cIsUpgrade = false;
         client.cIsWebsocket = false;
-    }
+    }*/
 
 #ifdef ESP8266
     randomSeed(RANDOM_REG32);
@@ -89,6 +84,7 @@ void WebSocketsServer::loop(void) {
         for(uint8_t i = 0; i < WEBSOCKETS_SERVER_CLIENT_MAX; i++) {
             if( _clients[i]._client == wsClient._client ) { //not a new client, handle data
                 handleClientData(_clients[i]);
+                //todo ...---> add scedule sceck to see if client still connected ( ping pong ? )
                 return;
             }
         }
@@ -330,24 +326,25 @@ void WebSocketsServer::clientDisconnect(WSclient_t & client) {
             client._client.stop();
         }
         //delete client->tcp;
-        client.tcp = NULL;
+        //client.tcp = NULL;
     }
-
-    client.cUrl = "";
+    ////////////////////////////move to reset by initializer list
+    /*client.cUrl = "";
     client.cKey = "";
     client.cProtocol = "";
     client.cVersion = 0;
     client.cIsUpgrade = false;
     client.cIsWebsocket = false;
 
-    client.status = WSC_NOT_CONNECTED;
+    client.status = WSC_NOT_CONNECTED;*/
 #ifdef WS_SERVER_DEBUG
     WS_PRINT("[WS-Server][");
     WS_PRINT(client.num);
     WS_PRINTLN("] client disconnected.");
 #endif
     runCbEvent(client.num, WStype_DISCONNECTED, NULL, 0);
-    client.num = WEBSOCKETS_SERVER_CLIENT_MAX;
+    //client.num = WEBSOCKETS_SERVER_CLIENT_MAX;
+    client = WSclient_t(); //reset client to 0
 }
 
 /**
@@ -358,7 +355,10 @@ void WebSocketsServer::clientDisconnect(WSclient_t & client) {
 
 bool WebSocketsServer::clientIsConnected(WSclient_t & client) {
     if (client.num >= WEBSOCKETS_SERVER_CLIENT_MAX) return false;
-    if (!client._client) return false;
+    if (!client._client) {
+        clientDisconnect(client);
+        return false;
+    }
 
     if(client._client.connected()) {
         if(client.status != WSC_NOT_CONNECTED) {
@@ -392,7 +392,7 @@ bool WebSocketsServer::clientIsConnected(WSclient_t & client) {
 void WebSocketsServer::handleNewClients(WSclient_t & client) {
     bool ok = false;
 #if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)  //not shure for ESP8266
-    //while(_server->hasClient()) {   ///<<----this conditionnal while make code not compile on arduino
+    while(_server->hasClient()) {
 #endif 
         if(!clientIsConnected(client)) {
 #ifdef WS_SERVER_DEBUG
@@ -606,5 +606,3 @@ void WebSocketsServer::handleHeader(WSclient_t & client) {
         }
     }
 }
-
-

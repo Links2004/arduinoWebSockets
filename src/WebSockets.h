@@ -29,10 +29,10 @@
 
 //#define DEBUG_WEBSOCKETS
 
-//                      those macro have been added so the lib fit on arduino UNO
-#define WS_DEBUG        //unmute this to display debug print from websockets.h and cpp
-#define WS_CLIENT_DEBUG //unmute this to display debug print from websocketsClient.h and cpp
-#define WS_SERVER_DEBUG //unmute this to display debug print from websocketsServer
+//                      those macro have been added to save program space
+//#define WS_DEBUG        //unmute this to display debug print from websockets.h and cpp
+//#define WS_CLIENT_DEBUG //unmute this to display debug print from websocketsClient.h and cpp
+//#define WS_SERVER_DEBUG //unmute this to display debug print from websocketsServer
 
 #ifdef DEBUG_WEBSOCKETS
 #define WS_PRINT(x) Serial.print(x);
@@ -130,18 +130,35 @@ typedef enum {
                               ///< %xB-F are reserved for further control frames
 } WSopcode_t;
 
-typedef struct {
+struct WSclient_t {
+    WSclient_t() : 
+        num(-1),
+        status(WSC_NOT_CONNECTED),
+        tcp(NULL),
+        cUrl(""),
+        cCode(0),
+        cKey(""),
+        cProtocol(""),
+        cVersion(0),
+        cIsUpgrade(false),
+        cIsWebsocket(false)
+        {
+#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
+        client.isSSL = false;
+        client.ssl = NULL;
+#endif  
+        };
         uint8_t num; ///< connection number
 
         WSclientsStatus_t status;
 
         WEBSOCKETS_NETWORK_CLASS * tcp;
         WEBSOCKETS_NETWORK_CLASS _client;
-/*
+
 #if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
         bool isSSL;             ///< run in ssl mode
         WiFiClientSecure * ssl;
-#endif*/
+#endif
 
         String cUrl;        ///< http url
         uint16_t cCode;     ///< http code
@@ -155,7 +172,7 @@ typedef struct {
         String cExtensions; ///< client Sec-WebSocket-Extensions
         uint16_t cVersion;  ///< client Sec-WebSocket-Version
 
-} WSclient_t;
+};
 
 class WebSockets {
     protected:
