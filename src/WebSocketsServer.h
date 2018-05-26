@@ -36,6 +36,8 @@
     #define WEBSOCKETS_SERVER_CLIENT_MAX  (5)
 #endif
 
+#define timeoutClient (uint32_t)120000
+
 
 
 class WebSocketsServer: private WebSockets {
@@ -129,5 +131,7 @@ protected:
                 _cbEvent(num, type, payload, length);
             }
         }
+private: 
+    uint32_t timeOutCounter = 0;
 };
 #endif /* WEBSOCKETSSERVER_H_ */

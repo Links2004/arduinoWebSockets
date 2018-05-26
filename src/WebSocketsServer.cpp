@@ -80,6 +80,15 @@ void WebSocketsServer::loop(void) {
     WSclient_t wsClient;
     wsClient._client = _server->available();
 
+    //monitor for lost connect to clear socket
+    if ( timeOutCounter > timeoutClient ) {
+        for (uint8_t i = 0; i < WEBSOCKETS_SERVER_CLIENT_MAX; i++) {
+            clientIsConnected(_clients[i]);
+        }
+        timeOutCounter = 0;
+    }
+    timeOutCounter++;
+
     if (wsClient._client) {
         for(uint8_t i = 0; i < WEBSOCKETS_SERVER_CLIENT_MAX; i++) {
             if( _clients[i]._client == wsClient._client ) { //not a new client, handle data
