@@ -27,12 +27,12 @@
 
 #include <Arduino.h>
 
-//#define DEBUG_WEBSOCKETS
+#define DEBUG_WEBSOCKETS
 
 //                      those macro have been added to save program space
-//#define WS_DEBUG        //unmute this to display debug print from websockets.h and cpp
-//#define WS_CLIENT_DEBUG //unmute this to display debug print from websocketsClient.h and cpp
-//#define WS_SERVER_DEBUG //unmute this to display debug print from websocketsServer
+#define WS_DEBUG        //unmute this to display debug print from websockets.h and cpp
+#define WS_CLIENT_DEBUG //unmute this to display debug print from websocketsClient.h and cpp
+#define WS_SERVER_DEBUG //unmute this to display debug print from websocketsServer
 
 #ifdef DEBUG_WEBSOCKETS
 #define WS_PRINT(x) Serial.print(x);

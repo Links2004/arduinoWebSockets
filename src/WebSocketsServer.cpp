@@ -391,6 +391,7 @@ bool WebSocketsServer::clientIsConnected(WSclient_t & client) {
 
 void WebSocketsServer::handleNewClients(WSclient_t & client) {
     bool ok = false;
+    client.status = WSC_HEADER;
 #if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)  //not shure for ESP8266
     while(_server->hasClient()) {
 #endif 
@@ -407,7 +408,7 @@ void WebSocketsServer::handleNewClients(WSclient_t & client) {
 #endif
                 // set Timeout for readBytesUntil and readStringUntil
                 client._client.setTimeout(WEBSOCKETS_TCP_TIMEOUT);
-                client.status = WSC_HEADER;
+
 #if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
                 IPAddress ip = client._client.remoteIP();
 #ifdef WS_SERVER_DEBUG

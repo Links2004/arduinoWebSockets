@@ -332,17 +332,21 @@ bool WebSocketsClient::clientIsConnected(WSclient_t & client) {
  * Handel incomming data from Client
  */
 void WebSocketsClient::handleClientData(void) {
+    WS_PRINTLN("handle client data");
     int len = _client.tcp->available();
     if(len > 0) {
         switch(_client.status) {
             case WSC_HEADER:
                 handleHeader(_client);
+                WS_PRINTLN("data:handleHeader");
                 break;
             case WSC_CONNECTED:
                 WebSockets::handleWebsocket(_client);
+                WS_PRINTLN("data: handle WS");
                 break;
             default:
                 WebSockets::clientDisconnect(_client, 1002);
+                WS_PRINTLN("data: disc");
                 break;
         }
     }
