@@ -158,7 +158,6 @@ void WebSocketsClient::loop(void) {
 
         if(_client.tcp->connect(_host.c_str(), _port)) {
             connectedCb();
-            _lastConnectionFail = 0;
         } else {
             connectFailedCb();
             _lastConnectionFail = millis();
@@ -338,7 +337,8 @@ void WebSocketsClient::messageReceived(WSclient_t * client, WSopcode_t opcode, u
  * @param client WSclient_t *  ptr to the client struct
  */
 void WebSocketsClient::clientDisconnect(WSclient_t * client) {
-
+	_lastConnectionFail = millis(); // Set last connection failure time to 
+									// prevent server flood after any disconnection
     bool event = false;
 
 #if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP32)
@@ -622,7 +622,6 @@ void WebSocketsClient::handleHeader(WSclient_t * client, String * headerLine) {
                     ok = false;
                     DEBUG_WEBSOCKETS("[WS-Client][handleHeader] serverCode is not 101 (%d)\n", client->cCode);
                     clientDisconnect(client);
-                    _lastConnectionFail = millis();
                     break;
             }
         }
@@ -652,7 +651,6 @@ void WebSocketsClient::handleHeader(WSclient_t * client, String * headerLine) {
 			sendHeader(client);
 		} else {
 			DEBUG_WEBSOCKETS("[WS-Client][handleHeader] no Websocket connection close.\n");
-			_lastConnectionFail = millis();
 			if(clientIsConnected(client)) {
 				write(client, "This is a webSocket client!");
 			}
