@@ -84,7 +84,7 @@ void WebSockets::clientDisconnect(WSclient_t & client, uint16_t code, char * rea
  * @param headerToPayload bool  set true if the payload has reserved 14 Byte at the beginning to dynamically add the Header (payload neet to be in RAM!)
  */
 void WebSockets::sendFrame(WSclient_t & client, WSopcode_t opcode, uint8_t * payload, size_t length, bool mask, bool fin, bool headerToPayload) {
-       if(client.tcp && !client.tcp->connected()) {
+       if(client.tcp && !client.tcp.connected()) {
 #ifdef WS_DEBUG
         WS_PRINT("[WS][");
         WS_PRINT(client.num);
@@ -248,18 +248,17 @@ void WebSockets::sendFrame(WSclient_t & client, WSopcode_t opcode, uint8_t * pay
         // header has be added to payload
         // payload is forced to reserved 14 Byte but we may not need all based on the length and mask settings
         // offset in payload is calculatetd 14 - headerSize
-        client.tcp->write(&payloadPtr[(WEBSOCKETS_MAX_HEADER_SIZE - headerSize)], (length + headerSize));
+        client.tcp.write(&payloadPtr[(WEBSOCKETS_MAX_HEADER_SIZE - headerSize)], (length + headerSize));
     } else {
         // send header
-        client.tcp->write(&buffer[0], headerSize);
+        client.tcp.write(&buffer[0], headerSize);
 
         if(payloadPtr && length > 0) {
             // send payload
-            client.tcp->write(&payloadPtr[0], length);
+            client.tcp.write(&payloadPtr[0], length);
         }
     }
 
-    ////////////DEBUG_WEBSOCKETS("[WS][%d][sendFrame] sending Frame Done (%uus).\n", client->num, (micros() - start));
 
 #ifdef WEBSOCKETS_USE_BIG_MEM
     if(useInternBuffer && payloadPtr) {
@@ -537,7 +536,7 @@ bool WebSockets::readWait(WSclient_t & client, uint8_t *out, size_t n) {
             return false;
         }
 
-        if(!client.tcp->connected()) {
+        if(!client.tcp.connected()) {
 #ifdef WS_DEBUG
             WS_PRINTLN("[readWait] not connected!");
 #endif
@@ -551,14 +550,14 @@ bool WebSockets::readWait(WSclient_t & client, uint8_t *out, size_t n) {
             return false;
         }
 
-        if(!client.tcp->available()) {
+        if(!client.tcp.available()) {
 #ifdef ESP8266
             delay(0);
 #endif
             continue;
         }
 
-        len = client.tcp->read((uint8_t*) out, n);
+        len = client.tcp.read((uint8_t*) out, n);
         if(len) {
             t = millis();
             out += len;

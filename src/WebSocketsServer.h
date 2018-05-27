@@ -28,14 +28,6 @@
 #include <Arduino.h>
 #include "WebSockets.h"
 
-#if     (WEBSOCKETS_NETWORK_TYPE == NETWORK_W5500)
-    #define WEBSOCKETS_SERVER_CLIENT_MAX  (8)
-#elif   (WEBSOCKETS_NETWORK_TYPE == NETWORK_W5100)
-    #define WEBSOCKETS_SERVER_CLIENT_MAX  (4)
-#else
-    #define WEBSOCKETS_SERVER_CLIENT_MAX  (5)
-#endif
-
 #define timeoutClient (uint32_t)120000
 
 
@@ -109,7 +101,7 @@ protected:
             WS_PRINT(client.num);
             WS_PRINTLN("][handleHeader] no Websocket connection close.");
 #endif
-            client._client.write("HTTP/1.1 400 Bad Request\r\n"
+            client.tcp.write("HTTP/1.1 400 Bad Request\r\n"
                     "Server: arduino-WebSocket-Server\r\n"
                     "Content-Type: text/plain\r\n"
                     "Content-Length: 32\r\n"

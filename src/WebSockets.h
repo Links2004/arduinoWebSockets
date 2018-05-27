@@ -105,6 +105,14 @@
 #error "no network type selected!"
 #endif
 
+#if     (WEBSOCKETS_NETWORK_TYPE == NETWORK_W5500)
+    #define WEBSOCKETS_SERVER_CLIENT_MAX  (8)
+#elif   (WEBSOCKETS_NETWORK_TYPE == NETWORK_W5100)
+    #define WEBSOCKETS_SERVER_CLIENT_MAX  (4)
+#else
+    #define WEBSOCKETS_SERVER_CLIENT_MAX  (5)
+#endif
+
 typedef enum {
     WSC_NOT_CONNECTED,
     WSC_HEADER,
@@ -143,17 +151,17 @@ struct WSclient_t {
         cIsUpgrade(false),
         cIsWebsocket(false)
         {
+            tcp = WEBSOCKETS_NETWORK_CLASS();
 #if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
-        client.isSSL = false;
-        client.ssl = NULL;
+            client.isSSL = false;
+            client.ssl = NULL;
 #endif  
         };
         uint8_t num; ///< connection number
 
         WSclientsStatus_t status;
 
-        WEBSOCKETS_NETWORK_CLASS * tcp;
-        WEBSOCKETS_NETWORK_CLASS _client;
+        WEBSOCKETS_NETWORK_CLASS tcp;
 
 #if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
         bool isSSL;             ///< run in ssl mode
@@ -171,6 +179,7 @@ struct WSclient_t {
         String cProtocol;   ///< client Sec-WebSocket-Protocol
         String cExtensions; ///< client Sec-WebSocket-Extensions
         uint16_t cVersion;  ///< client Sec-WebSocket-Version
+        bool operator==(const WSclient_t ws) { return num < WEBSOCKETS_SERVER_CLIENT_MAX && tcp == ws.tcp;}; 
 
 };
 
