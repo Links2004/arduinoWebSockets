@@ -30,9 +30,16 @@
 #define bit(b) (1UL << (b)) // Taken directly from Arduino.h
 #else
 #include <Arduino.h>
+#include <IPAddress.h>
 #endif
 
+#ifdef ARDUINO_ARCH_AVR
+#error Version 2.x.x currently does not support Arduino with AVR since there is no support for std namespace of c++.
+#error Use Version 1.x.x. (ATmega branch)
+#else
 #include <functional>
+#endif
+
 
 #ifndef NODEBUG_WEBSOCKETS
 #ifdef DEBUG_ESP_PORT
@@ -298,4 +305,7 @@ class WebSockets {
 
 };
 
+#ifndef UNUSED
+#define UNUSED(var) (void)(var)
+#endif
 #endif /* WEBSOCKETS_H_ */
