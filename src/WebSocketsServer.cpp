@@ -115,7 +115,7 @@ void WebSocketsServer::close(void) {
 
 #if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
     _server->close();
-#elif (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP32)
+#elif (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP32) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266_ASYNC)
     _server->end();
 #else
     // TODO how to close server?
