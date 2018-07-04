@@ -440,11 +440,12 @@ void WebSockets::handleWebsocketPayloadCb(WSclient_t * client, bool ok, uint8_t 
                 DEBUG_WEBSOCKETS("[WS][%d][handleWebsocket] get pong (%s)\n", client->num, payload ? (const char*)payload : "");
                 break;
             case WSop_close: {
-                uint16_t reasonCode = 1000;
-                if(header->payloadLen >= 2) {
-                    reasonCode = payload[0] << 8 | payload[1];
-                }
-
+                #ifndef NODEBUG_WEBSOCKETS
+                    uint16_t reasonCode = 1000;
+                    if(header->payloadLen >= 2) {
+                        reasonCode = payload[0] << 8 | payload[1];
+                    }
+                #endif
                 DEBUG_WEBSOCKETS("[WS][%d][handleWebsocket] get ask for close. Code: %d", client->num, reasonCode);
                 if(header->payloadLen > 2) {
                     DEBUG_WEBSOCKETS(" (%s)\n", (payload + 2));
