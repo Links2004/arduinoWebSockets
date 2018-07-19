@@ -685,7 +685,7 @@ void WebSocketsClient::connectedCb() {
     _client.tcp->setTimeout(WEBSOCKETS_TCP_TIMEOUT);
 #endif
 
-#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
+#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP32)
     _client.tcp->setNoDelay(true);
 
     if(_client.isSSL && _fingerprint.length()) {
