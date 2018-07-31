@@ -27,12 +27,12 @@
 
 #include <Arduino.h>
 
-#define DEBUG_WEBSOCKETS
+//#define DEBUG_WEBSOCKETS
 
 //                      those macro have been added to save program space
-#define WS_DEBUG        //unmute this to display debug print from websockets.h and cpp
-#define WS_CLIENT_DEBUG //unmute this to display debug print from websocketsClient.h and cpp
-#define WS_SERVER_DEBUG //unmute this to display debug print from websocketsServer
+//#define WS_DEBUG        //unmute this to display debug print from websockets.h and cpp
+//#define WS_CLIENT_DEBUG //unmute this to display debug print from websocketsClient.h and cpp
+//#define WS_SERVER_DEBUG //unmute this to display debug print from websocketsServer
 
 #ifdef DEBUG_WEBSOCKETS
 #define WS_PRINT(x) Serial.print(x);
@@ -45,7 +45,7 @@
 
 
         //Unmute to select Ethernet2 sheild library
-#define W5500_H
+//#define W5500_H //remove with ethernet library 2.0
 
 #ifdef ESP8266
 #define WEBSOCKETS_MAX_DATA_SIZE  (15*1024)
@@ -58,18 +58,22 @@
 #define WEBSOCKETS_TCP_TIMEOUT    (1500)
 
 #define NETWORK_ESP8266     (1)
-#define NETWORK_W5100       (2)
+//#define NETWORK_W5100       (2) //replace with ethernet library 2.0
+#define NETWORK_W5X00 (2)
 #define NETWORK_ENC28J60    (3)
-#define NETWORK_W5500       (4)
+//#define NETWORK_W5500       (4) //replace with ethernet library 2.0
+
 
 
 // select Network type based
 #ifdef ESP8266
 #define WEBSOCKETS_NETWORK_TYPE NETWORK_ESP8266
-#elif defined W5500_H
+/*#elif defined W5500_H
 #define WEBSOCKETS_NETWORK_TYPE NETWORK_W5500
 #else
-#define WEBSOCKETS_NETWORK_TYPE NETWORK_W5100
+#define WEBSOCKETS_NETWORK_TYPE NETWORK_W5100*/
+#else 
+#define WEBSOCKETS_NETWORK_TYPE NETWORK_W5X00 //replace with ethernet library 2.0
 #endif
 
 
@@ -83,7 +87,8 @@
 #define WEBSOCKETS_NETWORK_CLASS WiFiClient
 #define WEBSOCKETS_NETWORK_SERVER_CLASS WiFiServer
 
-#elif (WEBSOCKETS_NETWORK_TYPE == NETWORK_W5100)
+//#elif (WEBSOCKETS_NETWORK_TYPE == NETWORK_W5100) //replace with ethernet library 2.0
+#elif (WEBSOCKETS_NETWORK_TYPE == NETWORK_W5X00)
 #include <EthernetClient.h>
 #include <EthernetServer.h>
 #define WEBSOCKETS_NETWORK_CLASS EthernetClient
@@ -95,20 +100,25 @@
 #define WEBSOCKETS_NETWORK_CLASS UIPClient
 #define WEBSOCKETS_NETWORK_SERVER_CLASS UIPServer
 
-#elif (WEBSOCKETS_NETWORK_TYPE == NETWORK_W5500)
+/*
+#elif (WEBSOCKETS_NETWORK_TYPE == NETWORK_W5500) //remove with ethernet library 2.0
 #include <EthernetClient.h>
 #include <EthernetServer.h>
 #define WEBSOCKETS_NETWORK_CLASS EthernetClient
 #define WEBSOCKETS_NETWORK_SERVER_CLASS EthernetServer
+*/
 
 #else
-#error "no network type selected!"
+//#error "no network type selected!"
 #endif
 
-#if     (WEBSOCKETS_NETWORK_TYPE == NETWORK_W5500)
+/*
+#if     (WEBSOCKETS_NETWORK_TYPE == NETWORK_W5500) //replace with ethernet library 2.0
     #define WEBSOCKETS_SERVER_CLIENT_MAX  (8)
 #elif   (WEBSOCKETS_NETWORK_TYPE == NETWORK_W5100)
-    #define WEBSOCKETS_SERVER_CLIENT_MAX  (4)
+    #define WEBSOCKETS_SERVER_CLIENT_MAX  (4)*/
+#ifdef MAX_SOCK_NUM
+    #define WEBSOCKETS_SERVER_CLIENT_MAX (MAX_SOCK_NUM)
 #else
     #define WEBSOCKETS_SERVER_CLIENT_MAX  (5)
 #endif

@@ -247,7 +247,6 @@ void WebSocketsServer::disconnect(uint8_t num) {
     }
 }
 
-#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
 /**
  * get an IP for a client
  * @param num uint8_t client id
@@ -255,15 +254,13 @@ void WebSocketsServer::disconnect(uint8_t num) {
  */
 IPAddress WebSocketsServer::remoteIP(uint8_t num) {
     if(num < WEBSOCKETS_SERVER_CLIENT_MAX) {
-        WSclient_t & client = clients[num];
+        WSclient_t & client = _clients[num];
         if(clientIsConnected(client)) {
             return client.tcp.remoteIP();
         }
     }
-
     return IPAddress();
 }
-#endif
 
 //#################################################################################
 //#################################################################################
