@@ -17,8 +17,6 @@
 WiFiMulti WiFiMulti;
 WebSocketsClient webSocket;
 
-HardwareSerial Serial1(2);
-
 #define USE_SERIAL Serial1
 
 void hexdump(const void *mem, uint32_t len, uint8_t cols = 16) {
