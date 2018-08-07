@@ -17,8 +17,6 @@
 WiFiMulti WiFiMulti;
 WebSocketsClient webSocket;
 
-HardwareSerial Serial1(2);
-
 #define USE_SERIAL Serial1
 
 void hexdump(const void *mem, uint32_t len, uint8_t cols = 16) {
@@ -58,6 +56,12 @@ void webSocketEvent(WStype_t type, uint8_t * payload, size_t length) {
 
 			// send data to server
 			// webSocket.sendBIN(payload, length);
+			break;
+		case WStype_ERROR:			
+		case WStype_FRAGMENT_TEXT_START:
+		case WStype_FRAGMENT_BIN_START:
+		case WStype_FRAGMENT:
+		case WStype_FRAGMENT_FIN:
 			break;
 	}
 
