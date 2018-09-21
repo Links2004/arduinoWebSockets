@@ -77,12 +77,11 @@ void WebSockets::clientDisconnect(WSclient_t * client, uint16_t code, char * rea
  * @param opcode WSopcode_t
  * @param payload uint8_t *     ptr to the payload
  * @param length size_t         length of the payload
- * @param mask bool             add dummy mask to the frame (needed for web browser)
  * @param fin bool              can be used to send data in more then one frame (set fin on the last frame)
  * @param headerToPayload bool  set true if the payload has reserved 14 Byte at the beginning to dynamically add the Header (payload neet to be in RAM!)
  * @return true if ok
  */
-bool WebSockets::sendFrame(WSclient_t * client, WSopcode_t opcode, uint8_t * payload, size_t length, bool mask, bool fin, bool headerToPayload) {
+bool WebSockets::sendFrame(WSclient_t * client, WSopcode_t opcode, uint8_t * payload, size_t length, bool fin, bool headerToPayload) {
 
     if(client->tcp && !client->tcp->connected()) {
         DEBUG_WEBSOCKETS("[WS][%d][sendFrame] not Connected!?\n", client->num);
@@ -95,7 +94,7 @@ bool WebSockets::sendFrame(WSclient_t * client, WSopcode_t opcode, uint8_t * pay
     }
 
     DEBUG_WEBSOCKETS("[WS][%d][sendFrame] ------- send message frame -------\n", client->num);
-    DEBUG_WEBSOCKETS("[WS][%d][sendFrame] fin: %u opCode: %u mask: %u length: %u headerToPayload: %u\n", client->num, fin, opcode, mask, length, headerToPayload);
+    DEBUG_WEBSOCKETS("[WS][%d][sendFrame] fin: %u opCode: %u mask: %u length: %u headerToPayload: %u\n", client->num, fin, opcode, client->cIsClient, length, headerToPayload);
 
     if(opcode == WSop_text) {
         DEBUG_WEBSOCKETS("[WS][%d][sendFrame] text: %s\n", client->num, (payload + (headerToPayload ? 14 : 0)));
@@ -119,7 +118,7 @@ bool WebSockets::sendFrame(WSclient_t * client, WSopcode_t opcode, uint8_t * pay
         headerSize = 10;
     }
 
-    if(mask) {
+    if(client->cIsClient) {
         headerSize += 4;
     }
 
@@ -158,7 +157,7 @@ bool WebSockets::sendFrame(WSclient_t * client, WSopcode_t opcode, uint8_t * pay
 
     // byte 1
     *headerPtr = 0x00;
-    if(mask) {
+    if(client->cIsClient) {
         *headerPtr |= bit(7);    ///< set mask
     }
 
@@ -194,7 +193,7 @@ bool WebSockets::sendFrame(WSclient_t * client, WSopcode_t opcode, uint8_t * pay
         headerPtr++;
     }
 
-    if(mask) {
+    if(client->cIsClient) {
         if(useInternBuffer) {
             // if we use a Intern Buffer we can modify the data
             // by this fact its possible the do the masking
@@ -434,7 +433,7 @@ void WebSockets::handleWebsocketPayloadCb(WSclient_t * client, bool ok, uint8_t 
                 break;
             case WSop_ping:
                 // send pong back
-                sendFrame(client, WSop_pong, payload, header->payloadLen, true);
+                sendFrame(client, WSop_pong, payload, header->payloadLen);
                 break;
             case WSop_pong:
                 DEBUG_WEBSOCKETS("[WS][%d][handleWebsocket] get pong (%s)\n", client->num, payload ? (const char*)payload : "");

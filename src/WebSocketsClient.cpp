@@ -28,6 +28,7 @@
 WebSocketsClient::WebSocketsClient() {
     _cbEvent = NULL;
     _client.num = 0;
+    _client.cIsClient = true;
     _client.extraHeaders = WEBSOCKETS_STRING("Origin: file://");
 }
 
@@ -194,7 +195,7 @@ bool WebSocketsClient::sendTXT(uint8_t * payload, size_t length, bool headerToPa
         length = strlen((const char *) payload);
     }
     if(clientIsConnected(&_client)) {
-        return sendFrame(&_client, WSop_text, payload, length, true, true, headerToPayload);
+        return sendFrame(&_client, WSop_text, payload, length, true, headerToPayload);
     }
     return false;
 }
@@ -225,7 +226,7 @@ bool WebSocketsClient::sendTXT(String & payload) {
  */
 bool WebSocketsClient::sendBIN(uint8_t * payload, size_t length, bool headerToPayload) {
     if(clientIsConnected(&_client)) {
-        return sendFrame(&_client, WSop_binary, payload, length, true, true, headerToPayload);
+        return sendFrame(&_client, WSop_binary, payload, length, true, headerToPayload);
     }
     return false;
 }
@@ -242,7 +243,7 @@ bool WebSocketsClient::sendBIN(const uint8_t * payload, size_t length) {
  */
 bool WebSocketsClient::sendPing(uint8_t * payload, size_t length) {
     if(clientIsConnected(&_client)) {
-        return sendFrame(&_client, WSop_ping, payload, length, true);
+        return sendFrame(&_client, WSop_ping, payload, length);
     }
     return false;
 }
