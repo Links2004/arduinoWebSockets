@@ -241,6 +241,7 @@ typedef struct {
         String cUrl;        ///< http url
         uint16_t cCode;     ///< http code
 
+        bool cIsClient = false;     ///< will be used for masking
         bool cIsUpgrade;    ///< Connection == Upgrade
         bool cIsWebsocket;  ///< Upgrade == websocket
 
@@ -285,7 +286,7 @@ class WebSockets {
         virtual void messageReceived(WSclient_t * client, WSopcode_t opcode, uint8_t * payload, size_t length, bool fin) = 0;
 
         void clientDisconnect(WSclient_t * client, uint16_t code, char * reason = NULL, size_t reasonLen = 0);
-        bool sendFrame(WSclient_t * client, WSopcode_t opcode, uint8_t * payload = NULL, size_t length = 0, bool mask = false, bool fin = true, bool headerToPayload = false);
+        bool sendFrame(WSclient_t * client, WSopcode_t opcode, uint8_t * payload = NULL, size_t length = 0, bool fin = true, bool headerToPayload = false);
 
         void headerDone(WSclient_t * client);
 
