@@ -5,8 +5,8 @@ os:
 env:
   matrix:
     - CPU="esp8266" BOARD="esp8266com:esp8266:generic:xtal=80" IDE_VERSION=1.6.5
-    - CPU="esp8266" BOARD="esp8266com:esp8266:generic:xtal=80,eesz=1M0,FlashMode=qio,FlashFreq=80" IDE_VERSION=1.8.5
-    - CPU="esp8266" BOARD="esp8266com:esp8266:generic:xtal=80,eesz=1M0,FlashMode=qio,FlashFreq=80" IDE_VERSION=1.8.7
+    - CPU="esp8266" BOARD="esp8266com:esp8266:generic:xtal=80,eesz=1M,FlashMode=qio,FlashFreq=80" IDE_VERSION=1.8.5
+    - CPU="esp8266" BOARD="esp8266com:esp8266:generic:xtal=80,eesz=1M,FlashMode=qio,FlashFreq=80" IDE_VERSION=1.8.7
     - CPU="esp8266" BOARD="esp8266com:esp8266:generic:xtal=80,Debug=Serial1" IDE_VERSION=1.6.5
     - CPU="esp32" BOARD="espressif:esp32:esp32:FlashFreq=80" IDE_VERSION=1.6.5
     - CPU="esp32" BOARD="espressif:esp32:esp32:FlashFreq=80" IDE_VERSION=1.8.5
