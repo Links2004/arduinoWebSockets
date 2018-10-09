@@ -403,7 +403,7 @@ void WebSocketsClient::handleHeader(WSclient_t * client) {
             String headerValue = headerLine.substring(headerLine.indexOf(':') + 2);
 
             if(headerName.equalsIgnoreCase("Connection")) {
-                if(headerValue.indexOf("Upgrade") >= 0) {
+                if(headerValue.equalsIgnoreCase("Upgrade")) {
                     client->cIsUpgrade = true;
                 }
             } else if(headerName.equalsIgnoreCase("Upgrade")) {
