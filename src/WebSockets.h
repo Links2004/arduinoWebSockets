@@ -264,6 +264,13 @@ typedef struct {
         bool cHttpHeadersValid; ///< non-websocket http header validity indicator
         size_t cMandatoryHeadersCount; ///< non-websocket mandatory http headers present count
 
+        bool pongReceived;
+        uint32_t pingInterval;  // how often ping will be sent, 0 means "heartbeat is not active"
+        uint32_t lastPing;      // millis when last pong has been received
+        uint32_t pongTimeout;   // interval in millis after which pong is considered to timeout
+        uint8_t disconnectTimeoutCount;  // after how many subsequent pong timeouts discconnect will happen, 0 means "do not disconnect"
+        uint8_t pongTimeoutCount;   // current pong timeout count     
+
 #if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266_ASYNC)
         String cHttpLine;   ///< HTTP header lines
 #endif
@@ -302,6 +309,9 @@ class WebSockets {
         bool readCb(WSclient_t * client, uint8_t *out, size_t n, WSreadWaitCb cb);
         virtual size_t write(WSclient_t * client, uint8_t *out, size_t n);
         size_t write(WSclient_t * client, const char *out);
+
+        void enableHeartbeat(WSclient_t * client, uint32_t pingInterval, uint32_t pongTimeout, uint8_t disconnectTimeoutCount);
+        void handleHBTimeout(WSclient_t * client);
 
 
 };

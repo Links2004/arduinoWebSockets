@@ -66,6 +66,10 @@ void WebSocketsClient::begin(const char *host, uint16_t port, const char * url, 
     _client.plainAuthorization = "";
     _client.isSocketIO = false;
 
+    _client.lastPing = 0;
+    _client.pongReceived = false;
+    _client.pongTimeoutCount = 0;    
+
 #ifdef ESP8266
     randomSeed(RANDOM_REG32);
 #else
@@ -169,6 +173,10 @@ void WebSocketsClient::loop(void) {
 
         }
     } else {
+        if (_client.status == WSC_CONNECTED){
+            handleHBPing();
+            handleHBTimeout(&_client);
+        }
         handleClientData();
     }
 }
@@ -243,7 +251,10 @@ bool WebSocketsClient::sendBIN(const uint8_t * payload, size_t length) {
  */
 bool WebSocketsClient::sendPing(uint8_t * payload, size_t length) {
     if(clientIsConnected(&_client)) {
-        return sendFrame(&_client, WSop_ping, payload, length);
+        bool sent = sendFrame(&_client, WSop_ping, payload, length);
+        if (sent) 
+            _client.lastPing = millis();
+        return sent;
     }
     return false;
 }
@@ -761,3 +772,36 @@ void WebSocketsClient::asyncConnect() {
 }
 
 #endif
+
+/**
+ * send heartbeat ping to server in set intervals
+ */ 
+void WebSocketsClient::handleHBPing(){
+    if (_client.pingInterval == 0) return;
+    uint32_t pi = millis() - _client.lastPing;
+    if (pi > _client.pingInterval){
+        DEBUG_WEBSOCKETS("[WS-Client] sending HB ping\n");
+        if (sendPing()) {
+            _client.lastPing = millis();
+            _client.pongReceived = false;
+        }
+    }
+
+}
+
+/**
+ * enable ping/pong heartbeat process
+ * @param pingInterval uint32_t how often ping will be sent
+ * @param pongTimeout uint32_t millis after which pong should timout if not received
+ * @param disconnectTimeoutCount uint8_t how many timeouts before disconnect, 0=> do not disconnect
+ */
+void WebSocketsClient::enableHeartbeat(uint32_t pingInterval, uint32_t pongTimeout, uint8_t disconnectTimeoutCount){
+    WebSockets::enableHeartbeat(&_client, pingInterval, pongTimeout, disconnectTimeoutCount);
+}
+
+/**
+ * disable ping/pong heartbeat process
+ */
+void WebSocketsClient::disableHeartbeat(){
+    _client.pingInterval = 0;
+}
