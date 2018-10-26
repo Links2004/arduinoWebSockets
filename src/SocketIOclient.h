@@ -77,6 +77,12 @@ class SocketIOclient: protected WebSocketsClient {
         uint64_t _lastHeartbeat = 0;
 
     private:
+        /**
+         * Parses the payload into a socketIOPacket_t.
+         * The payload has the following format: ID[EVENT,DATA]
+         * socketIOPacket_t contains the id, event and data.
+         * @param payload std::string
+         */
         socketIOPacket_t parse(const std::string &payload);
 };
 
