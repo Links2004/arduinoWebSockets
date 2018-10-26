@@ -70,7 +70,7 @@ void SocketIOclient::loop(void) {
     unsigned long t = millis();
     if((t - _lastConnectionFail) > EIO_HEARTBEAT_INTERVAL) {
         _lastConnectionFail = t;
-        //WebSocketsClient::sendTXT(eIOtype_PING);
+        WebSocketsClient::sendTXT(eIOtype_PING);
     }
 }
 
