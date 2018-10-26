@@ -129,18 +129,22 @@ void SocketIOclient::runCbEvent(WStype_t type, uint8_t * payload, size_t length)
                     socketIOmessageType_t ioType = (socketIOmessageType_t) payload[1];
                     uint8_t * data = &payload[2];
                     size_t lData = length - 2;
+                    socketIOPacket_t packet;
                     switch(ioType) {
                         case sIOtype_EVENT:
                             DEBUG_WEBSOCKETS("[wsIOc] get event (%d): %s\n", lData, data);
-                            triggerEvent(std::string((char *)data));
+                            packet = parse(std::string((char *)data));
+                            triggerEvent(packet);
                             break;
                         case sIOtype_CONNECT:
                             DEBUG_WEBSOCKETS("[wsIOc] connected\n");
-                            triggerEvent("connect");
+                            packet.event = "connect";
+                            triggerEvent(packet);
                             break;
                         case sIOtype_DISCONNECT:
                             DEBUG_WEBSOCKETS("[wsIOc] disconnected\n");
-                            triggerEvent("disconnect");
+                            packet.event = "disconnect";
+                            triggerEvent(packet);
                             break;
                         case sIOtype_ACK:
                         case sIOtype_ERROR:
@@ -178,44 +182,47 @@ void SocketIOclient::runCbEvent(WStype_t type, uint8_t * payload, size_t length)
     }
 }
 
-void SocketIOclient::triggerEvent(const std::string &payload)
+void SocketIOclient::triggerEvent(const socketIOPacket_t &packet)
 {
-    auto result = parse(std::string(payload));
-    ackCallback_fn b = [&](const char * cb_payload){
-        String msg = String("");
-        msg += result.id;
-        msg += "[\"";
-        msg += result.event;
-        msg += "\"";
-        if(cb_payload) {
-            msg += ",\"";
-            msg += cb_payload;
-            msg += "\"";
-        }
-        msg += "]";
-        DEBUG_WEBSOCKETS("[wsIOc] ASCK message: %s\n", msg.c_str());
+    ackCallback_fn b = [this, packet](const char * cb_payload) {
+        String msg = constructMsg(packet.event.c_str(), cb_payload, packet.id.c_str());
         sendMESSAGE(sIOtype_ACK, (uint8_t *) msg.c_str(), msg.length(), false);
     };
-    auto e = _events.find(result.event.c_str());
+    auto e = _events.find(packet.event.c_str());
 	if(e != _events.end()) {
-		DEBUG_WEBSOCKETS("[wsIOc] trigger event %s\n", result.event.c_str());
-		e->second(result.data, b);
+		DEBUG_WEBSOCKETS("[wsIOc] trigger event %s\n", packet.event.c_str());
+		e->second(packet.data, b);
 	} else {
-		DEBUG_WEBSOCKETS("[wsIOc] event %s not found. %d events available\n", result.event.c_str(), _events.size());
+		DEBUG_WEBSOCKETS("[wsIOc] event %s not found. %d events available\n", packet.event.c_str(), _events.size());
 	}
 }
 
 void SocketIOclient::emit(const char *event, const char *payload)
 {
-    String msg = String("[\"");
+    String msg = constructMsg(event, payload);
+    DEBUG_WEBSOCKETS("[wsIOc] emit %s\n", msg.c_str());
+    sendEVENT(msg.c_str());
+}
+
+String SocketIOclient::constructMsg(const char* event, const char* payload, const char* id)
+{
+    String msg = String("");
+    if(id) {
+        msg += id;
+    }
+    msg += "[\"";
     msg += event;
     msg += "\"";
     if(payload) {
         msg += ",";
+        if(payload[0] != '{' && payload[0] != '[')
+            msg += "\"";
         msg += payload;
+        if(payload[0] != '{' && payload[0] != '[')
+            msg += "\"";
     }
     msg += "]";
-    sendEVENT(msg.c_str());
+    return msg;
 }
 
 void SocketIOclient::on(const char *event, callback_fn func)

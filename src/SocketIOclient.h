@@ -86,7 +86,8 @@ class SocketIOclient: protected WebSocketsClient {
 
     private:
         std::map<String, callback_fn> _events;
-        void triggerEvent(const std::string &payload);
+        void triggerEvent(const socketIOPacket_t &packet);
+        String constructMsg(const char* event, const char* payload = NULL, const char * id = NULL);
 
         /**
          * Parses the payload into a socketIOPacket_t.
