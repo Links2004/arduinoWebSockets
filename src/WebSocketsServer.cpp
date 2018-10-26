@@ -115,7 +115,7 @@ void WebSocketsServer::close(void) {
 
 #if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
     _server->close();
-#elif (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP32)
+#elif (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP32) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266_ASYNC)
     _server->end();
 #else
     // TODO how to close server?
@@ -184,7 +184,7 @@ bool WebSocketsServer::sendTXT(uint8_t num, uint8_t * payload, size_t length, bo
     }
     WSclient_t * client = &_clients[num];
     if(clientIsConnected(client)) {
-        return sendFrame(client, WSop_text, payload, length, false, true, headerToPayload);
+        return sendFrame(client, WSop_text, payload, length, true, headerToPayload);
     }
     return false;
 }
@@ -222,7 +222,7 @@ bool WebSocketsServer::broadcastTXT(uint8_t * payload, size_t length, bool heade
     for(uint8_t i = 0; i < WEBSOCKETS_SERVER_CLIENT_MAX; i++) {
         client = &_clients[i];
         if(clientIsConnected(client)) {
-            if(!sendFrame(client, WSop_text, payload, length, false, true, headerToPayload)) {
+            if(!sendFrame(client, WSop_text, payload, length, true, headerToPayload)) {
                 ret = false;
             }
         }
@@ -263,7 +263,7 @@ bool WebSocketsServer::sendBIN(uint8_t num, uint8_t * payload, size_t length, bo
     }
     WSclient_t * client = &_clients[num];
     if(clientIsConnected(client)) {
-        return sendFrame(client, WSop_binary, payload, length, false, true, headerToPayload);
+        return sendFrame(client, WSop_binary, payload, length, true, headerToPayload);
     }
     return false;
 }
@@ -285,7 +285,7 @@ bool WebSocketsServer::broadcastBIN(uint8_t * payload, size_t length, bool heade
     for(uint8_t i = 0; i < WEBSOCKETS_SERVER_CLIENT_MAX; i++) {
         client = &_clients[i];
         if(clientIsConnected(client)) {
-            if(!sendFrame(client, WSop_binary, payload, length, false, true, headerToPayload)) {
+            if(!sendFrame(client, WSop_binary, payload, length, true, headerToPayload)) {
                 ret = false;
             }
         }

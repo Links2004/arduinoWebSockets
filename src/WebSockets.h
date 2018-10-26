@@ -192,10 +192,10 @@ typedef enum {
     WStype_CONNECTED,
     WStype_TEXT,
     WStype_BIN,
-	WStype_FRAGMENT_TEXT_START,
-	WStype_FRAGMENT_BIN_START,
-	WStype_FRAGMENT,
-	WStype_FRAGMENT_FIN,
+    WStype_FRAGMENT_TEXT_START,
+    WStype_FRAGMENT_BIN_START,
+    WStype_FRAGMENT,
+    WStype_FRAGMENT_FIN,
 } WStype_t;
 
 typedef enum {
@@ -241,6 +241,7 @@ typedef struct {
         String cUrl;        ///< http url
         uint16_t cCode;     ///< http code
 
+        bool cIsClient = false;     ///< will be used for masking
         bool cIsUpgrade;    ///< Connection == Upgrade
         bool cIsWebsocket;  ///< Upgrade == websocket
 
@@ -287,8 +288,8 @@ class WebSockets {
         void clientDisconnect(WSclient_t * client, uint16_t code, char * reason = NULL, size_t reasonLen = 0);
 
         uint8_t createHeader(uint8_t * buf, WSopcode_t opcode, size_t length, bool mask, uint8_t maskKey[4], bool fin);
-        bool sendFrameHeader(WSclient_t * client, WSopcode_t opcode, size_t length = 0, bool mask = false, bool fin = true);
-        bool sendFrame(WSclient_t * client, WSopcode_t opcode, uint8_t * payload = NULL, size_t length = 0, bool mask = false, bool fin = true, bool headerToPayload = false);
+        bool sendFrameHeader(WSclient_t * client, WSopcode_t opcode, size_t length = 0, bool fin = true);
+        bool sendFrame(WSclient_t * client, WSopcode_t opcode, uint8_t * payload = NULL, size_t length = 0, bool fin = true, bool headerToPayload = false);
 
         void headerDone(WSclient_t * client);
 
