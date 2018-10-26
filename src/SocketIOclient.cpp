@@ -29,15 +29,8 @@ bool SocketIOclient::isConnected(void) {
     return WebSocketsClient::isConnected();
 }
 
-/**
- * send text data to client
- * @param num uint8_t client id
- * @param payload uint8_t *
- * @param length size_t
- * @param headerToPayload bool  (see sendFrame for more details)
- * @return true if ok
- */
-bool SocketIOclient::sendEVENT(uint8_t * payload, size_t length, bool headerToPayload) {
+
+bool SocketIOclient::sendMESSAGE(socketIOmessageType_t type, uint8_t * payload, size_t length, bool headerToPayload) {
     bool ret = false;
     if(length == 0) {
         length = strlen((const char *) payload);
@@ -49,7 +42,7 @@ bool SocketIOclient::sendEVENT(uint8_t * payload, size_t length, bool headerToPa
             ret = WebSocketsClient::sendFrameHeader(&_client, WSop_text, length + 2, true, true);
             // Engine.IO / Socket.IO Header
             if(ret) {
-                uint8_t buf[3] = { eIOtype_MESSAGE, sIOtype_EVENT, 0x00 };
+                uint8_t buf[3] = { eIOtype_MESSAGE, type, 0x00 };
                 ret = WebSocketsClient::write(&_client, buf, 2);
             }
             if(ret) {
@@ -63,6 +56,17 @@ bool SocketIOclient::sendEVENT(uint8_t * payload, size_t length, bool headerToPa
         // return WebSocketsClient::sendFrame(&_client, WSop_text, payload, length, true, true, headerToPayload);
     }
     return false;
+}
+/**
+ * send text data to client
+ * @param num uint8_t client id
+ * @param payload uint8_t *
+ * @param length size_t
+ * @param headerToPayload bool  (see sendFrame for more details)
+ * @return true if ok
+ */
+bool SocketIOclient::sendEVENT(uint8_t * payload, size_t length, bool headerToPayload) {
+    return sendMESSAGE(sIOtype_EVENT, payload, length, headerToPayload);
 }
 
 bool SocketIOclient::sendEVENT(const uint8_t * payload, size_t length) {
@@ -177,11 +181,25 @@ void SocketIOclient::runCbEvent(WStype_t type, uint8_t * payload, size_t length)
 void SocketIOclient::triggerEvent(const std::string &payload)
 {
     auto result = parse(std::string(payload));
-
+    ackCallback_fn b = [&](const char * cb_payload){
+        String msg = String("");
+        msg += result.id;
+        msg += "[\"";
+        msg += result.event;
+        msg += "\"";
+        if(cb_payload) {
+            msg += ",\"";
+            msg += cb_payload;
+            msg += "\"";
+        }
+        msg += "]";
+        DEBUG_WEBSOCKETS("[wsIOc] ASCK message: %s\n", msg.c_str());
+        sendMESSAGE(sIOtype_ACK, (uint8_t *) msg.c_str(), msg.length(), false);
+    };
     auto e = _events.find(result.event.c_str());
 	if(e != _events.end()) {
 		DEBUG_WEBSOCKETS("[wsIOc] trigger event %s\n", result.event.c_str());
-		e->second(payload, length);
+		e->second(result.data, b);
 	} else {
 		DEBUG_WEBSOCKETS("[wsIOc] event %s not found. %d events available\n", result.event.c_str(), _events.size());
 	}

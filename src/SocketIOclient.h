@@ -48,7 +48,8 @@ const unsigned int eParseTypeID = 0;
 const unsigned int eParseTypeEVENT = 1;
 const unsigned int eParseTypeDATA = 2;
 
-typedef std::function<void (const char * payload, size_t length)> callback_fn;
+typedef std::function<void (const char * payload)> ackCallback_fn;
+typedef std::function<void (const String &payload, ackCallback_fn)> callback_fn;
 
 class SocketIOclient: protected WebSocketsClient {
 
@@ -67,6 +68,7 @@ class SocketIOclient: protected WebSocketsClient {
 
         bool isConnected(void);
 
+        bool sendMESSAGE(socketIOmessageType_t type, uint8_t * payload, size_t length = 0, bool headerToPayload = false);
         bool sendEVENT(uint8_t * payload, size_t length = 0, bool headerToPayload = false);
         bool sendEVENT(const uint8_t * payload, size_t length = 0);
         bool sendEVENT(char * payload, size_t length = 0, bool headerToPayload = false);
