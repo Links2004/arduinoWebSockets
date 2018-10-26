@@ -166,3 +166,63 @@ void SocketIOclient::runCbEvent(WStype_t type, uint8_t * payload, size_t length)
             break;
     }
 }
+
+socketIOPacket_t SocketIOclient::parse(const std::string &payloadStr) {
+    socketIOPacket_t result;
+    unsigned int currentParseType = eParseTypeID;
+    bool escChar = false;
+    bool inString = false;
+    bool inJson = false;
+    bool inArray = false;
+    for (auto c : payloadStr)
+    {
+        if(!escChar && c == '"')
+        {
+            if(inString) inString = false;
+            else inString = true;
+            if(!inJson && !inArray)
+                continue; 
+        }
+        if(c == '\\') {
+            if(escChar) escChar = false;
+            else escChar = true;
+        } else if(escChar) escChar = false;
+
+        if(!inJson && !inString && c == '{')
+            inJson = true;
+        if(inJson && !inString && c == '}')
+            inJson = false;
+
+        if(currentParseType > eParseTypeID)
+            if(!inArray && !inString && c == '[')
+                inArray = true;
+        
+        
+        if(!inArray && !inString && !inJson && !escChar) {
+            if(c == '[' && currentParseType == eParseTypeID){
+                currentParseType++;
+                continue;
+            }
+            if(c == ',' && currentParseType == eParseTypeEVENT) {
+                currentParseType++;
+                continue;
+            }
+            if(c == ']') {
+                break;
+            }
+        }
+
+        if(currentParseType > eParseTypeID)
+            if(inArray && !inString && c == ']')
+                inArray = false;
+        
+        if (currentParseType == eParseTypeID) {
+            result.id += c;
+        } else if(currentParseType == eParseTypeEVENT) {
+            result.event += c;
+        } else if(currentParseType == eParseTypeDATA){
+            result.data += c;
+        }
+    }
+    return result;
+}

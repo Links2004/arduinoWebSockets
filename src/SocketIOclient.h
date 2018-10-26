@@ -36,6 +36,17 @@ typedef enum {
     sIOtype_BINARY_ACK = '6',
 } socketIOmessageType_t;
 
+
+struct socketIOPacket_t {
+    String id = "";
+    String event = "";
+    String data = "";
+};
+
+const unsigned int eParseTypeID = 0;
+const unsigned int eParseTypeEVENT = 1;
+const unsigned int eParseTypeDATA = 2;
+
 class SocketIOclient: protected WebSocketsClient {
 
     public:
@@ -64,6 +75,9 @@ class SocketIOclient: protected WebSocketsClient {
     protected:
         void runCbEvent(WStype_t type, uint8_t * payload, size_t length);
         uint64_t _lastHeartbeat = 0;
+
+    private:
+        socketIOPacket_t parse(const std::string &payload);
 };
 
 #endif /* SOCKETIOCLIENT_H_ */
