@@ -187,6 +187,19 @@ void SocketIOclient::triggerEvent(const std::string &payload)
 	}
 }
 
+void SocketIOclient::emit(const char *event, const char *payload)
+{
+    String msg = String("[\"");
+    msg += event;
+    msg += "\"";
+    if(payload) {
+        msg += ",";
+        msg += payload;
+    }
+    msg += "]";
+    sendEVENT(msg.c_str());
+}
+
 void SocketIOclient::on(const char *event, callback_fn func)
 {
     _events[event] = func;

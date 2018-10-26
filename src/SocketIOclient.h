@@ -73,6 +73,7 @@ class SocketIOclient: protected WebSocketsClient {
         bool sendEVENT(const char * payload, size_t length = 0);
         bool sendEVENT(String & payload);
 
+        void emit(const char* event, const char * payload = NULL);
         void on(const char* event, callback_fn);
 
         void loop(void);
