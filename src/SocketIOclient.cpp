@@ -162,51 +162,47 @@ void SocketIOclient::runCbEvent(WStype_t type, uint8_t * payload, size_t length)
     }
 }
 
-void SocketIOclient::triggerEvent(const socketIOPacket_t &packet)
-{
-    ackCallback_fn b = [this, packet](const char * cb_payload) {
+void SocketIOclient::triggerEvent(const socketIOPacket_t &packet) {
+    ackCallback_fn b = [this, packet](const char *cb_payload) {
         String msg = constructMsg(packet.event.c_str(), cb_payload, packet.id.c_str());
-        sendMESSAGE(sIOtype_ACK, (uint8_t *) msg.c_str(), msg.length(), false);
+        sendMESSAGE(sIOtype_ACK, (uint8_t *)msg.c_str(), msg.length(), false);
     };
     auto e = _events.find(packet.event.c_str());
-	if(e != _events.end()) {
-		DEBUG_WEBSOCKETS("[wsIOc] trigger event %s\n", packet.event.c_str());
-		e->second(packet.data, b);
-	} else {
-		DEBUG_WEBSOCKETS("[wsIOc] event %s not found. %d events available\n", packet.event.c_str(), _events.size());
-	}
+    if (e != _events.end()) {
+        DEBUG_WEBSOCKETS("[wsIOc] trigger event %s\n", packet.event.c_str());
+        e->second(packet.data, b);
+    } else {
+        DEBUG_WEBSOCKETS("[wsIOc] event %s not found. %d events available\n", packet.event.c_str(), _events.size());
+    }
 }
 
-void SocketIOclient::emit(const char *event, const char *payload)
-{
+void SocketIOclient::emit(const char *event, const char *payload) {
     String msg = constructMsg(event, payload);
     DEBUG_WEBSOCKETS("[wsIOc] emit %s\n", msg.c_str());
-    sendMESSAGE(sIOtype_EVENT, (uint8_t *) msg.c_str(), msg.length(), false);
+    sendMESSAGE(sIOtype_EVENT, (uint8_t *)msg.c_str(), msg.length(), false);
 }
 
-String SocketIOclient::constructMsg(const char* event, const char* payload, const char* id)
-{
+String SocketIOclient::constructMsg(const char *event, const char *payload, const char *id) {
     String msg = String("");
-    if(id) {
+    if (id) {
         msg += id;
     }
     msg += "[\"";
     msg += event;
     msg += "\"";
-    if(payload) {
+    if (payload) {
         msg += ",";
-        if(payload[0] != '{' && payload[0] != '[')
+        if (payload[0] != '{' && payload[0] != '[')
             msg += "\"";
         msg += payload;
-        if(payload[0] != '{' && payload[0] != '[')
+        if (payload[0] != '{' && payload[0] != '[')
             msg += "\"";
     }
     msg += "]";
     return msg;
 }
 
-void SocketIOclient::on(const char *event, callback_fn func)
-{
+void SocketIOclient::on(const char *event, callback_fn func) {
     _events[event] = func;
 }
 
@@ -217,53 +213,55 @@ socketIOPacket_t SocketIOclient::parse(const std::string &payloadStr) {
     bool inString = false;
     bool inJson = false;
     bool inArray = false;
-    for (auto c : payloadStr)
-    {
-        if(!escChar && c == '"')
-        {
-            if(inString) inString = false;
-            else inString = true;
-            if(!inJson && !inArray)
-                continue; 
+    for (auto c : payloadStr) {
+        if (!escChar && c == '"') {
+            if (inString)
+                inString = false;
+            else
+                inString = true;
+            if (!inJson && !inArray)
+                continue;
         }
-        if(c == '\\') {
-            if(escChar) escChar = false;
-            else escChar = true;
-        } else if(escChar) escChar = false;
+        if (c == '\\') {
+            if (escChar)
+                escChar = false;
+            else
+                escChar = true;
+        } else if (escChar)
+            escChar = false;
 
-        if(!inJson && !inString && c == '{')
+        if (!inJson && !inString && c == '{')
             inJson = true;
-        if(inJson && !inString && c == '}')
+        if (inJson && !inString && c == '}')
             inJson = false;
 
-        if(currentParseType > eParseTypeID)
-            if(!inArray && !inString && c == '[')
+        if (currentParseType > eParseTypeID)
+            if (!inArray && !inString && c == '[')
                 inArray = true;
-        
-        
-        if(!inArray && !inString && !inJson && !escChar) {
-            if(c == '[' && currentParseType == eParseTypeID){
+
+        if (!inArray && !inString && !inJson && !escChar) {
+            if (c == '[' && currentParseType == eParseTypeID) {
                 currentParseType++;
                 continue;
             }
-            if(c == ',' && currentParseType == eParseTypeEVENT) {
+            if (c == ',' && currentParseType == eParseTypeEVENT) {
                 currentParseType++;
                 continue;
             }
-            if(c == ']') {
+            if (c == ']') {
                 break;
             }
         }
 
-        if(currentParseType > eParseTypeID)
-            if(inArray && !inString && c == ']')
+        if (currentParseType > eParseTypeID)
+            if (inArray && !inString && c == ']')
                 inArray = false;
-        
+
         if (currentParseType == eParseTypeID) {
             result.id += c;
-        } else if(currentParseType == eParseTypeEVENT) {
+        } else if (currentParseType == eParseTypeEVENT) {
             result.event += c;
-        } else if(currentParseType == eParseTypeDATA){
+        } else if (currentParseType == eParseTypeDATA) {
             result.data += c;
         }
     }
