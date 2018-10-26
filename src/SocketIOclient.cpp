@@ -128,9 +128,16 @@ void SocketIOclient::runCbEvent(WStype_t type, uint8_t * payload, size_t length)
                     switch(ioType) {
                         case sIOtype_EVENT:
                             DEBUG_WEBSOCKETS("[wsIOc] get event (%d): %s\n", lData, data);
+                            triggerEvent(std::string((char *)data));
                             break;
                         case sIOtype_CONNECT:
+                            DEBUG_WEBSOCKETS("[wsIOc] connected\n");
+                            triggerEvent("connect");
+                            break;
                         case sIOtype_DISCONNECT:
+                            DEBUG_WEBSOCKETS("[wsIOc] disconnected\n");
+                            triggerEvent("disconnect");
+                            break;
                         case sIOtype_ACK:
                         case sIOtype_ERROR:
                         case sIOtype_BINARY_EVENT:
@@ -165,6 +172,24 @@ void SocketIOclient::runCbEvent(WStype_t type, uint8_t * payload, size_t length)
             // webSocket.sendBIN(payload, length);
             break;
     }
+}
+
+void SocketIOclient::triggerEvent(const std::string &payload)
+{
+    auto result = parse(std::string(payload));
+
+    auto e = _events.find(result.event.c_str());
+	if(e != _events.end()) {
+		DEBUG_WEBSOCKETS("[wsIOc] trigger event %s\n", result.event.c_str());
+		e->second(payload, length);
+	} else {
+		DEBUG_WEBSOCKETS("[wsIOc] event %s not found. %d events available\n", result.event.c_str(), _events.size());
+	}
+}
+
+void SocketIOclient::on(const char *event, callback_fn func)
+{
+    _events[event] = func;
 }
 
 socketIOPacket_t SocketIOclient::parse(const std::string &payloadStr) {

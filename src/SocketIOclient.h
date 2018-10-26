@@ -9,6 +9,7 @@
 #define SOCKETIOCLIENT_H_
 
 #include "WebSocketsClient.h"
+#include <map>
 
 #define EIO_HEARTBEAT_INTERVAL 10000
 
@@ -47,6 +48,8 @@ const unsigned int eParseTypeID = 0;
 const unsigned int eParseTypeEVENT = 1;
 const unsigned int eParseTypeDATA = 2;
 
+typedef std::function<void (const char * payload, size_t length)> callback_fn;
+
 class SocketIOclient: protected WebSocketsClient {
 
     public:
@@ -70,6 +73,8 @@ class SocketIOclient: protected WebSocketsClient {
         bool sendEVENT(const char * payload, size_t length = 0);
         bool sendEVENT(String & payload);
 
+        void on(const char* event, callback_fn);
+
         void loop(void);
 
     protected:
@@ -77,6 +82,9 @@ class SocketIOclient: protected WebSocketsClient {
         uint64_t _lastHeartbeat = 0;
 
     private:
+        std::map<String, callback_fn> _events;
+        void triggerEvent(const std::string &payload);
+
         /**
          * Parses the payload into a socketIOPacket_t.
          * The payload has the following format: ID[EVENT,DATA]
