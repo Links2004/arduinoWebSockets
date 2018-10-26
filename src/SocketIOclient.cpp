@@ -29,7 +29,14 @@ bool SocketIOclient::isConnected(void) {
     return WebSocketsClient::isConnected();
 }
 
-
+/**
+ * send text data to client
+ * @param num uint8_t client id
+ * @param payload uint8_t *
+ * @param length size_t
+ * @param headerToPayload bool  (see sendFrame for more details)
+ * @return true if ok
+ */
 bool SocketIOclient::sendMESSAGE(socketIOmessageType_t type, uint8_t * payload, size_t length, bool headerToPayload) {
     bool ret = false;
     if(length == 0) {
@@ -56,33 +63,6 @@ bool SocketIOclient::sendMESSAGE(socketIOmessageType_t type, uint8_t * payload, 
         // return WebSocketsClient::sendFrame(&_client, WSop_text, payload, length, true, true, headerToPayload);
     }
     return false;
-}
-/**
- * send text data to client
- * @param num uint8_t client id
- * @param payload uint8_t *
- * @param length size_t
- * @param headerToPayload bool  (see sendFrame for more details)
- * @return true if ok
- */
-bool SocketIOclient::sendEVENT(uint8_t * payload, size_t length, bool headerToPayload) {
-    return sendMESSAGE(sIOtype_EVENT, payload, length, headerToPayload);
-}
-
-bool SocketIOclient::sendEVENT(const uint8_t * payload, size_t length) {
-    return sendEVENT((uint8_t *) payload, length);
-}
-
-bool SocketIOclient::sendEVENT(char * payload, size_t length, bool headerToPayload) {
-    return sendEVENT((uint8_t *) payload, length, headerToPayload);
-}
-
-bool SocketIOclient::sendEVENT(const char * payload, size_t length) {
-    return sendEVENT((uint8_t *) payload, length);
-}
-
-bool SocketIOclient::sendEVENT(String & payload) {
-    return sendEVENT((uint8_t *) payload.c_str(), payload.length());
 }
 
 void SocketIOclient::loop(void) {
@@ -201,7 +181,7 @@ void SocketIOclient::emit(const char *event, const char *payload)
 {
     String msg = constructMsg(event, payload);
     DEBUG_WEBSOCKETS("[wsIOc] emit %s\n", msg.c_str());
-    sendEVENT(msg.c_str());
+    sendMESSAGE(sIOtype_EVENT, (uint8_t *) msg.c_str(), msg.length(), false);
 }
 
 String SocketIOclient::constructMsg(const char* event, const char* payload, const char* id)
