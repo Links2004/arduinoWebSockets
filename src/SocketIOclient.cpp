@@ -46,7 +46,7 @@ bool SocketIOclient::sendMESSAGE(socketIOmessageType_t type, uint8_t * payload, 
 
         if(!headerToPayload) {
             // webSocket Header
-            ret = WebSocketsClient::sendFrameHeader(&_client, WSop_text, length + 2, true, true);
+            ret = WebSocketsClient::sendFrameHeader(&_client, WSop_text, length + 2, true);
             // Engine.IO / Socket.IO Header
             if(ret) {
                 uint8_t buf[3] = { eIOtype_MESSAGE, type, 0x00 };

@@ -161,15 +161,14 @@ uint8_t WebSockets::createHeader(uint8_t * headerPtr, WSopcode_t opcode, size_t 
  * @param client WSclient_t *   ptr to the client struct
  * @param opcode WSopcode_t
  * @param length size_t         length of the payload
- * @param mask bool             add dummy mask to the frame (needed for web browser)
  * @param fin bool              can be used to send data in more then one frame (set fin on the last frame)
  * @return true if ok
  */
-bool WebSockets::sendFrameHeader(WSclient_t * client, WSopcode_t opcode, size_t length, bool mask, bool fin) {
+bool WebSockets::sendFrameHeader(WSclient_t * client, WSopcode_t opcode, size_t length, bool fin) {
     uint8_t maskKey[4] = { 0x00, 0x00, 0x00, 0x00 };
     uint8_t buffer[WEBSOCKETS_MAX_HEADER_SIZE] = { 0 };
 
-    uint8_t headerSize = createHeader(&buffer[0], opcode, length, mask, maskKey, fin);
+    uint8_t headerSize = createHeader(&buffer[0], opcode, length, client->cIsClient, maskKey, fin);
 
     if(write(client, &buffer[0], headerSize) != headerSize) {
         return false;
@@ -254,85 +253,27 @@ bool WebSockets::sendFrame(WSclient_t * client, WSopcode_t opcode, uint8_t * pay
         headerPtr = &buffer[0];
     }
 
-    // create header
-
-    // byte 0
-    *headerPtr = 0x00;
-    if(fin) {
-        *headerPtr |= bit(7);    ///< set Fin
-    }
-    *headerPtr |= opcode;        ///< set opcode
-    headerPtr++;
-
-    // byte 1
-    *headerPtr = 0x00;
-    if(client->cIsClient) {
-        *headerPtr |= bit(7);    ///< set mask
+    if(client->cIsClient && useInternBuffer) {
+        // if we use a Intern Buffer we can modify the data
+        // by this fact its possible the do the masking
+        for(uint8_t x = 0; x < sizeof(maskKey); x++) {
+            maskKey[x] = random(0xFF);
+        }
     }
 
-    if(length < 126) {
-        *headerPtr |= length;
-        headerPtr++;
-    } else if(length < 0xFFFF) {
-        *headerPtr |= 126;
-        headerPtr++;
-        *headerPtr = ((length >> 8) & 0xFF);
-        headerPtr++;
-        *headerPtr = (length & 0xFF);
-        headerPtr++;
-    } else {
-        // Normally we never get here (to less memory)
-        *headerPtr |= 127;
-        headerPtr++;
-        *headerPtr = 0x00;
-        headerPtr++;
-        *headerPtr = 0x00;
-        headerPtr++;
-        *headerPtr = 0x00;
-        headerPtr++;
-        *headerPtr = 0x00;
-        headerPtr++;
-        *headerPtr = ((length >> 24) & 0xFF);
-        headerPtr++;
-        *headerPtr = ((length >> 16) & 0xFF);
-        headerPtr++;
-        *headerPtr = ((length >> 8) & 0xFF);
-        headerPtr++;
-        *headerPtr = (length & 0xFF);
-        headerPtr++;
-    }
+    createHeader(headerPtr, opcode, length, client->cIsClient, maskKey, fin);
 
-    if(client->cIsClient) {
-        if(useInternBuffer) {
-            // if we use a Intern Buffer we can modify the data
-            // by this fact its possible the do the masking
-            for(uint8_t x = 0; x < sizeof(maskKey); x++) {
-                maskKey[x] = random(0xFF);
-                *headerPtr = maskKey[x];
-                headerPtr++;
-            }
+    if(client->cIsClient && useInternBuffer) {
+        uint8_t * dataMaskPtr;
 
-            uint8_t * dataMaskPtr;
-
-            if(headerToPayload) {
-                dataMaskPtr = (payloadPtr + WEBSOCKETS_MAX_HEADER_SIZE);
-            } else {
-                dataMaskPtr = payloadPtr;
-            }
-
-            for(size_t x = 0; x < length; x++) {
-                dataMaskPtr[x] = (dataMaskPtr[x] ^ maskKey[x % 4]);
-            }
-
+        if(headerToPayload) {
+            dataMaskPtr = (payloadPtr + WEBSOCKETS_MAX_HEADER_SIZE);
         } else {
-            *headerPtr = maskKey[0];
-            headerPtr++;
-            *headerPtr = maskKey[1];
-            headerPtr++;
-            *headerPtr = maskKey[2];
-            headerPtr++;
-            *headerPtr = maskKey[3];
-            headerPtr++;
+            dataMaskPtr = payloadPtr;
+        }
+
+        for(size_t x = 0; x < length; x++) {
+            dataMaskPtr[x] = (dataMaskPtr[x] ^ maskKey[x % 4]);
         }
     }
 
