@@ -186,12 +186,11 @@ bool WebSockets::sendFrameHeader(WSclient_t * client, WSopcode_t opcode, size_t 
  * @param opcode WSopcode_t
  * @param payload uint8_t *     ptr to the payload
  * @param length size_t         length of the payload
- * @param mask bool             add dummy mask to the frame (needed for web browser)
  * @param fin bool              can be used to send data in more then one frame (set fin on the last frame)
  * @param headerToPayload bool  set true if the payload has reserved 14 Byte at the beginning to dynamically add the Header (payload neet to be in RAM!)
  * @return true if ok
  */
-bool WebSockets::sendFrame(WSclient_t * client, WSopcode_t opcode, uint8_t * payload, size_t length, bool mask, bool fin, bool headerToPayload) {
+bool WebSockets::sendFrame(WSclient_t * client, WSopcode_t opcode, uint8_t * payload, size_t length, bool fin, bool headerToPayload) {
 
     if(client->tcp && !client->tcp->connected()) {
         DEBUG_WEBSOCKETS("[WS][%d][sendFrame] not Connected!?\n", client->num);
@@ -204,7 +203,7 @@ bool WebSockets::sendFrame(WSclient_t * client, WSopcode_t opcode, uint8_t * pay
     }
 
     DEBUG_WEBSOCKETS("[WS][%d][sendFrame] ------- send message frame -------\n", client->num);
-    DEBUG_WEBSOCKETS("[WS][%d][sendFrame] fin: %u opCode: %u mask: %u length: %u headerToPayload: %u\n", client->num, fin, opcode, mask, length, headerToPayload);
+    DEBUG_WEBSOCKETS("[WS][%d][sendFrame] fin: %u opCode: %u mask: %u length: %u headerToPayload: %u\n", client->num, fin, opcode, client->cIsClient, length, headerToPayload);
 
     if(opcode == WSop_text) {
         DEBUG_WEBSOCKETS("[WS][%d][sendFrame] text: %s\n", client->num, (payload + (headerToPayload ? 14 : 0)));
@@ -228,7 +227,7 @@ bool WebSockets::sendFrame(WSclient_t * client, WSopcode_t opcode, uint8_t * pay
         headerSize = 10;
     }
 
-    if(mask) {
+    if(client->cIsClient) {
         headerSize += 4;
     }
 
@@ -255,14 +254,62 @@ bool WebSockets::sendFrame(WSclient_t * client, WSopcode_t opcode, uint8_t * pay
         headerPtr = &buffer[0];
     }
 
-    createHeader(headerPtr, opcode, length, mask, maskKey, fin);
+    // create header
 
-    if(mask) {
+    // byte 0
+    *headerPtr = 0x00;
+    if(fin) {
+        *headerPtr |= bit(7);    ///< set Fin
+    }
+    *headerPtr |= opcode;        ///< set opcode
+    headerPtr++;
+
+    // byte 1
+    *headerPtr = 0x00;
+    if(client->cIsClient) {
+        *headerPtr |= bit(7);    ///< set mask
+    }
+
+    if(length < 126) {
+        *headerPtr |= length;
+        headerPtr++;
+    } else if(length < 0xFFFF) {
+        *headerPtr |= 126;
+        headerPtr++;
+        *headerPtr = ((length >> 8) & 0xFF);
+        headerPtr++;
+        *headerPtr = (length & 0xFF);
+        headerPtr++;
+    } else {
+        // Normally we never get here (to less memory)
+        *headerPtr |= 127;
+        headerPtr++;
+        *headerPtr = 0x00;
+        headerPtr++;
+        *headerPtr = 0x00;
+        headerPtr++;
+        *headerPtr = 0x00;
+        headerPtr++;
+        *headerPtr = 0x00;
+        headerPtr++;
+        *headerPtr = ((length >> 24) & 0xFF);
+        headerPtr++;
+        *headerPtr = ((length >> 16) & 0xFF);
+        headerPtr++;
+        *headerPtr = ((length >> 8) & 0xFF);
+        headerPtr++;
+        *headerPtr = (length & 0xFF);
+        headerPtr++;
+    }
+
+    if(client->cIsClient) {
         if(useInternBuffer) {
             // if we use a Intern Buffer we can modify the data
             // by this fact its possible the do the masking
             for(uint8_t x = 0; x < sizeof(maskKey); x++) {
                 maskKey[x] = random(0xFF);
+                *headerPtr = maskKey[x];
+                headerPtr++;
             }
 
             uint8_t * dataMaskPtr;
@@ -276,6 +323,16 @@ bool WebSockets::sendFrame(WSclient_t * client, WSopcode_t opcode, uint8_t * pay
             for(size_t x = 0; x < length; x++) {
                 dataMaskPtr[x] = (dataMaskPtr[x] ^ maskKey[x % 4]);
             }
+
+        } else {
+            *headerPtr = maskKey[0];
+            headerPtr++;
+            *headerPtr = maskKey[1];
+            headerPtr++;
+            *headerPtr = maskKey[2];
+            headerPtr++;
+            *headerPtr = maskKey[3];
+            headerPtr++;
         }
     }
 
@@ -485,17 +542,18 @@ void WebSockets::handleWebsocketPayloadCb(WSclient_t * client, bool ok, uint8_t 
                 break;
             case WSop_ping:
                 // send pong back
-                sendFrame(client, WSop_pong, payload, header->payloadLen, true);
+                sendFrame(client, WSop_pong, payload, header->payloadLen);
                 break;
             case WSop_pong:
                 DEBUG_WEBSOCKETS("[WS][%d][handleWebsocket] get pong (%s)\n", client->num, payload ? (const char*)payload : "");
                 break;
             case WSop_close: {
-                uint16_t reasonCode = 1000;
-                if(header->payloadLen >= 2) {
-                    reasonCode = payload[0] << 8 | payload[1];
-                }
-
+                #ifndef NODEBUG_WEBSOCKETS
+                    uint16_t reasonCode = 1000;
+                    if(header->payloadLen >= 2) {
+                        reasonCode = payload[0] << 8 | payload[1];
+                    }
+                #endif
                 DEBUG_WEBSOCKETS("[WS][%d][handleWebsocket] get ask for close. Code: %d", client->num, reasonCode);
                 if(header->payloadLen > 2) {
                     DEBUG_WEBSOCKETS(" (%s)\n", (payload + 2));
