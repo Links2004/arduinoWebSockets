@@ -18,12 +18,24 @@ SocketIOclient::~SocketIOclient() {
 }
 
 void SocketIOclient::begin(const char *host, uint16_t port, const char * url, const char * protocol) {
-    WebSocketsClient::beginSocketIO(host, port, url, protocol);
+    WebSocketsClient::begin(host, port, url, protocol);
+    _client.isSocketIO = true;
 }
 
 void SocketIOclient::begin(String host, uint16_t port, String url, String protocol) {
-    WebSocketsClient::beginSocketIO(host, port, url, protocol);
+    SocketIOclient::begin(host, port, url, protocol);
 }
+
+#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP32)
+void SocketIOclient::beginSSL(const char *host, uint16_t port, const char * url, const char * fingerprint, const char * protocol) {
+    WebSocketsClient::beginSSL(host, port, url, fingerprint, protocol);
+    _client.isSocketIO = true;
+}
+
+void SocketIOclient::beginSSL(String host, uint16_t port, String url, String fingerprint, String protocol) {
+    WebSocketsClient::beginSSL(host, port, url, fingerprint, protocol);
+}
+#endif
 
 bool SocketIOclient::isConnected(void) {
     return WebSocketsClient::isConnected();

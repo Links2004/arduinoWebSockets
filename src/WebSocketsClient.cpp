@@ -100,28 +100,6 @@ void WebSocketsClient::beginSSL(String host, uint16_t port, String url, String f
 }
 #endif
 
-void WebSocketsClient::beginSocketIO(const char *host, uint16_t port, const char * url, const char * protocol) {
-    begin(host, port, url, protocol);
-    _client.isSocketIO = true;
-}
-
-void WebSocketsClient::beginSocketIO(String host, uint16_t port, String url, String protocol) {
-    beginSocketIO(host.c_str(), port, url.c_str(), protocol.c_str());
-}
-
-#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP32)
-void WebSocketsClient::beginSocketIOSSL(const char *host, uint16_t port, const char * url, const char * protocol) {
-    begin(host, port, url, protocol);
-    _client.isSocketIO = true;
-    _client.isSSL = true;
-    _fingerprint = "";
-}
-
-void WebSocketsClient::beginSocketIOSSL(String host, uint16_t port, String url, String protocol) {
-    beginSocketIOSSL(host.c_str(), port, url.c_str(), protocol.c_str());
-}
-#endif
-
 #if (WEBSOCKETS_NETWORK_TYPE != NETWORK_ESP8266_ASYNC)
 /**
  * called in arduino loop
