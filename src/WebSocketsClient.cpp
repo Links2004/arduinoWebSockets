@@ -120,6 +120,9 @@ void WebSocketsClient::loop(void) {
                 _client.tcp = NULL;
             }
             _client.ssl = new WiFiClientSecure();
+#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP32)
+            _client.ssl->setCACert(_fingerprint.c_str());
+#endif
             _client.tcp = _client.ssl;
         } else {
             DEBUG_WEBSOCKETS("[WS-Client] connect ws...\n");
