@@ -689,8 +689,7 @@ void WebSockets::handleHBTimeout(WSclient_t * client){
 
                 if (client->disconnectTimeoutCount && client->pongTimeoutCount >= client->disconnectTimeoutCount){
                     DEBUG_WEBSOCKETS("[HBtimeout] count=%d, DISCONNECTING\n", client->pongTimeoutCount);
-                    client->status = WSC_NOT_CONNECTED;
-                    //clientDisconnect(client);
+                    clientDisconnect(client);
                 }
             } 
         }
