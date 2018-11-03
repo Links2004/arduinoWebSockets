@@ -173,11 +173,13 @@ void WebSocketsClient::loop(void) {
 
         }
     } else {
+        handleClientData();
+
         if (_client.status == WSC_CONNECTED){
             handleHBPing();
             handleHBTimeout(&_client);
         }
-        handleClientData();
+        
     }
 }
 #endif
@@ -726,7 +728,7 @@ void WebSocketsClient::connectedCb() {
 }
 
 void WebSocketsClient::connectFailedCb() {
-    DEBUG_WEBSOCKETS("[WS-Client] connection to %s:%u Faild\n", _host.c_str(), _port);
+    DEBUG_WEBSOCKETS("[WS-Client] connection to %s:%u Failed\n", _host.c_str(), _port);
 }
 
 #if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266_ASYNC)
