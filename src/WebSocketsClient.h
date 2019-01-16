@@ -86,6 +86,9 @@ class WebSocketsClient: private WebSockets {
 
         void setReconnectInterval(unsigned long time);
 
+        void enableHeartbeat(uint32_t pingInterval, uint32_t pongTimeout, uint8_t disconnectTimeoutCount);
+        void disableHeartbeat();        
+
     protected:
         String _host;
         uint16_t _port;
@@ -114,6 +117,8 @@ class WebSocketsClient: private WebSockets {
 
         void connectedCb();
         void connectFailedCb();
+
+        void handleHBPing(); // send ping in specified intervals
 
 #if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266_ASYNC)
         void asyncConnect();
