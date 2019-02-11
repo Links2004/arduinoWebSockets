@@ -71,6 +71,7 @@ class SocketIOclient: protected WebSocketsClient {
 #endif
 
         bool isConnected(void);
+        bool disconnect(void);
 
         bool sendMESSAGE(socketIOmessageType_t type, uint8_t * payload, size_t length = 0, bool headerToPayload = false);
 

@@ -41,6 +41,10 @@ bool SocketIOclient::isConnected(void) {
     return WebSocketsClient::isConnected();
 }
 
+bool SocketIOclient::disconnect(void) {
+    return WebSocketsClient::disconnect();
+}
+
 /**
  * send text data to client
  * @param num uint8_t client id
