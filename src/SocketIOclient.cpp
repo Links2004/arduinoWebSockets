@@ -41,8 +41,8 @@ bool SocketIOclient::isConnected(void) {
     return WebSocketsClient::isConnected();
 }
 
-bool SocketIOclient::disconnect(void) {
-    return WebSocketsClient::disconnect();
+void SocketIOclient::disconnect(void) {
+    WebSocketsClient::disconnect();
 }
 
 /**
