@@ -45,6 +45,7 @@ class WebSocketsClient: private WebSockets {
 
 #if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP32)
         void beginSSL(const char *host, uint16_t port, const char * url = "/", const char * = "", const char * protocol = "arduino");
+		void beginSslWithCA(const char *host, uint16_t port, const char * url, const char * CA_cert, const char * protocol = "arduino");
         void beginSSL(String host, uint16_t port, String url = "/", String fingerprint = "", String protocol = "arduino");
 #endif
 
@@ -95,6 +96,8 @@ class WebSocketsClient: private WebSockets {
 
 #if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP32)
         String _fingerprint;
+		const char *_CA_cert;
+
 #endif
         WSclient_t _client;
 

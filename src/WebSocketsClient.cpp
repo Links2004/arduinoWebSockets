@@ -26,7 +26,8 @@
 #include "WebSocketsClient.h"
 
 WebSocketsClient::WebSocketsClient() {
-    _cbEvent = NULL;
+	_CA_cert = NULL;
+	_cbEvent = NULL;
     _client.num = 0;
     _client.cIsClient = true;
     _client.extraHeaders = WEBSOCKETS_STRING("Origin: file://");
@@ -97,7 +98,17 @@ void WebSocketsClient::beginSSL(const char *host, uint16_t port, const char * ur
     begin(host, port, url, protocol);
     _client.isSSL = true;
     _fingerprint = fingerprint;
+	_CA_cert = NULL;
 }
+
+void WebSocketsClient::beginSslWithCA(const char *host, uint16_t port, const char * url, const char * CA_cert, const char * protocol) {
+	begin(host, port, url, protocol);
+	_client.isSSL = true;
+	_fingerprint = "";
+	_CA_cert = CA_cert;
+}
+
+
 
 void WebSocketsClient::beginSSL(String host, uint16_t port, String url, String fingerprint, String protocol) {
     beginSSL(host.c_str(), port, url.c_str(), fingerprint.c_str(), protocol.c_str());
@@ -147,6 +158,10 @@ void WebSocketsClient::loop(void) {
             }
             _client.ssl = new WiFiClientSecure();
             _client.tcp = _client.ssl;
+			if (_CA_cert) {
+				DEBUG_WEBSOCKETS("[WS-Client] setting CA certificate");
+				_client.ssl->setCACert(_CA_cert);
+			}
         } else {
             DEBUG_WEBSOCKETS("[WS-Client] connect ws...\n");
             if(_client.tcp) {
@@ -710,7 +725,7 @@ void WebSocketsClient::connectedCb() {
     _client.tcp->setTimeout(WEBSOCKETS_TCP_TIMEOUT);
 #endif
 
-#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
+#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266  || WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP32)
     _client.tcp->setNoDelay(true);
 
     if(_client.isSSL && _fingerprint.length()) {
