@@ -120,6 +120,14 @@ void WebSocketsClient::beginSocketIO(const char *host, uint16_t port, const char
     _client.isSocketIO = true;
 }
 
+void WebSocketsClient::beginSocketIOWithCA(const char *host, uint16_t port, const char * CA_cert, const char * url, const char * protocol) {
+	begin(host, port, url, protocol);
+	_client.isSocketIO = true;
+	_client.isSSL = true;
+	_fingerprint = "";
+	_CA_cert = CA_cert;
+}
+
 void WebSocketsClient::beginSocketIO(String host, uint16_t port, String url, String protocol) {
     beginSocketIO(host.c_str(), port, url.c_str(), protocol.c_str());
 }

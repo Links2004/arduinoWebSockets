@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding ="utf-8" ?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" >
+  <PropertyGroup Label="Globals" >
+    <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <ItemsProjectGuid>{341a3816-d83e-4e05-8359-398bb7d4f910}</ItemsProjectGuid>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);$(MSBuildThisFileDirectory)</AdditionalIncludeDirectories>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ProjectCapability Include="SourceItemsFromImports" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="$(MSBuildThisFileDirectory)src\WebSockets.cpp" />
+<ClCompile Include="$(MSBuildThisFileDirectory)src\WebSocketsClient.cpp" />
+<ClCompile Include="$(MSBuildThisFileDirectory)src\WebSocketsServer.cpp" />
+<ClCompile Include="$(MSBuildThisFileDirectory)src\libb64\cdecode.c" />
+<ClCompile Include="$(MSBuildThisFileDirectory)src\libb64\cencode.c" />
+<ClCompile Include="$(MSBuildThisFileDirectory)src\libsha1\libsha1.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\WebSockets.h" />
+<ClInclude Include="$(MSBuildThisFileDirectory)src\WebSocketsClient.h" />
+<ClInclude Include="$(MSBuildThisFileDirectory)src\WebSocketsServer.h" />
+<ClInclude Include="$(MSBuildThisFileDirectory)src\libb64\cdecode_inc.h" />
+<ClInclude Include="$(MSBuildThisFileDirectory)src\libb64\cencode_inc.h" />
+<ClInclude Include="$(MSBuildThisFileDirectory)src\libsha1\libsha1.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="$(MSBuildThisFileDirectory)library.properties" />
+<Text Include="$(MSBuildThisFileDirectory)vs-readme.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory).gitignore" />
+<None Include="$(MSBuildThisFileDirectory).travis.yml" />
+<None Include="$(MSBuildThisFileDirectory)library.json" />
+<None Include="$(MSBuildThisFileDirectory)LICENSE" />
+<None Include="$(MSBuildThisFileDirectory)README.md" />
+<None Include="$(MSBuildThisFileDirectory)src\libb64\AUTHORS" />
+<None Include="$(MSBuildThisFileDirectory)src\libb64\LICENSE" />
+  </ItemGroup>
+</Project>
