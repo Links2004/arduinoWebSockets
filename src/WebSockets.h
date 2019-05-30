@@ -197,6 +197,8 @@ typedef enum {
 	WStype_FRAGMENT_BIN_START,
 	WStype_FRAGMENT,
 	WStype_FRAGMENT_FIN,
+	WStype_PING,
+	WStype_PONG,
 } WStype_t;
 
 typedef enum {

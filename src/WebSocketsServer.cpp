@@ -518,9 +518,13 @@ void WebSocketsServer::messageReceived(WSclient_t * client, WSopcode_t opcode, u
         case WSop_continuation:
             type = fin ? WStype_FRAGMENT_FIN : WStype_FRAGMENT;
             break;
-        case WSop_close:
         case WSop_ping:
+            type = WStype_PING;
+            break;
         case WSop_pong:
+            type = WStype_PONG;
+            break;
+        case WSop_close:
         default:
             break;
     }

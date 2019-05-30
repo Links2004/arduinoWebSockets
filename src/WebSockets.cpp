@@ -435,10 +435,12 @@ void WebSockets::handleWebsocketPayloadCb(WSclient_t * client, bool ok, uint8_t 
                 // send pong back
                 DEBUG_WEBSOCKETS("[WS][%d][handleWebsocket] ping received (%s)\n", client->num, payload ? (const char*)payload : "");
                 sendFrame(client, WSop_pong, payload, header->payloadLen);
+                messageReceived(client, header->opCode, payload, header->payloadLen, header->fin);
                 break;
             case WSop_pong:
                 DEBUG_WEBSOCKETS("[WS][%d][handleWebsocket] get pong (%s)\n", client->num, payload ? (const char*)payload : "");
                 client->pongReceived = true;
+                messageReceived(client, header->opCode, payload, header->payloadLen, header->fin);
                 break;
             case WSop_close: {
                 #ifndef NODEBUG_WEBSOCKETS
@@ -667,7 +669,7 @@ void WebSockets::enableHeartbeat(WSclient_t * client, uint32_t pingInterval, uin
     client->pingInterval = pingInterval;
     client->pongTimeout = pongTimeout;
     client->disconnectTimeoutCount = disconnectTimeoutCount;
-
+    client->pongReceived = false;
 }
 
 /**
@@ -693,7 +695,5 @@ void WebSockets::handleHBTimeout(WSclient_t * client){
                 }
             } 
         }
-
     }
-        
 }
