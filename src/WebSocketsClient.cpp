@@ -748,6 +748,10 @@ void WebSocketsClient::connectedCb() {
             WebSockets::clientDisconnect(&_client, 1000);
             return;
         }
+    } else if(_client.isSSL && !_CA_cert) {
+#if defined(wificlientbearssl_h) && !defined(USING_AXTLS)
+        _client.ssl->setInsecure();
+#endif
     }
 #endif
 
