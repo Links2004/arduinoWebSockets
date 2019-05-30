@@ -42,14 +42,15 @@ WebSocketsClient::~WebSocketsClient() {
 void WebSocketsClient::begin(const char *host, uint16_t port, const char * url, const char * protocol) {
     _host = host;
     _port = port;
-#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP32)
+#if defined(HAS_SSL)
     _fingerprint = "";
+    _CA_cert = NULL;
 #endif
 
     _client.num = 0;
     _client.status = WSC_NOT_CONNECTED;
     _client.tcp = NULL;
-#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP32)
+#if defined(HAS_SSL)
     _client.isSSL = false;
     _client.ssl = NULL;
 #endif
@@ -92,15 +93,23 @@ void WebSocketsClient::begin(IPAddress host, uint16_t port, const char * url, co
     return begin(host.toString().c_str(), port, url, protocol);
 }
 
-#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP32)
+#if defined(HAS_SSL)
 void WebSocketsClient::beginSSL(const char *host, uint16_t port, const char * url, const char * fingerprint, const char * protocol) {
     begin(host, port, url, protocol);
     _client.isSSL = true;
     _fingerprint = fingerprint;
+    _CA_cert = NULL;
 }
 
 void WebSocketsClient::beginSSL(String host, uint16_t port, String url, String fingerprint, String protocol) {
     beginSSL(host.c_str(), port, url.c_str(), fingerprint.c_str(), protocol.c_str());
+}
+
+void WebSocketsClient::beginSslWithCA(const char *host, uint16_t port, const char * url, const char * CA_cert, const char * protocol) {
+    begin(host, port, url, protocol);
+    _client.isSSL = true;
+    _fingerprint = "";
+    _CA_cert = CA_cert;
 }
 #endif
 
@@ -113,7 +122,7 @@ void WebSocketsClient::beginSocketIO(String host, uint16_t port, String url, Str
     beginSocketIO(host.c_str(), port, url.c_str(), protocol.c_str());
 }
 
-#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP32)
+#if defined(HAS_SSL)
 void WebSocketsClient::beginSocketIOSSL(const char *host, uint16_t port, const char * url, const char * protocol) {
     begin(host, port, url, protocol);
     _client.isSocketIO = true;
@@ -123,6 +132,14 @@ void WebSocketsClient::beginSocketIOSSL(const char *host, uint16_t port, const c
 
 void WebSocketsClient::beginSocketIOSSL(String host, uint16_t port, String url, String protocol) {
     beginSocketIOSSL(host.c_str(), port, url.c_str(), protocol.c_str());
+}
+
+void WebSocketsClient::beginSocketIOSSLWithCA(const char *host, uint16_t port, const char * url, const char * CA_cert, const char * protocol) {
+    begin(host, port, url, protocol);
+    _client.isSocketIO = true;
+    _client.isSSL = true;
+    _fingerprint = "";
+    _CA_cert = CA_cert;
 }
 #endif
 
@@ -147,6 +164,16 @@ void WebSocketsClient::loop(void) {
             }
             _client.ssl = new WiFiClientSecure();
             _client.tcp = _client.ssl;
+            if(_CA_cert) {
+                DEBUG_WEBSOCKETS("[WS-Client] setting CA certificate");
+#if defined(ESP32)
+                _client.ssl->setCACert(_CA_cert);
+#elif defined(ESP8266)
+            _client.ssl->setCACert((const uint8_t *)_CA_cert, strlen(_CA_cert) + 1);
+#else
+#error setCACert not implemented
+#endif
+            }
         } else {
             DEBUG_WEBSOCKETS("[WS-Client] connect ws...\n");
             if(_client.tcp) {
@@ -710,9 +737,11 @@ void WebSocketsClient::connectedCb() {
     _client.tcp->setTimeout(WEBSOCKETS_TCP_TIMEOUT);
 #endif
 
-#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
+#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266) || WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP32
     _client.tcp->setNoDelay(true);
+#endif
 
+#if defined(HAS_SSL)
     if(_client.isSSL && _fingerprint.length()) {
         if(!_client.ssl->verify(_fingerprint.c_str(), _host.c_str())) {
             DEBUG_WEBSOCKETS("[WS-Client] certificate mismatch\n");

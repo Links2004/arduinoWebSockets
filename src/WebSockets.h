@@ -57,6 +57,7 @@
 
 #if defined(ESP8266) || defined(ESP32)
 
+#define HAS_SSL
 #define WEBSOCKETS_MAX_DATA_SIZE  (15*1024)
 #define WEBSOCKETS_USE_BIG_MEM
 #define GET_FREE_HEAP ESP.getFreeHeap()
