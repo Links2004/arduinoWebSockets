@@ -598,7 +598,7 @@ void WebSocketsClient::handleHeader(WSclient_t * client, String * headerLine) {
         if(headerLine->startsWith(WEBSOCKETS_STRING("HTTP/1."))) {
             // "HTTP/1.1 101 Switching Protocols"
             client->cCode = headerLine->substring(9, headerLine->indexOf(' ', 9)).toInt();
-        } else if(headerLine->indexOf(':')) {
+        } else if(headerLine->indexOf(':') >= 0) {
             String headerName = headerLine->substring(0, headerLine->indexOf(':'));
             String headerValue = headerLine->substring(headerLine->indexOf(':') + 1);
 

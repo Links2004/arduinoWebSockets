@@ -732,7 +732,7 @@ void WebSocketsServer::handleHeader(WSclient_t * client, String * headerLine) {
 			client->cHttpHeadersValid = true;
 			client->cMandatoryHeadersCount = 0;
 
-		} else if(headerLine->indexOf(':')) {
+		} else if(headerLine->indexOf(':') >= 0) {
 			String headerName = headerLine->substring(0, headerLine->indexOf(':'));
 			String headerValue = headerLine->substring(headerLine->indexOf(':') + 1);
 
