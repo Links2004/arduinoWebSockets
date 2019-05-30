@@ -1,4 +1,10 @@
 sudo: false
+dist:
+  - xenial
+addons:
+  apt:
+    packages:
+      - xvfb
 language: bash
 os:
   - linux
@@ -14,8 +20,8 @@ env:
 
 script:
   - /sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_1.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :1 -ac -screen 0 1280x1024x16
-  - sleep 3
   - export DISPLAY=:1.0
+  - sleep 3
   - wget http://downloads.arduino.cc/arduino-$IDE_VERSION-linux64.tar.xz
   - tar xf arduino-$IDE_VERSION-linux64.tar.xz
   - mv arduino-$IDE_VERSION $HOME/arduino_ide
@@ -28,6 +34,7 @@ script:
   - cd $TRAVIS_BUILD_DIR
   - arduino --board $BOARD --save-prefs
   - arduino --get-pref sketchbook.path
+  - arduino --pref update.check=false
   - build_sketches arduino $HOME/Arduino/libraries/arduinoWebSockets/examples/$CPU $CPU
 
 notifications:
