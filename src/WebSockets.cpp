@@ -56,7 +56,15 @@ extern "C" {
  * @param reasonLen
  */
 void WebSockets::clientDisconnect(WSclient_t * client, uint16_t code, char * reason, size_t reasonLen) {
-    DEBUG_WEBSOCKETS("[WS][%d][handleWebsocket] clientDisconnect code: %u\n", client->num, code);
+    #if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
+        DEBUG_WEBSOCKETS("[WS][%d][handleWebsocket] clientDisconnect code: %u\n", client->num, code);
+    #else
+        DEBUG_WEBSOCKETS("[WS][");
+        DEBUG_WEBSOCKETS( client->num);
+        DEBUG_WEBSOCKETS("][handleWebsocket] clientDisconnect code:");
+        DEBUG_WEBSOCKETS(code);
+        DEBUG_WEBSOCKETS("\n");
+    #endif
     if(client->status == WSC_CONNECTED && code) {
         if(reason) {
             sendFrame(client, WSop_close, (uint8_t *) reason, reasonLen);
@@ -83,20 +91,47 @@ void WebSockets::clientDisconnect(WSclient_t * client, uint16_t code, char * rea
 void WebSockets::sendFrame(WSclient_t * client, WSopcode_t opcode, uint8_t * payload, size_t length, bool mask, bool fin, bool headerToPayload) {
 
     if(client->tcp && !client->tcp->connected()) {
+        #if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
         DEBUG_WEBSOCKETS("[WS][%d][sendFrame] not Connected!?\n", client->num);
+        #else
+        DEBUG_WEBSOCKETS("[WS][");
+        DEBUG_WEBSOCKETS( client->num);
+        DEBUG_WEBSOCKETS("][sendFrame] not Connected!?\n");
+        #endif
         return;
     }
 
     if(client->status != WSC_CONNECTED) {
-        DEBUG_WEBSOCKETS("[WS][%d][sendFrame] not in WSC_CONNECTED state!?\n", client->num);
+        #if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
+                DEBUG_WEBSOCKETS("[WS][%d][sendFrame] not in WSC_CONNECTED state!?\n", client->num);
+        #else
+                DEBUG_WEBSOCKETS("[WS][");
+                DEBUG_WEBSOCKETS( client->num);
+                DEBUG_WEBSOCKETS("][sendFrame] not in WSC_CONNECTED state!?\n");
+        #endif
+        
         return;
     }
-
-    DEBUG_WEBSOCKETS("[WS][%d][sendFrame] ------- send massage frame -------\n", client->num);
-    DEBUG_WEBSOCKETS("[WS][%d][sendFrame] fin: %u opCode: %u mask: %u length: %u headerToPayload: %u\n", client->num, fin, opcode, mask, length, headerToPayload);
+    #if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
+        DEBUG_WEBSOCKETS("[WS][%d][sendFrame] ------- send massage frame -------\n", client->num);
+        DEBUG_WEBSOCKETS("[WS][%d][sendFrame] fin: %u opCode: %u mask: %u length: %u headerToPayload: %u\n", client->num, fin, opcode, mask, length, headerToPayload);
+    #else
+        DEBUG_WEBSOCKETS("[WS][");
+        DEBUG_WEBSOCKETS( client->num);
+        DEBUG_WEBSOCKETS("][sendFrame] ------- send massage frame -------\n");
+    #endif
+    
 
     if(opcode == WSop_text) {
-        DEBUG_WEBSOCKETS("[WS][%d][sendFrame] text: %s\n", client->num, (payload + (headerToPayload ? 14 : 0)));
+        #if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
+            DEBUG_WEBSOCKETS("[WS][%d][sendFrame] text: %s\n", client->num, (payload + (headerToPayload ? 14 : 0)));
+         #else
+            DEBUG_WEBSOCKETS("[WS][");
+            DEBUG_WEBSOCKETS( client->num);
+            DEBUG_WEBSOCKETS("][sendFrame] text:");
+            //DEBUG_WEBSOCKETS(String(payload + (headerToPayload ? 14 : 0)));
+            DEBUG_WEBSOCKETS("\n");
+        #endif
     }
 
     uint8_t maskKey[4] = { 0x00, 0x00, 0x00, 0x00 };
@@ -126,6 +161,13 @@ void WebSockets::sendFrame(WSclient_t * client, WSopcode_t opcode, uint8_t * pay
     // try to send data in one TCP package (only if some free Heap is there)
     if(!headerToPayload && ((length > 0) && (length < 1400)) && (ESP.getFreeHeap() > 6000)) {
         DEBUG_WEBSOCKETS("[WS][%d][sendFrame] pack to one TCP package...\n", client->num);
+        #if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
+                DEBUG_WEBSOCKETS("[WS][%d][sendFrame] pack to one TCP package...\n", client->num);
+        #else
+                DEBUG_WEBSOCKETS("[WS][");
+                DEBUG_WEBSOCKETS( client->num);
+                DEBUG_WEBSOCKETS("][sendFrame] pack to one TCP package...\n");
+        #endif
         uint8_t * dataPtr = (uint8_t *) malloc(length + WEBSOCKETS_MAX_HEADER_SIZE);
         if(dataPtr) {
             memcpy((dataPtr + WEBSOCKETS_MAX_HEADER_SIZE), payload, length);
@@ -226,9 +268,16 @@ void WebSockets::sendFrame(WSclient_t * client, WSopcode_t opcode, uint8_t * pay
             client->tcp->write(&payloadPtr[0], length);
         }
     }
-
+#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
     DEBUG_WEBSOCKETS("[WS][%d][sendFrame] sending Frame Done (%uus).\n", client->num, (micros() - start));
-
+#else
+    DEBUG_WEBSOCKETS("[WS][");
+    DEBUG_WEBSOCKETS( client->num);
+    DEBUG_WEBSOCKETS("][sendFrame] sending Frame Done (");
+    DEBUG_WEBSOCKETS((micros() - start));
+    DEBUG_WEBSOCKETS("\n");
+#endif
+    
 #ifdef WEBSOCKETS_USE_BIG_MEM
     if(useInternBuffer && payloadPtr) {
         free(payloadPtr);
@@ -257,8 +306,14 @@ void WebSockets::handleWebsocket(WSclient_t * client) {
 
     uint8_t * payload = NULL;
 
-    DEBUG_WEBSOCKETS("[WS][%d][handleWebsocket] ------- read massage frame -------\n", client->num);
-
+    
+    #if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
+        DEBUG_WEBSOCKETS("[WS][%d][handleWebsocket] ------- read massage frame -------\n", client->num);
+    #else
+        DEBUG_WEBSOCKETS("[WS][");
+        DEBUG_WEBSOCKETS(client->num);
+        DEBUG_WEBSOCKETS("][handleWebsocket] ------- read massage frame -------\n");
+    #endif
     if(!readWait(client, buffer, 2)) {
         //timeout
         clientDisconnect(client, 1002);
@@ -297,12 +352,14 @@ void WebSockets::handleWebsocket(WSclient_t * client) {
             payloadLen = buffer[4] << 24 | buffer[5] << 16 | buffer[6] << 8 | buffer[7];
         }
     }
-
-    DEBUG_WEBSOCKETS("[WS][%d][handleWebsocket] fin: %u rsv1: %u rsv2: %u rsv3 %u  opCode: %u\n", client->num, fin, rsv1, rsv2, rsv3, opCode);
-    DEBUG_WEBSOCKETS("[WS][%d][handleWebsocket] mask: %u payloadLen: %u\n", client->num, mask, payloadLen);
-
+    #if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
+        DEBUG_WEBSOCKETS("[WS][%d][handleWebsocket] fin: %u rsv1: %u rsv2: %u rsv3 %u  opCode: %u\n", client->num, fin, rsv1, rsv2, rsv3, opCode);
+        DEBUG_WEBSOCKETS("[WS][%d][handleWebsocket] mask: %u payloadLen: %u\n", client->num, mask, payloadLen);
+    #endif
     if(payloadLen > WEBSOCKETS_MAX_DATA_SIZE) {
-        DEBUG_WEBSOCKETS("[WS][%d][handleWebsocket] payload to big! (%u)\n", client->num, payloadLen);
+        #if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
+            DEBUG_WEBSOCKETS("[WS][%d][handleWebsocket] payload to big! (%u)\n", client->num, payloadLen);
+        #endif
         clientDisconnect(client, 1009);
         return;
     }
@@ -320,13 +377,17 @@ void WebSockets::handleWebsocket(WSclient_t * client) {
         payload = (uint8_t *) malloc(payloadLen + 1);
 
         if(!payload) {
+            #if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
             DEBUG_WEBSOCKETS("[WS][%d][handleWebsocket] to less memory to handle payload %d!\n", client->num, payloadLen);
+            #endif
             clientDisconnect(client, 1011);
             return;
         }
 
         if(!readWait(client, payload, payloadLen)) {
+            #if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
             DEBUG_WEBSOCKETS("[WS][%d][handleWebsocket] missing data!\n", client->num);
+            #endif
             free(payload);
             clientDisconnect(client, 1002);
             return;
@@ -344,7 +405,9 @@ void WebSockets::handleWebsocket(WSclient_t * client) {
 
     switch(opCode) {
         case WSop_text:
+            #if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
             DEBUG_WEBSOCKETS("[WS][%d][handleWebsocket] text: %s\n", client->num, payload);
+            #endif
             // no break here!
         case WSop_binary:
             messageRecived(client, opCode, payload, payloadLen);
@@ -354,7 +417,9 @@ void WebSockets::handleWebsocket(WSclient_t * client) {
             sendFrame(client, WSop_pong, payload, payloadLen);
             break;
         case WSop_pong:
+            #if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
             DEBUG_WEBSOCKETS("[WS][%d][handleWebsocket] get pong  (%s)\n", client->num, payload);
+            #endif
             break;
         case WSop_close:
             {
@@ -362,12 +427,18 @@ void WebSockets::handleWebsocket(WSclient_t * client) {
                 if(payloadLen >= 2) {
                     reasonCode = payload[0] << 8 | payload[1];
                 }
-
+                #if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
                 DEBUG_WEBSOCKETS("[WS][%d][handleWebsocket] get ask for close. Code: %d", client->num, reasonCode);
+                #endif
+                
                 if(payloadLen > 2) {
+                    #if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
                     DEBUG_WEBSOCKETS(" (%s)\n", (payload+2));
+                    #endif
                 } else {
+                    #if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
                     DEBUG_WEBSOCKETS("\n");
+                    #endif
                 }
                 clientDisconnect(client, 1000);
             }

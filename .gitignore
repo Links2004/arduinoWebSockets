@@ -27,3 +27,8 @@
 *.out
 *.app
 /tests/webSocketServer/node_modules
+
+.DS_Store
+*/.DS_Store
+*/**/.DS_Store
+

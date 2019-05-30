@@ -28,7 +28,7 @@
 #include <Arduino.h>
 #include "WebSockets.h"
 
-#define WEBSOCKETS_SERVER_CLIENT_MAX  (5)
+#define WEBSOCKETS_SERVER_CLIENT_MAX  (3)
 
 
 
@@ -73,6 +73,10 @@ public:
 #endif
 
 protected:
+        #if (WEBSOCKETS_NETWORK_TYPE == NETWORK_WIFI101)
+        IPAddress tempIpAddressNewClient;
+    
+        #endif
         uint16_t _port;
 
         WEBSOCKETS_NETWORK_SERVER_CLASS * _server;
@@ -97,7 +101,12 @@ protected:
          * @param client WSclient_t *  ptr to the client struct
          */
         virtual void handleNonWebsocketConnection(WSclient_t * client) {
+            #if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
             DEBUG_WEBSOCKETS("[WS-Server][%d][handleHeader] no Websocket connection close.\n", client->num);
+#else
+            DEBUG_WEBSOCKETS("[WS-Server][handleHeader] no Websocket connection close.\n");
+#endif
+            
             client->tcp->write("HTTP/1.1 400 Bad Request\r\n"
                     "Server: arduino-WebSocket-Server\r\n"
                     "Content-Type: text/plain\r\n"
