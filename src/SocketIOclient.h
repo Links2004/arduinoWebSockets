@@ -1,4 +1,4 @@
-/*
+/**
  * SocketIOclient.h
  *
  *  Created on: May 12, 2018
@@ -10,7 +10,7 @@
 
 #include "WebSockets.h"
 
-#define EIO_HEARTBEAT_INTERVAL 10000
+#define EIO_HEARTBEAT_INTERVAL 20000
 
 #define EIO_MAX_HEADER_SIZE (WEBSOCKETS_MAX_HEADER_SIZE + 1)
 #define SIO_MAX_HEADER_SIZE (EIO_MAX_HEADER_SIZE + 1)
@@ -38,9 +38,9 @@ typedef enum {
 class SocketIOclient : protected WebSocketsClient {
   public:
 #ifdef __AVR__
-    typedef void (*SocketIOclientEvent)(WStype_t type, uint8_t * payload, size_t length);
+    typedef void (*SocketIOclientEvent)(socketIOmessageType_t type, uint8_t * payload, size_t length);
 #else
-    typedef std::function<void(WStype_t type, uint8_t * payload, size_t length)> SocketIOclientEvent;
+    typedef std::function<void(socketIOmessageType_t type, uint8_t * payload, size_t length)> SocketIOclientEvent;
 #endif
 
     SocketIOclient(void);
@@ -51,6 +51,8 @@ class SocketIOclient : protected WebSocketsClient {
 
     bool isConnected(void);
 
+    void onEvent(SocketIOclientEvent cbEvent);
+
     bool sendEVENT(uint8_t * payload, size_t length = 0, bool headerToPayload = false);
     bool sendEVENT(const uint8_t * payload, size_t length = 0);
     bool sendEVENT(char * payload, size_t length = 0, bool headerToPayload = false);
@@ -60,8 +62,19 @@ class SocketIOclient : protected WebSocketsClient {
     void loop(void);
 
   protected:
-    void runCbEvent(WStype_t type, uint8_t * payload, size_t length);
     uint64_t _lastHeartbeat = 0;
+    SocketIOclientEvent _cbEvent;
+    virtual void runIOCbEvent(socketIOmessageType_t type, uint8_t * payload, size_t length) {
+        if(_cbEvent) {
+            _cbEvent(type, payload, length);
+        }
+    }
+
+    // Handeling events from websocket layer
+    virtual void runCbEvent(WStype_t type, uint8_t * payload, size_t length) {
+        handleCbEvent(type, payload, length);
+    }
+    void handleCbEvent(WStype_t type, uint8_t * payload, size_t length);
 };
 
 #endif /* SOCKETIOCLIENT_H_ */

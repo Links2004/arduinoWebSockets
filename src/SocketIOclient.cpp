@@ -17,10 +17,20 @@ SocketIOclient::~SocketIOclient() {
 
 void SocketIOclient::begin(const char * host, uint16_t port, const char * url, const char * protocol) {
     WebSocketsClient::beginSocketIO(host, port, url, protocol);
+    WebSocketsClient::enableHeartbeat(60 * 1000, 90 * 1000, 5);
 }
 
 void SocketIOclient::begin(String host, uint16_t port, String url, String protocol) {
     WebSocketsClient::beginSocketIO(host, port, url, protocol);
+    WebSocketsClient::enableHeartbeat(60 * 1000, 90 * 1000, 5);
+}
+
+/**
+ * set callback function
+ * @param cbEvent SocketIOclientEvent
+ */
+void SocketIOclient::onEvent(SocketIOclientEvent cbEvent) {
+    _cbEvent = cbEvent;
 }
 
 bool SocketIOclient::isConnected(void) {
@@ -83,13 +93,15 @@ void SocketIOclient::loop(void) {
     unsigned long t = millis();
     if((t - _lastConnectionFail) > EIO_HEARTBEAT_INTERVAL) {
         _lastConnectionFail = t;
-        //WebSocketsClient::sendTXT(eIOtype_PING);
+        DEBUG_WEBSOCKETS("[wsIOc] send ping\n");
+        WebSocketsClient::sendTXT(eIOtype_PING);
     }
 }
 
-void SocketIOclient::runCbEvent(WStype_t type, uint8_t * payload, size_t length) {
+void SocketIOclient::handleCbEvent(WStype_t type, uint8_t * payload, size_t length) {
     switch(type) {
         case WStype_DISCONNECTED:
+            runIOCbEvent(sIOtype_DISCONNECT, NULL, 0);
             DEBUG_WEBSOCKETS("[wsIOc] Disconnected!\n");
             break;
         case WStype_CONNECTED: {
@@ -97,6 +109,7 @@ void SocketIOclient::runCbEvent(WStype_t type, uint8_t * payload, size_t length)
             // send message to server when Connected
             // Engine.io upgrade confirmation message (required)
             WebSocketsClient::sendTXT(eIOtype_UPGRADE);
+            runIOCbEvent(sIOtype_CONNECT, payload, length);
         } break;
         case WStype_TEXT: {
             if(length < 1) {
@@ -136,6 +149,7 @@ void SocketIOclient::runCbEvent(WStype_t type, uint8_t * payload, size_t length)
                             break;
                     }
 
+                    runIOCbEvent(ioType, data, lData);
                 } break;
                 case eIOtype_OPEN:
                 case eIOtype_CLOSE:
