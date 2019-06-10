@@ -10,14 +10,12 @@
 #include "SocketIOclient.h"
 
 SocketIOclient::SocketIOclient() {
-
 }
 
 SocketIOclient::~SocketIOclient() {
-
 }
 
-void SocketIOclient::begin(const char *host, uint16_t port, const char * url, const char * protocol) {
+void SocketIOclient::begin(const char * host, uint16_t port, const char * url, const char * protocol) {
     WebSocketsClient::beginSocketIO(host, port, url, protocol);
 }
 
@@ -40,20 +38,19 @@ bool SocketIOclient::isConnected(void) {
 bool SocketIOclient::sendEVENT(uint8_t * payload, size_t length, bool headerToPayload) {
     bool ret = false;
     if(length == 0) {
-        length = strlen((const char *) payload);
+        length = strlen((const char *)payload);
     }
     if(clientIsConnected(&_client)) {
-
         if(!headerToPayload) {
             // webSocket Header
             ret = WebSocketsClient::sendFrameHeader(&_client, WSop_text, length + 2, true);
             // Engine.IO / Socket.IO Header
             if(ret) {
                 uint8_t buf[3] = { eIOtype_MESSAGE, sIOtype_EVENT, 0x00 };
-                ret = WebSocketsClient::write(&_client, buf, 2);
+                ret            = WebSocketsClient::write(&_client, buf, 2);
             }
             if(ret) {
-                ret = WebSocketsClient::write(&_client, payload, length );
+                ret = WebSocketsClient::write(&_client, payload, length);
             }
             return ret;
         } else {
@@ -66,19 +63,19 @@ bool SocketIOclient::sendEVENT(uint8_t * payload, size_t length, bool headerToPa
 }
 
 bool SocketIOclient::sendEVENT(const uint8_t * payload, size_t length) {
-    return sendEVENT((uint8_t *) payload, length);
+    return sendEVENT((uint8_t *)payload, length);
 }
 
 bool SocketIOclient::sendEVENT(char * payload, size_t length, bool headerToPayload) {
-    return sendEVENT((uint8_t *) payload, length, headerToPayload);
+    return sendEVENT((uint8_t *)payload, length, headerToPayload);
 }
 
 bool SocketIOclient::sendEVENT(const char * payload, size_t length) {
-    return sendEVENT((uint8_t *) payload, length);
+    return sendEVENT((uint8_t *)payload, length);
 }
 
 bool SocketIOclient::sendEVENT(String & payload) {
-    return sendEVENT((uint8_t *) payload.c_str(), payload.length());
+    return sendEVENT((uint8_t *)payload.c_str(), payload.length());
 }
 
 void SocketIOclient::loop(void) {
@@ -100,15 +97,13 @@ void SocketIOclient::runCbEvent(WStype_t type, uint8_t * payload, size_t length)
             // send message to server when Connected
             // Engine.io upgrade confirmation message (required)
             WebSocketsClient::sendTXT(eIOtype_UPGRADE);
-        }
-            break;
+        } break;
         case WStype_TEXT: {
-
             if(length < 1) {
                 break;
             }
 
-            engineIOmessageType_t eType = (engineIOmessageType_t) payload[0];
+            engineIOmessageType_t eType = (engineIOmessageType_t)payload[0];
             switch(eType) {
                 case eIOtype_PING:
                     payload[0] = eIOtype_PONG;
@@ -122,9 +117,9 @@ void SocketIOclient::runCbEvent(WStype_t type, uint8_t * payload, size_t length)
                     if(length < 2) {
                         break;
                     }
-                    socketIOmessageType_t ioType = (socketIOmessageType_t) payload[1];
-                    uint8_t * data = &payload[2];
-                    size_t lData = length - 2;
+                    socketIOmessageType_t ioType = (socketIOmessageType_t)payload[1];
+                    uint8_t * data               = &payload[2];
+                    size_t lData                 = length - 2;
                     switch(ioType) {
                         case sIOtype_EVENT:
                             DEBUG_WEBSOCKETS("[wsIOc] get event (%d): %s\n", lData, data);
@@ -141,8 +136,7 @@ void SocketIOclient::runCbEvent(WStype_t type, uint8_t * payload, size_t length)
                             break;
                     }
 
-                }
-                    break;
+                } break;
                 case eIOtype_OPEN:
                 case eIOtype_CLOSE:
                 case eIOtype_UPGRADE:
@@ -155,8 +149,7 @@ void SocketIOclient::runCbEvent(WStype_t type, uint8_t * payload, size_t length)
 
             // send message to server
             // webSocket.sendTXT("message here");
-        }
-            break;
+        } break;
         case WStype_BIN:
             DEBUG_WEBSOCKETS("[wsIOc] get binary length: %u\n", length);
             // hexdump(payload, length);
