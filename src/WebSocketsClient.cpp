@@ -251,6 +251,12 @@ bool WebSocketsClient::sendTXT(String & payload) {
     return sendTXT((uint8_t *)payload.c_str(), payload.length());
 }
 
+bool WebSocketsClient::sendTXT(char payload) {
+    uint8_t buf[WEBSOCKETS_MAX_HEADER_SIZE + 2] = { 0x00 };
+    buf[WEBSOCKETS_MAX_HEADER_SIZE]             = payload;
+    return sendTXT(buf, 1, true);
+}
+
 /**
  * send binary data to client
  * @param num uint8_t client id
@@ -341,6 +347,10 @@ void WebSocketsClient::setExtraHeaders(const char * extraHeaders) {
  */
 void WebSocketsClient::setReconnectInterval(unsigned long time) {
     _reconnectInterval = time;
+}
+
+bool WebSocketsClient::isConnected(void) {
+    return (_client.status == WSC_CONNECTED);
 }
 
 //#################################################################################
@@ -694,6 +704,13 @@ void WebSocketsClient::handleHeader(WSclient_t * client, String * headerLine) {
 
             runCbEvent(WStype_CONNECTED, (uint8_t *)client->cUrl.c_str(), client->cUrl.length());
         } else if(clientIsConnected(client) && client->isSocketIO && client->cSessionId.length() > 0) {
+            if(_client.tcp->available()) {
+                // read not needed data
+                DEBUG_WEBSOCKETS("[WS-Client][handleHeader] still data in buffer (%d), clean up.\n", _client.tcp->available());
+                while(_client.tcp->available() > 0) {
+                    _client.tcp->read();
+                }
+            }
             sendHeader(client);
         } else {
             DEBUG_WEBSOCKETS("[WS-Client][handleHeader] no Websocket connection close.\n");

@@ -27,7 +27,7 @@
 
 #include "WebSockets.h"
 
-class WebSocketsClient : private WebSockets {
+class WebSocketsClient : protected WebSockets {
   public:
 #ifdef __AVR__
     typedef void (*WebSocketClientEvent)(WStype_t type, uint8_t * payload, size_t length);
@@ -71,6 +71,7 @@ class WebSocketsClient : private WebSockets {
     bool sendTXT(char * payload, size_t length = 0, bool headerToPayload = false);
     bool sendTXT(const char * payload, size_t length = 0);
     bool sendTXT(String & payload);
+    bool sendTXT(char payload);
 
     bool sendBIN(uint8_t * payload, size_t length, bool headerToPayload = false);
     bool sendBIN(const uint8_t * payload, size_t length);
@@ -93,6 +94,8 @@ class WebSocketsClient : private WebSockets {
   protected:
     String _host;
     uint16_t _port;
+
+    bool isConnected(void);
 
 #if defined(HAS_SSL)
     String _fingerprint;
