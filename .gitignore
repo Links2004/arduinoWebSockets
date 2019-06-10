@@ -27,3 +27,11 @@
 *.out
 *.app
 /tests/webSocketServer/node_modules
+
+# IDE
+.vscode
+.cproject
+.project
+.settings
+*.swp
+
