@@ -57,7 +57,6 @@
 
 #if defined(ESP8266) || defined(ESP32)
 
-#define HAS_SSL
 #define WEBSOCKETS_MAX_DATA_SIZE  (15*1024)
 #define WEBSOCKETS_USE_BIG_MEM
 #define GET_FREE_HEAP ESP.getFreeHeap()
@@ -87,6 +86,7 @@
 #define NETWORK_W5100           (2)
 #define NETWORK_ENC28J60        (3)
 #define NETWORK_ESP32           (4)
+#define NETWORK_ESP32_ETH       (5)
 
 // max size of the WS Message Header
 #define WEBSOCKETS_MAX_HEADER_SIZE  (14)
@@ -100,7 +100,7 @@
 
 #elif defined(ESP32)
 #define WEBSOCKETS_NETWORK_TYPE NETWORK_ESP32
-
+//#define WEBSOCKETS_NETWORK_TYPE NETWORK_ESP32_ETH
 #else
 #define WEBSOCKETS_NETWORK_TYPE NETWORK_W5100
 
@@ -143,6 +143,7 @@
 #include <ESP31BWiFi.h>
 #endif
 #define WEBSOCKETS_NETWORK_CLASS WiFiClient
+#define WEBSOCKETS_NETWORK_SSL_CLASS WiFiClientSecure
 #define WEBSOCKETS_NETWORK_SERVER_CLASS WiFiServer
 
 #elif (WEBSOCKETS_NETWORK_TYPE == NETWORK_W5100)
@@ -168,10 +169,22 @@
 #include <WiFi.h>
 #include <WiFiClientSecure.h>
 #define WEBSOCKETS_NETWORK_CLASS WiFiClient
+#define WEBSOCKETS_NETWORK_SSL_CLASS WiFiClientSecure
+#define WEBSOCKETS_NETWORK_SERVER_CLASS WiFiServer
+
+#elif (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP32_ETH)
+
+#include <ETH.h>
+#define WEBSOCKETS_NETWORK_CLASS WiFiClient
 #define WEBSOCKETS_NETWORK_SERVER_CLASS WiFiServer
 
 #else
 #error "no network type selected!"
+#endif
+
+
+#ifdef WEBSOCKETS_NETWORK_SSL_CLASS
+#define HAS_SSL
 #endif
 
 // moves all Header strings to Flash (~300 Byte)
@@ -236,9 +249,9 @@ typedef struct {
 
         bool isSocketIO;    ///< client for socket.io server
 
-#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP32)
+#if defined(HAS_SSL)
         bool isSSL;             ///< run in ssl mode
-        WiFiClientSecure * ssl;
+        WEBSOCKETS_NETWORK_SSL_CLASS * ssl;
 #endif
 
         String cUrl;        ///< http url

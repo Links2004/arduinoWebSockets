@@ -154,7 +154,7 @@ void WebSocketsClient::loop(void) {
             return;
         }
 
-#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP32)
+#if defined(HAS_SSL)
         if(_client.isSSL) {
             DEBUG_WEBSOCKETS("[WS-Client] connect wss...\n");
             if(_client.ssl) {
@@ -162,7 +162,7 @@ void WebSocketsClient::loop(void) {
                 _client.ssl = NULL;
                 _client.tcp = NULL;
             }
-            _client.ssl = new WiFiClientSecure();
+            _client.ssl = new WEBSOCKETS_NETWORK_SSL_CLASS();
             _client.tcp = _client.ssl;
             if(_CA_cert) {
                 DEBUG_WEBSOCKETS("[WS-Client] setting CA certificate");
@@ -180,7 +180,7 @@ void WebSocketsClient::loop(void) {
                 delete _client.tcp;
                 _client.tcp = NULL;
             }
-            _client.tcp = new WiFiClient();
+            _client.tcp = new WEBSOCKETS_NETWORK_CLASS();
         }
 #else
         _client.tcp = new WEBSOCKETS_NETWORK_CLASS();
