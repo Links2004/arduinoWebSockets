@@ -160,16 +160,15 @@ void SocketIOclient::handleCbEvent(WStype_t type, uint8_t * payload, size_t leng
                     DEBUG_WEBSOCKETS("[wsIOc] get text: %s\n", payload);
                     break;
             }
-
-            // send message to server
-            // webSocket.sendTXT("message here");
         } break;
-        case WStype_BIN:
-            DEBUG_WEBSOCKETS("[wsIOc] get binary length: %u\n", length);
-            // hexdump(payload, length);
 
-            // send data to server
-            // webSocket.sendBIN(payload, length);
+        case WStype_BIN:
+        case WStype_FRAGMENT_TEXT_START:
+        case WStype_FRAGMENT_BIN_START:
+        case WStype_FRAGMENT:
+        case WStype_FRAGMENT_FIN:
+        case WStype_PING:
+        case WStype_PONG:
             break;
     }
 }
