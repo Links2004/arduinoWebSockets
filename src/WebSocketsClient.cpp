@@ -133,13 +133,15 @@ void WebSocketsClient::beginSocketIOSSL(String host, uint16_t port, String url, 
 void WebSocketsClient::loop(void) {
     if(!clientIsConnected(&_client)) {
         // do not flood the server
-        if((millis() - _lastConnectionFail) < _reconnectInterval) {
+        int32_t millis_since_reconnect_fail = millis() - _lastConnectionFail;
+        DEBUG_WEBSOCKETS("[WS-Client][loop] NotConnected millis_since_fail=%d last_fail=%lu reconnect_interval=%lu\n", millis_since_reconnect_fail, _lastConnectionFail, _reconnectInterval);
+        if(millis_since_reconnect_fail < _reconnectInterval) {
             return;
         }
 
 #if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP32)
         if(_client.isSSL) {
-            DEBUG_WEBSOCKETS("[WS-Client] connect wss...\n");
+            DEBUG_WEBSOCKETS("[WS-Client][loop] connect wss...\n");
             if(_client.ssl) {
                 delete _client.ssl;
                 _client.ssl = NULL;
@@ -148,7 +150,7 @@ void WebSocketsClient::loop(void) {
             _client.ssl = new WiFiClientSecure();
             _client.tcp = _client.ssl;
         } else {
-            DEBUG_WEBSOCKETS("[WS-Client] connect ws...\n");
+            DEBUG_WEBSOCKETS("[WS-Client][loop] connect ws...\n");
             if(_client.tcp) {
                 delete _client.tcp;
                 _client.tcp = NULL;
@@ -160,14 +162,18 @@ void WebSocketsClient::loop(void) {
 #endif
 
         if(!_client.tcp) {
-            DEBUG_WEBSOCKETS("[WS-Client] creating Network class failed!");
+            DEBUG_WEBSOCKETS("[WS-Client][loop] creating Network class failed!");
             return;
         }
 
-        if(_client.tcp->connect(_host.c_str(), _port)) {
+        DEBUG_WEBSOCKETS("[WS-Client][loop] About to connect to WS\n");
+        // Timeout after 1 second to ensure we don't block indefinitely when WiFi AP goes away.
+        if(_client.tcp->connect(_host.c_str(), _port, 1000)) {
+            DEBUG_WEBSOCKETS("[WS-Client][loop] Connection succeeded\n");
             connectedCb();
             _lastConnectionFail = 0;
         } else {
+            DEBUG_WEBSOCKETS("[WS-Client][loop] Connection failed\n");
             connectFailedCb();
             _lastConnectionFail = millis();
 
@@ -376,11 +382,14 @@ void WebSocketsClient::clientDisconnect(WSclient_t * client) {
     }
 #endif
 
+    DEBUG_WEBSOCKETS("[WS-Client][clientDisconnect] client->tcp=%d\n", (int) client->tcp);
     if(client->tcp) {
+        DEBUG_WEBSOCKETS("[WS-Client][clientDisconnect] client->tcp->connected=%d\n", (int) client->tcp->connected());
         if(client->tcp->connected()) {
 #if (WEBSOCKETS_NETWORK_TYPE != NETWORK_ESP8266_ASYNC)
             client->tcp->flush();
 #endif
+            DEBUG_WEBSOCKETS("[WS-Client][clientDisconnect] stopping client->tcp\n");
             client->tcp->stop();
         }
         event = true;
@@ -388,6 +397,7 @@ void WebSocketsClient::clientDisconnect(WSclient_t * client) {
         client->status = WSC_NOT_CONNECTED;
 #else
         delete client->tcp;
+        DEBUG_WEBSOCKETS("[WS-Client][clientDisconnect] client->tcp DELETED\n");
 #endif
         client->tcp = NULL;
     }
@@ -416,6 +426,7 @@ void WebSocketsClient::clientDisconnect(WSclient_t * client) {
 bool WebSocketsClient::clientIsConnected(WSclient_t * client) {
 
     if(!client->tcp) {
+        DEBUG_WEBSOCKETS("[WS-Client][clientIsConnected] client->tcp=%d\n", (int) client->tcp);
         return false;
     }
 
@@ -423,15 +434,18 @@ bool WebSocketsClient::clientIsConnected(WSclient_t * client) {
         if(client->status != WSC_NOT_CONNECTED) {
             return true;
         }
+        DEBUG_WEBSOCKETS("[WS-Client][clientIsConnected] TCP connected but client->status=%d\n", (int) client->status);
     } else {
         // client lost
+        DEBUG_WEBSOCKETS("[WS-Client][clientIsConnected] NotConnected client->status=%d\n", (int) client->status);
         if(client->status != WSC_NOT_CONNECTED) {
-            DEBUG_WEBSOCKETS("[WS-Client] connection lost.\n");
+            DEBUG_WEBSOCKETS("[WS-Client][clientIsConnected] connection lost.\n");
             // do cleanup
             clientDisconnect(client);
         }
     }
 
+    DEBUG_WEBSOCKETS("[WS-Client][clientIsConnected] (before final cleanup) client->tcp=%d\n", (int) client->tcp);
     if(client->tcp) {
         // do cleanup
         clientDisconnect(client);
