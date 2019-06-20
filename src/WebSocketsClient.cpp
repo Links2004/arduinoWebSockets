@@ -190,8 +190,11 @@ void WebSocketsClient::loop(void) {
             DEBUG_WEBSOCKETS("[WS-Client] creating Network class failed!");
             return;
         }
-
+#if defined(ESP32)
+        if(_client.tcp->connect(_host.c_str(), _port, WEBSOCKETS_TCP_TIMEOUT)) {
+#else
         if(_client.tcp->connect(_host.c_str(), _port)) {
+#endif
             connectedCb();
             _lastConnectionFail = 0;
         } else {
