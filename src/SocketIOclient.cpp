@@ -59,7 +59,7 @@ bool SocketIOclient::sendEVENT(uint8_t * payload, size_t length, bool headerToPa
                 uint8_t buf[3] = { eIOtype_MESSAGE, sIOtype_EVENT, 0x00 };
                 ret            = WebSocketsClient::write(&_client, buf, 2);
             }
-            if(ret) {
+            if(ret && payload && length > 0) {
                 ret = WebSocketsClient::write(&_client, payload, length);
             }
             return ret;
