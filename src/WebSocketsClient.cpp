@@ -762,7 +762,7 @@ void WebSocketsClient::connectedCb() {
             return;
         }
     } else if(_client.isSSL && !_CA_cert) {
-#if defined(wificlientbearssl_h) && !defined(USING_AXTLS)
+#if defined(wificlientbearssl_h) && !defined(USING_AXTLS) && !defined(wificlientsecure_h)
         _client.ssl->setInsecure();
 #endif
     }
