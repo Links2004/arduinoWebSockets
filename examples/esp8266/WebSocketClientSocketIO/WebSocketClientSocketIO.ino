@@ -13,6 +13,7 @@
 #include <ArduinoJson.h>
 
 #include <WebSocketsClient.h>
+#include <SocketIOclient.h>
 
 #include <Hash.h>
 
