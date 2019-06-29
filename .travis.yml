@@ -28,6 +28,10 @@ script:
   - export PATH="$HOME/arduino_ide:$PATH"
   - which arduino
   - mkdir -p $HOME/Arduino/libraries
+
+  - wget https://github.com/bblanchon/ArduinoJson/archive/6.x.zip
+  - unzip 6.x.zip
+  - mv ArduinoJson-6.x $HOME/Arduino/libraries/ArduinoJson
   - cp -r $TRAVIS_BUILD_DIR $HOME/Arduino/libraries/arduinoWebSockets
   - source $TRAVIS_BUILD_DIR/travis/common.sh
   - get_core $CPU
