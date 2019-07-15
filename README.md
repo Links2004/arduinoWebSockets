@@ -57,22 +57,22 @@ The mode can be activated in the ```WebSockets.h``` (see WEBSOCKETS_NETWORK_TYPE
 ### High Level Client API ###
 
  - `begin` : Initiate connection sequence to the websocket host.
-```
+```c++
 void begin(const char *host, uint16_t port, const char * url = "/", const char * protocol = "arduino");
 void begin(String host, uint16_t port, String url = "/", String protocol = "arduino");
  ```
  - `onEvent`: Callback to handle for websocket events
 
- ```
+ ```c++
  void onEvent(WebSocketClientEvent cbEvent);
  ```
 
  - `WebSocketClientEvent`: Handler for websocket events
- ```
+ ```c++
  void (*WebSocketClientEvent)(WStype_t type, uint8_t * payload, size_t length)
  ```
 Where `WStype_t type` is defined as:
-  ```
+  ```c++
   typedef enum {
       WStype_ERROR,
       WStype_DISCONNECTED,
