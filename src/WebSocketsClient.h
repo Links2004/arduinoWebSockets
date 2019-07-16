@@ -55,6 +55,7 @@ class WebSocketsClient : protected WebSockets {
     void beginSocketIOSSL(const char * host, uint16_t port, const char * url = "/socket.io/?EIO=3", const char * protocol = "arduino");
     void beginSocketIOSSL(String host, uint16_t port, String url = "/socket.io/?EIO=3", String protocol = "arduino");
     void beginSocketIOSSLWithCA(const char * host, uint16_t port, const char * url = "/socket.io/?EIO=3", const char * CA_cert = NULL, const char * protocol = "arduino");
+    void setInsecure();
 #endif
 
 #if(WEBSOCKETS_NETWORK_TYPE != NETWORK_ESP8266_ASYNC)
@@ -85,9 +86,10 @@ class WebSocketsClient : protected WebSockets {
     void setAuthorization(const char * auth);
 
     void setExtraHeaders(const char * extraHeaders = NULL);
-
+    void setUserAgent(const char * userAgent);
+    
     void setReconnectInterval(unsigned long time);
-
+        
     void enableHeartbeat(uint32_t pingInterval, uint32_t pongTimeout, uint8_t disconnectTimeoutCount);
     void disableHeartbeat();
 
@@ -100,6 +102,7 @@ class WebSocketsClient : protected WebSockets {
 #if defined(HAS_SSL)
     String _fingerprint;
     const char * _CA_cert;
+    bool _isSecure;
 #endif
     WSclient_t _client;
 

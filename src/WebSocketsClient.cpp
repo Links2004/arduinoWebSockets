@@ -99,6 +99,7 @@ void WebSocketsClient::beginSSL(const char * host, uint16_t port, const char * u
     _client.isSSL = true;
     _fingerprint  = fingerprint;
     _CA_cert      = NULL;
+    _isSecure     = true;
 }
 
 void WebSocketsClient::beginSSL(String host, uint16_t port, String url, String fingerprint, String protocol) {
@@ -110,7 +111,16 @@ void WebSocketsClient::beginSslWithCA(const char * host, uint16_t port, const ch
     _client.isSSL = true;
     _fingerprint  = "";
     _CA_cert      = CA_cert;
+    _isSecure     = true;
 }
+
+/**
+ * disables certificate checks for SSL connections.
+ */
+void WebSocketsClient::setInsecure() {
+   _isSecure     = false;
+}
+
 #endif
 
 void WebSocketsClient::beginSocketIO(const char * host, uint16_t port, const char * url, const char * protocol) {
@@ -128,6 +138,7 @@ void WebSocketsClient::beginSocketIOSSL(const char * host, uint16_t port, const 
     _client.isSocketIO = true;
     _client.isSSL      = true;
     _fingerprint       = "";
+    _isSecure          = true;
 }
 
 void WebSocketsClient::beginSocketIOSSL(String host, uint16_t port, String url, String protocol) {
@@ -140,6 +151,7 @@ void WebSocketsClient::beginSocketIOSSLWithCA(const char * host, uint16_t port, 
     _client.isSSL      = true;
     _fingerprint       = "";
     _CA_cert           = CA_cert;
+    _isSecure          = true;
 }
 #endif
 
@@ -164,6 +176,11 @@ void WebSocketsClient::loop(void) {
             }
             _client.ssl = new WEBSOCKETS_NETWORK_SSL_CLASS();
             _client.tcp = _client.ssl;
+
+            if (!_isSecure) {
+                _client.ssl->setInsecure();
+            }
+
             if(_CA_cert) {
                 DEBUG_WEBSOCKETS("[WS-Client] setting CA certificate");
 #if defined(ESP32)
@@ -341,6 +358,14 @@ void WebSocketsClient::setAuthorization(const char * auth) {
  */
 void WebSocketsClient::setExtraHeaders(const char * extraHeaders) {
     _client.extraHeaders = extraHeaders;
+}
+
+/**
+ * set an user agent which will override the default user agent.
+ * @param userAgent the user agent header to set
+ */
+void WebSocketsClient::setUserAgent(const char * userAgent) {
+    _client.userAgentHeader = userAgent;
 }
 
 /**
@@ -571,7 +596,12 @@ void WebSocketsClient::sendHeader(WSclient_t * client) {
         handshake += client->extraHeaders + NEW_LINE;
     }
 
-    handshake += WEBSOCKETS_STRING("User-Agent: arduino-WebSocket-Client\r\n");
+    if (client->userAgentHeader.length() > 0) {
+        handshake += WEBSOCKETS_STRING("User-Agent: ") + client->userAgentHeader;
+    } else {
+        handshake += WEBSOCKETS_STRING("User-Agent: arduino-WebSocket-Client\r\n");
+    }
+    
 
     if(client->base64Authorization.length() > 0) {
         handshake += WEBSOCKETS_STRING("Authorization: Basic ");
