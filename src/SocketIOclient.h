@@ -59,7 +59,6 @@ class SocketIOclient : protected WebSocketsClient {
     bool sendEVENT(const char * payload, size_t length = 0);
     bool sendEVENT(String & payload);
 
-
     bool send(socketIOmessageType_t type, uint8_t * payload, size_t length = 0, bool headerToPayload = false);
     bool send(socketIOmessageType_t type, const uint8_t * payload, size_t length = 0);
     bool send(socketIOmessageType_t type, char * payload, size_t length = 0, bool headerToPayload = false);

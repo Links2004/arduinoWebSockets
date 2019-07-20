@@ -96,7 +96,7 @@ bool SocketIOclient::send(socketIOmessageType_t type, String & payload) {
  * @return true if ok
  */
 bool SocketIOclient::sendEVENT(uint8_t * payload, size_t length, bool headerToPayload) {
-   return send(sIOtype_EVENT, payload, length, headerToPayload);
+    return send(sIOtype_EVENT, payload, length, headerToPayload);
 }
 
 bool SocketIOclient::sendEVENT(const uint8_t * payload, size_t length) {
