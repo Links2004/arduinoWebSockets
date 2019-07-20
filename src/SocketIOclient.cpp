@@ -188,7 +188,7 @@ void SocketIOclient::handleCbEvent(WStype_t type, uint8_t * payload, size_t leng
                     break;
             }
         } break;
-
+        case WStype_ERROR:
         case WStype_BIN:
         case WStype_FRAGMENT_TEXT_START:
         case WStype_FRAGMENT_BIN_START:
