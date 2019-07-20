@@ -40,12 +40,13 @@ bool SocketIOclient::isConnected(void) {
 /**
  * send text data to client
  * @param num uint8_t client id
+ * @param type socketIOmessageType_t
  * @param payload uint8_t *
  * @param length size_t
- * @param headerToPayload bool  (see sendFrame for more details)
+ * @param headerToPayload bool (see sendFrame for more details)
  * @return true if ok
  */
-bool SocketIOclient::sendEVENT(uint8_t * payload, size_t length, bool headerToPayload) {
+bool SocketIOclient::send(socketIOmessageType_t type, uint8_t * payload, size_t length, bool headerToPayload) {
     bool ret = false;
     if(length == 0) {
         length = strlen((const char *)payload);
@@ -56,7 +57,7 @@ bool SocketIOclient::sendEVENT(uint8_t * payload, size_t length, bool headerToPa
             ret = WebSocketsClient::sendFrameHeader(&_client, WSop_text, length + 2, true);
             // Engine.IO / Socket.IO Header
             if(ret) {
-                uint8_t buf[3] = { eIOtype_MESSAGE, sIOtype_EVENT, 0x00 };
+                uint8_t buf[3] = { eIOtype_MESSAGE, type, 0x00 };
                 ret            = WebSocketsClient::write(&_client, buf, 2);
             }
             if(ret && payload && length > 0) {
@@ -66,10 +67,36 @@ bool SocketIOclient::sendEVENT(uint8_t * payload, size_t length, bool headerToPa
         } else {
             // TODO implement
         }
-
-        // return WebSocketsClient::sendFrame(&_client, WSop_text, payload, length, true, true, headerToPayload);
     }
     return false;
+}
+
+bool SocketIOclient::send(socketIOmessageType_t type, const uint8_t * payload, size_t length) {
+    return send(type, (uint8_t *)payload, length);
+}
+
+bool SocketIOclient::send(socketIOmessageType_t type, char * payload, size_t length, bool headerToPayload) {
+    return send(type, (uint8_t *)payload, length, headerToPayload);
+}
+
+bool SocketIOclient::send(socketIOmessageType_t type, const char * payload, size_t length) {
+    return send(type, (uint8_t *)payload, length);
+}
+
+bool SocketIOclient::send(socketIOmessageType_t type, String & payload) {
+    return send(type, (uint8_t *)payload.c_str(), payload.length());
+}
+
+/**
+ * send text data to client
+ * @param num uint8_t client id
+ * @param payload uint8_t *
+ * @param length size_t
+ * @param headerToPayload bool  (see sendFrame for more details)
+ * @return true if ok
+ */
+bool SocketIOclient::sendEVENT(uint8_t * payload, size_t length, bool headerToPayload) {
+   return send(sIOtype_EVENT, payload, length, headerToPayload);
 }
 
 bool SocketIOclient::sendEVENT(const uint8_t * payload, size_t length) {
