@@ -30,6 +30,7 @@ WebSocketsClient::WebSocketsClient() {
     _client.num          = 0;
     _client.cIsClient    = true;
     _client.extraHeaders = WEBSOCKETS_STRING("Origin: file://");
+    _reconnectInterval   = 500;    
 }
 
 WebSocketsClient::~WebSocketsClient() {
@@ -82,7 +83,6 @@ void WebSocketsClient::begin(const char * host, uint16_t port, const char * url,
 #endif
 
     _lastConnectionFail = 0;
-    _reconnectInterval  = 500;
 }
 
 void WebSocketsClient::begin(String host, uint16_t port, String url, String protocol) {
