@@ -92,6 +92,8 @@ class WebSocketsServer : protected WebSockets {
 
     int connectedClients(bool ping = false);
 
+    bool clientIsConnected(uint8_t num);
+    
     void enableHeartbeat(uint32_t pingInterval, uint32_t pongTimeout, uint8_t disconnectTimeoutCount);
     void disableHeartbeat();
 
