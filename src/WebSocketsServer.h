@@ -91,7 +91,7 @@ class WebSocketsServer : protected WebSockets {
     void setAuthorization(const char * auth);
 
     int connectedClients(bool ping = false);
-    
+
     void enableHeartbeat(uint32_t pingInterval, uint32_t pongTimeout, uint8_t disconnectTimeoutCount);
     void disableHeartbeat();
 
@@ -115,7 +115,7 @@ class WebSocketsServer : protected WebSockets {
     WebSocketServerHttpHeaderValFunc _httpHeaderValidationFunc;
 
     bool _runnning;
-    
+
     uint32_t _pingInterval;
     uint32_t _pongTimeout;
     uint8_t _disconnectTimeoutCount;
@@ -133,7 +133,7 @@ class WebSocketsServer : protected WebSockets {
 #endif
 
     void handleHeader(WSclient_t * client, String * headerLine);
-    
+
     void handleHBPing(WSclient_t * client);    // send ping in specified intervals
 
     /**

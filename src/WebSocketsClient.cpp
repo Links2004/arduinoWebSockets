@@ -30,7 +30,7 @@ WebSocketsClient::WebSocketsClient() {
     _client.num          = 0;
     _client.cIsClient    = true;
     _client.extraHeaders = WEBSOCKETS_STRING("Origin: file://");
-    _reconnectInterval   = 500;    
+    _reconnectInterval   = 500;
 }
 
 WebSocketsClient::~WebSocketsClient() {
