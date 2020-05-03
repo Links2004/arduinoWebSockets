@@ -623,12 +623,7 @@ bool WebSockets::readCb(WSclient_t * client, uint8_t * out, size_t n, WSreadWait
         }
 
         if(!client->tcp->available()) {
-#if(WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
-            delay(0);
-#endif
-#if(WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP32)
-            yield();
-#endif
+            WEBSOCKETS_YIELD();
             continue;
         }
 
@@ -641,13 +636,12 @@ bool WebSockets::readCb(WSclient_t * client, uint8_t * out, size_t n, WSreadWait
         } else {
             //DEBUG_WEBSOCKETS("Receive %d left %d!\n", len, n);
         }
-#if(WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
-        delay(0);
-#endif
+        WEBSOCKETS_YIELD();
     }
     if(cb) {
         cb(client, true);
     }
+    WEBSOCKETS_YIELD();
 #endif
     return true;
 }
@@ -694,10 +688,9 @@ size_t WebSockets::write(WSclient_t * client, uint8_t * out, size_t n) {
         } else {
             //DEBUG_WEBSOCKETS("write %d failed left %d!\n", len, n);
         }
-#if(WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
-        delay(0);
-#endif
+        WEBSOCKETS_YIELD();
     }
+    WEBSOCKETS_YIELD();
     return total;
 }
 

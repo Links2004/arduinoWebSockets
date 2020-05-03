@@ -61,11 +61,18 @@
 // moves all Header strings to Flash (~300 Byte)
 //#define WEBSOCKETS_SAVE_RAM
 
+#if defined(ESP8266) 
+#define WEBSOCKETS_YIELD() delay(0)
+#elif defined(ESP32)
+#define WEBSOCKETS_YIELD() yield()
+#endif
+
 #elif defined(STM32_DEVICE)
 
 #define WEBSOCKETS_MAX_DATA_SIZE (15 * 1024)
 #define WEBSOCKETS_USE_BIG_MEM
 #define GET_FREE_HEAP System.freeMemory()
+#define WEBSOCKETS_YIELD()
 
 #else
 
@@ -73,6 +80,7 @@
 #define WEBSOCKETS_MAX_DATA_SIZE (1024)
 // moves all Header strings to Flash
 #define WEBSOCKETS_SAVE_RAM
+#define WEBSOCKETS_YIELD()
 
 #endif
 

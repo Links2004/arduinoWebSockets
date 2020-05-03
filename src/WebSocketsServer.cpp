@@ -135,7 +135,9 @@ void WebSocketsServer::close(void) {
  */
 void WebSocketsServer::loop(void) {
     if(_runnning) {
+        WEBSOCKETS_YIELD();
         handleNewClients();
+        WEBSOCKETS_YIELD();
         handleClientData();
     }
 }
@@ -231,9 +233,7 @@ bool WebSocketsServer::broadcastTXT(uint8_t * payload, size_t length, bool heade
                 ret = false;
             }
         }
-#if(WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
-        delay(0);
-#endif
+        WEBSOCKETS_YIELD();
     }
     return ret;
 }
@@ -294,9 +294,7 @@ bool WebSocketsServer::broadcastBIN(uint8_t * payload, size_t length, bool heade
                 ret = false;
             }
         }
-#if(WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
-        delay(0);
-#endif
+        WEBSOCKETS_YIELD();
     }
     return ret;
 }
@@ -343,9 +341,7 @@ bool WebSocketsServer::broadcastPing(uint8_t * payload, size_t length) {
                 ret = false;
             }
         }
-#if(WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
-        delay(0);
-#endif
+        WEBSOCKETS_YIELD();
     }
     return ret;
 }
@@ -660,8 +656,8 @@ void WebSocketsServer::handleNewClients(void) {
             tcpClient->stop();
         }
 
-#if(WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP32)
-        delay(0);
+        WEBSOCKETS_YIELD();
+#if(WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP32)    
     }
 #endif
 }
@@ -694,9 +690,7 @@ void WebSocketsServer::handleClientData(void) {
             handleHBPing(client);
             handleHBTimeout(client);
         }
-#if(WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
-        delay(0);
-#endif
+        WEBSOCKETS_YIELD();
     }
 }
 #endif
