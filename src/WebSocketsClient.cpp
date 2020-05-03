@@ -706,6 +706,7 @@ void WebSocketsClient::handleHeader(WSclient_t * client, String * headerLine) {
             headerDone(client);
 
             runCbEvent(WStype_CONNECTED, (uint8_t *)client->cUrl.c_str(), client->cUrl.length());
+#if(WEBSOCKETS_NETWORK_TYPE != NETWORK_ESP8266_ASYNC)
         } else if(clientIsConnected(client) && client->isSocketIO && client->cSessionId.length() > 0) {
             if(_client.tcp->available()) {
                 // read not needed data
@@ -715,6 +716,7 @@ void WebSocketsClient::handleHeader(WSclient_t * client, String * headerLine) {
                 }
             }
             sendHeader(client);
+#endif
         } else {
             DEBUG_WEBSOCKETS("[WS-Client][handleHeader] no Websocket connection close.\n");
             _lastConnectionFail = millis();
