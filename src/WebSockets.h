@@ -50,7 +50,9 @@
 
 #ifndef DEBUG_WEBSOCKETS
 #define DEBUG_WEBSOCKETS(...)
+#ifndef NODEBUG_WEBSOCKETS
 #define NODEBUG_WEBSOCKETS
+#endif
 #endif
 
 #if defined(ESP8266) || defined(ESP32)
