@@ -31,6 +31,8 @@ WebSocketsClient::WebSocketsClient() {
     _client.cIsClient    = true;
     _client.extraHeaders = WEBSOCKETS_STRING("Origin: file://");
     _reconnectInterval   = 500;
+    _port                = 0;
+    _host                = "";
 }
 
 WebSocketsClient::~WebSocketsClient() {
@@ -148,6 +150,9 @@ void WebSocketsClient::beginSocketIOSSLWithCA(const char * host, uint16_t port, 
  * called in arduino loop
  */
 void WebSocketsClient::loop(void) {
+    if(_port == 0) {
+        return;
+    }
     WEBSOCKETS_YIELD();
     if(!clientIsConnected(&_client)) {
         // do not flood the server

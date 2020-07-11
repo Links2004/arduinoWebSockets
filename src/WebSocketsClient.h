@@ -91,11 +91,11 @@ class WebSocketsClient : protected WebSockets {
     void enableHeartbeat(uint32_t pingInterval, uint32_t pongTimeout, uint8_t disconnectTimeoutCount);
     void disableHeartbeat();
 
+    bool isConnected(void);
+
   protected:
     String _host;
     uint16_t _port;
-
-    bool isConnected(void);
 
 #if defined(HAS_SSL)
     String _fingerprint;
