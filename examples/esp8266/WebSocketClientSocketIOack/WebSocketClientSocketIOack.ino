@@ -147,7 +147,7 @@ void loop() {
 
         // add payload (parameters) for the event
         JsonObject param1 = array.createNestedObject();
-        param1["now"] = now;
+        param1["now"] = (utin32_t) now;
 
         // JSON to String (serializion)
         String output;
