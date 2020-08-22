@@ -548,7 +548,7 @@ void WebSocketsClient::sendHeader(WSclient_t * client) {
     handshake += url + WEBSOCKETS_STRING(
                            " HTTP/1.1\r\n"
                            "Host: ");
-    handshake += _host + ":" + _port + NEW_LINE;
+    handshake += _host + NEW_LINE;
 
     if(ws_header) {
         handshake += WEBSOCKETS_STRING(
