@@ -419,6 +419,18 @@ int WebSocketsServer::connectedClients(bool ping) {
     return count;
 }
 
+/**
+ * see if one client is connected
+ * @param num uint8_t client id
+ */
+bool WebSocketsServer::clientIsConnected(uint8_t num) {
+     if(num >= WEBSOCKETS_SERVER_CLIENT_MAX) {
+        return false;
+    }
+    WSclient_t * client = &_clients[num];
+    return clientIsConnected(client);
+}
+
 #if(WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266_ASYNC) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP32)
 /**
  * get an IP for a client
