@@ -85,6 +85,7 @@ void WebSocketsClient::begin(const char * host, uint16_t port, const char * url,
 #endif
 
     _lastConnectionFail = 0;
+    _lastHeaderSent     = 0;
 }
 
 void WebSocketsClient::begin(String host, uint16_t port, String url, String protocol) {
@@ -490,6 +491,12 @@ bool WebSocketsClient::clientIsConnected(WSclient_t * client) {
  * Handel incomming data from Client
  */
 void WebSocketsClient::handleClientData(void) {
+    if(_client.status == WSC_HEADER && _lastHeaderSent + WEBSOCKETS_TCP_TIMEOUT < millis()) {
+        DEBUG_WEBSOCKETS("[WS-Client][handleClientData] header response timeout.. disconnecting!\n");
+        clientDisconnect(&_client);
+        WEBSOCKETS_YIELD();
+        return;
+    }
     int len = _client.tcp->available();
     if(len > 0) {
         switch(_client.status) {
@@ -598,6 +605,7 @@ void WebSocketsClient::sendHeader(WSclient_t * client) {
 #endif
 
     DEBUG_WEBSOCKETS("[WS-Client][sendHeader] sending header... Done (%luus).\n", (micros() - start));
+    _lastHeaderSent = millis();
 }
 
 /**

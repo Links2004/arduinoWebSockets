@@ -107,6 +107,7 @@ class WebSocketsClient : protected WebSockets {
 
     unsigned long _lastConnectionFail;
     unsigned long _reconnectInterval;
+    unsigned long _lastHeaderSent;
 
     void messageReceived(WSclient_t * client, WSopcode_t opcode, uint8_t * payload, size_t length, bool fin);
 
