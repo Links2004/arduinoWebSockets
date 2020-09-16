@@ -567,7 +567,7 @@ void WebSocketsServer::clientDisconnect(WSclient_t * client) {
 
     if(client->tcp) {
         if(client->tcp->connected()) {
-#if(WEBSOCKETS_NETWORK_TYPE != NETWORK_ESP8266_ASYNC)
+#if(WEBSOCKETS_NETWORK_TYPE != NETWORK_ESP8266_ASYNC) && (WEBSOCKETS_NETWORK_TYPE != NETWORK_ESP32)
             client->tcp->flush();
 #endif
             client->tcp->stop();
@@ -694,6 +694,7 @@ void WebSocketsServer::handleClientData(void) {
                         WebSockets::handleWebsocket(client);
                         break;
                     default:
+                        DEBUG_WEBSOCKETS("[WS-Server][%d][handleClientData] unknown client status %d\n", client->num, client->status);
                         WebSockets::clientDisconnect(client, 1002);
                         break;
                 }

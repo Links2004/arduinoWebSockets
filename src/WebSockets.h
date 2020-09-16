@@ -65,8 +65,10 @@
 
 #if defined(ESP8266)
 #define WEBSOCKETS_YIELD() delay(0)
+#define WEBSOCKETS_YIELD_MORE() delay(1)
 #elif defined(ESP32)
 #define WEBSOCKETS_YIELD() yield()
+#define WEBSOCKETS_YIELD_MORE() delay(1)
 #endif
 
 #elif defined(STM32_DEVICE)
