@@ -170,7 +170,6 @@ void WebSocketsClient::loop(void) {
                 _client.tcp = NULL;
             }
             _client.ssl = new WEBSOCKETS_NETWORK_SSL_CLASS();
-            _client.ssl->setFingerprint(_fingerprint.c_str());
             _client.tcp = _client.ssl;
             if(_CA_cert) {
                 DEBUG_WEBSOCKETS("[WS-Client] setting CA certificate");
@@ -180,6 +179,10 @@ void WebSocketsClient::loop(void) {
                 _client.ssl->setCACert((const uint8_t *)_CA_cert, strlen(_CA_cert) + 1);
 #else
 #error setCACert not implemented
+#endif
+            } else if(_fingerprint.length()) {
+#if defined(wificlientbearssl_h) && !defined(USING_AXTLS) && !defined(wificlientsecure_h)
+                _client.ssl->setFingerprint(_fingerprint.c_str());
 #endif
             }
         } else {
