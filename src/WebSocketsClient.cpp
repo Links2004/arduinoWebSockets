@@ -180,6 +180,10 @@ void WebSocketsClient::loop(void) {
 #else
 #error setCACert not implemented
 #endif
+            } else if(_fingerprint.length()) {
+#if defined(wificlientbearssl_h) && !defined(USING_AXTLS) && !defined(wificlientsecure_h)
+                _client.ssl->setFingerprint(_fingerprint.c_str());
+#endif
             }
         } else {
             DEBUG_WEBSOCKETS("[WS-Client] connect ws...\n");
