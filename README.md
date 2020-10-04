@@ -81,10 +81,12 @@ Where `WStype_t type` is defined as:
       WStype_CONNECTED,
       WStype_TEXT,
       WStype_BIN,
-  	WStype_FRAGMENT_TEXT_START,
-  	WStype_FRAGMENT_BIN_START,
-  	WStype_FRAGMENT,
-  	WStype_FRAGMENT_FIN,
+      WStype_FRAGMENT_TEXT_START,
+      WStype_FRAGMENT_BIN_START,
+      WStype_FRAGMENT,
+      WStype_FRAGMENT_FIN,
+      WStype_PING,
+      WStype_PONG,
   } WStype_t;
   ```
 
