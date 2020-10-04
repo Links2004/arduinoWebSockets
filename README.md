@@ -34,7 +34,9 @@ a WebSocket Server and Client for Arduino based on RFC6455.
 
 ###### Note: ######
 
-  version 2.0 and up is not compatible with AVR/ATmega, check ATmega branch.
+  version 2.0.0 and up is not compatible with AVR/ATmega, check ATmega branch.
+
+  version 2.3.0 has API changes for the ESP8266 BareSSL (may brakes existing code)
 
   Arduino for AVR not supports std namespace of c++.
 
