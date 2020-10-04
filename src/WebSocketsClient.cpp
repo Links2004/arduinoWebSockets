@@ -211,9 +211,7 @@ void WebSocketsClient::loop(void) {
 #if defined(SSL_BARESSL)
             } else if(_fingerprint) {
                 _client.ssl->setFingerprint(_fingerprint);
-#endif
             } else {
-#if defined(SSL_BARESSL)
                 _client.ssl->setInsecure();
 #endif
             }
