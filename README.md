@@ -1,4 +1,4 @@
-WebSocket Server and Client for Arduino [![Build Status](https://travis-ci.org/Links2004/arduinoWebSockets.svg?branch=master)](https://travis-ci.org/Links2004/arduinoWebSockets)
+WebSocket Server and Client for Arduino [![Build Status](https://travis-ci.com/Links2004/arduinoWebSockets.svg?branch=master)](https://travis-ci.com/Links2004/arduinoWebSockets)
 ===========================================
 
 a WebSocket Server and Client for Arduino based on RFC6455.
