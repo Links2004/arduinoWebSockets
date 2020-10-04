@@ -128,6 +128,7 @@
 #elif defined(ESP32)
 #include <WiFi.h>
 #include <WiFiClientSecure.h>
+#define SSL_AXTLS
 #elif defined(ESP31B)
 #include <ESP31BWiFi.h>
 #else
@@ -147,6 +148,11 @@
 
 #ifdef ESP8266
 #include <ESP8266WiFi.h>
+#if defined(wificlientbearssl_h) && !defined(USING_AXTLS) && !defined(wificlientsecure_h)
+#define SSL_BARESSL
+#else
+#define SSL_AXTLS
+#endif
 #else
 #include <ESP31BWiFi.h>
 #endif
@@ -176,6 +182,7 @@
 
 #include <WiFi.h>
 #include <WiFiClientSecure.h>
+#define SSL_AXTLS
 #define WEBSOCKETS_NETWORK_CLASS WiFiClient
 #define WEBSOCKETS_NETWORK_SSL_CLASS WiFiClientSecure
 #define WEBSOCKETS_NETWORK_SERVER_CLASS WiFiServer

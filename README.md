@@ -1,4 +1,4 @@
-WebSocket Server and Client for Arduino [![Build Status](https://travis-ci.org/Links2004/arduinoWebSockets.svg?branch=master)](https://travis-ci.org/Links2004/arduinoWebSockets)
+WebSocket Server and Client for Arduino [![Build Status](https://travis-ci.com/Links2004/arduinoWebSockets.svg?branch=master)](https://travis-ci.com/Links2004/arduinoWebSockets)
 ===========================================
 
 a WebSocket Server and Client for Arduino based on RFC6455.
@@ -34,7 +34,9 @@ a WebSocket Server and Client for Arduino based on RFC6455.
 
 ###### Note: ######
 
-  version 2.0 and up is not compatible with AVR/ATmega, check ATmega branch.
+  version 2.0.0 and up is not compatible with AVR/ATmega, check ATmega branch.
+
+  version 2.3.0 has API changes for the ESP8266 BareSSL (may brakes existing code)
 
   Arduino for AVR not supports std namespace of c++.
 
@@ -79,10 +81,12 @@ Where `WStype_t type` is defined as:
       WStype_CONNECTED,
       WStype_TEXT,
       WStype_BIN,
-  	WStype_FRAGMENT_TEXT_START,
-  	WStype_FRAGMENT_BIN_START,
-  	WStype_FRAGMENT,
-  	WStype_FRAGMENT_FIN,
+      WStype_FRAGMENT_TEXT_START,
+      WStype_FRAGMENT_BIN_START,
+      WStype_FRAGMENT,
+      WStype_FRAGMENT_FIN,
+      WStype_PING,
+      WStype_PONG,
   } WStype_t;
   ```
 
