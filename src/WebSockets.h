@@ -65,8 +65,10 @@
 
 #if defined(ESP8266)
 #define WEBSOCKETS_YIELD() delay(0)
+#define WEBSOCKETS_YIELD_MORE() delay(1)
 #elif defined(ESP32)
 #define WEBSOCKETS_YIELD() yield()
+#define WEBSOCKETS_YIELD_MORE() delay(1)
 #endif
 
 #elif defined(STM32_DEVICE)
@@ -75,7 +77,7 @@
 #define WEBSOCKETS_USE_BIG_MEM
 #define GET_FREE_HEAP System.freeMemory()
 #define WEBSOCKETS_YIELD()
-
+#define WEBSOCKETS_YIELD_MORE()
 #else
 
 //atmega328p has only 2KB ram!
@@ -83,7 +85,7 @@
 // moves all Header strings to Flash
 #define WEBSOCKETS_SAVE_RAM
 #define WEBSOCKETS_YIELD()
-
+#define WEBSOCKETS_YIELD_MORE()
 #endif
 
 #define WEBSOCKETS_TCP_TIMEOUT (5000)
