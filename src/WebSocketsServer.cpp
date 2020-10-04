@@ -424,7 +424,7 @@ int WebSocketsServer::connectedClients(bool ping) {
  * @param num uint8_t client id
  */
 bool WebSocketsServer::clientIsConnected(uint8_t num) {
-     if(num >= WEBSOCKETS_SERVER_CLIENT_MAX) {
+    if(num >= WEBSOCKETS_SERVER_CLIENT_MAX) {
         return false;
     }
     WSclient_t * client = &_clients[num];
