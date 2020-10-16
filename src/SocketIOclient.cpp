@@ -24,7 +24,37 @@ void SocketIOclient::begin(String host, uint16_t port, String url, String protoc
     WebSocketsClient::beginSocketIO(host, port, url, protocol);
     WebSocketsClient::enableHeartbeat(60 * 1000, 90 * 1000, 5);
 }
+#if defined(HAS_SSL)
+void SocketIOclient::beginSSL(const char * host, uint16_t port, const char * url, const char * protocol) {
+    WebSocketsClient::beginSocketIOSSL(host, port, url, protocol);
+    WebSocketsClient::enableHeartbeat(60 * 1000, 90 * 1000, 5);
+}
 
+void SocketIOclient::beginSSL(String host, uint16_t port, String url, String protocol) {
+    WebSocketsClient::beginSocketIOSSL(host, port, url, protocol);
+    WebSocketsClient::enableHeartbeat(60 * 1000, 90 * 1000, 5);
+}
+#if !defined(SSL_AXTLS)
+void SocketIOclient::beginSSLWithCA(const char * host, uint16_t port, const char * url, const char * CA_cert, const char * protocol) {
+    WebSocketsClient::beginSocketIOSSLWithCA(host, port, url, CA_cert, protocol);
+    WebSocketsClient::enableHeartbeat(60 * 1000, 90 * 1000, 5);
+}
+
+void SocketIOclient::beginSSLWithCA(const char * host, uint16_t port, const char * url, BearSSL::X509List * CA_cert, const char * protocol) {
+    WebSocketsClient::beginSocketIOSSLWithCA(host, port, url, CA_cert, protocol);
+    WebSocketsClient::enableHeartbeat(60 * 1000, 90 * 1000, 5);
+}
+
+void SocketIOclient::setSSLClientCertKey(const char * clientCert, const char * clientPrivateKey) {
+    WebSocketsClient::setSSLClientCertKey(clientCert, clientPrivateKey);
+}
+
+void SocketIOclient::setSSLClientCertKey(BearSSL::X509List * clientCert, BearSSL::PrivateKey * clientPrivateKey) {
+    WebSocketsClient::setSSLClientCertKey(clientCert, clientPrivateKey);
+}
+
+#endif
+#endif
 /**
  * set callback function
  * @param cbEvent SocketIOclientEvent

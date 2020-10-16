@@ -90,6 +90,9 @@ void setup() {
         delay(100);
     }
 
+    //When using BearSSL, client certificate and private key can be set:
+    //webSocket.setSSLClientCertKey(clientCert, clientPrivateKey);
+    //clientCert and clientPrivateKey can be of types (const char *, const char *) , or of types (BearSSL::X509List, BearSSL::PrivateKey)
     webSocket.beginSslWithCA("echo.websocket.org", 443, "/", ENDPOINT_CA_CERT);
     webSocket.onEvent(webSocketEvent);
 }
