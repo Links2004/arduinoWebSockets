@@ -136,7 +136,7 @@ void WebSocketsClient::beginSslWithCA(const char * host, uint16_t port, const ch
 
 void WebSocketsClient::setSSLClientCertKey(BearSSL::X509List * clientCert, BearSSL::PrivateKey * clientPrivateKey) {
     _client_cert = clientCert;
-    _client_key = clientPrivateKey;
+    _client_key  = clientPrivateKey;
 }
 
 void WebSocketsClient::setSSLClientCertKey(const char * clientCert, const char * clientPrivateKey) {
@@ -156,7 +156,7 @@ void WebSocketsClient::beginSocketIO(String host, uint16_t port, String url, Str
 }
 
 #if defined(HAS_SSL)
-void WebSocketsClient::beginSocketIOSSL(const char * host, uint16_t port, const char * url, const char * protocol) {     
+void WebSocketsClient::beginSocketIOSSL(const char * host, uint16_t port, const char * url, const char * protocol) {
     begin(host, port, url, protocol);
     _client.isSocketIO = true;
     _client.isSSL      = true;
@@ -168,12 +168,12 @@ void WebSocketsClient::beginSocketIOSSL(String host, uint16_t port, String url, 
 }
 
 #if defined(SSL_BARESSL)
-void WebSocketsClient::beginSocketIOSSLWithCA(const char * host, uint16_t port, const char * url,  BearSSL::X509List * CA_cert, const char * protocol) {
+void WebSocketsClient::beginSocketIOSSLWithCA(const char * host, uint16_t port, const char * url, BearSSL::X509List * CA_cert, const char * protocol) {
     begin(host, port, url, protocol);
     _client.isSocketIO = true;
     _client.isSSL      = true;
     _fingerprint       = SSL_FINGERPRINT_NULL;
-    _CA_cert = CA_cert;
+    _CA_cert           = CA_cert;
 }
 #endif
 
@@ -188,7 +188,6 @@ void WebSocketsClient::beginSocketIOSSLWithCA(const char * host, uint16_t port, 
     _CA_cert = CA_cert;
 #endif
 }
-
 
 #endif
 
@@ -236,7 +235,7 @@ void WebSocketsClient::loop(void) {
             }
             if(_client_cert && _client_key) {
                 _client.ssl->setClientRSACert(_client_cert, _client_key);
-                DEBUG_WEBSOCKETS("[WS-Client] setting client certificate and key");     
+                DEBUG_WEBSOCKETS("[WS-Client] setting client certificate and key");
 #endif
             }
         } else {

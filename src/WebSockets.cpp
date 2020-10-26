@@ -644,7 +644,7 @@ bool WebSockets::readCb(WSclient_t * client, uint8_t * out, size_t n, WSreadWait
         } else {
             //DEBUG_WEBSOCKETS("Receive %d left %d!\n", len, n);
         }
-        if (n > 0) {
+        if(n > 0) {
             WEBSOCKETS_YIELD();
         }
     }
@@ -698,7 +698,7 @@ size_t WebSockets::write(WSclient_t * client, uint8_t * out, size_t n) {
         } else {
             DEBUG_WEBSOCKETS("WS write %d failed left %d!\n", len, n);
         }
-        if (n > 0) {
+        if(n > 0) {
             WEBSOCKETS_YIELD();
         }
     }
