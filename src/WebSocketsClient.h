@@ -66,7 +66,8 @@ class WebSocketsClient : protected WebSockets {
 #if defined(SSL_BARESSL)
     void beginSocketIOSSLWithCA(const char * host, uint16_t port, const char * url = "/socket.io/?EIO=3", BearSSL::X509List * CA_cert = NULL, const char * protocol = "arduino");
 #endif
-
+#endif
+  
 #if(WEBSOCKETS_NETWORK_TYPE != NETWORK_ESP8266_ASYNC)
     void loop(void);
 #else
