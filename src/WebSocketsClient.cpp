@@ -229,11 +229,9 @@ void WebSocketsClient::loop(void) {
 #error setCACert not implemented
 #endif
 #if defined(SSL_BARESSL)
-            } 
-            else if(_fingerprint) {
+            } else if(_fingerprint) {
                 _client.ssl->setFingerprint(_fingerprint);
-            } 
-            else {
+            } else {
                 _client.ssl->setInsecure();
             }
             if(_client_cert && _client_key) {
@@ -241,8 +239,7 @@ void WebSocketsClient::loop(void) {
                 DEBUG_WEBSOCKETS("[WS-Client] setting client certificate and key");     
 #endif
             }
-        } 
-        else {
+        } else {
             DEBUG_WEBSOCKETS("[WS-Client] connect ws...\n");
             if(_client.tcp) {
                 delete _client.tcp;
@@ -261,8 +258,8 @@ void WebSocketsClient::loop(void) {
         WEBSOCKETS_YIELD();
 #if defined(ESP32)
         if(_client.tcp->connect(_host.c_str(), _port, WEBSOCKETS_TCP_TIMEOUT)) {
-//#else
-//        if(_client.tcp->connect(_host.c_str(), _port)) {
+#else
+        if(_client.tcp->connect(_host.c_str(), _port)) {
 #endif
             connectedCb();
             _lastConnectionFail = 0;
