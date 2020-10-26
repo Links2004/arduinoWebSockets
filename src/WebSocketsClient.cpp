@@ -217,10 +217,7 @@ void WebSocketsClient::loop(void) {
             }
             _client.ssl = new WEBSOCKETS_NETWORK_SSL_CLASS();
             _client.tcp = _client.ssl;
-            if(_fingerprint) {
-                _client.ssl->setFingerprint(_fingerprint);
-            }
-            else if(_CA_cert) {
+                        if(_CA_cert) {
                 DEBUG_WEBSOCKETS("[WS-Client] setting CA certificate");
 #if defined(ESP32)
                 _client.ssl->setCACert(_CA_cert);
@@ -231,20 +228,20 @@ void WebSocketsClient::loop(void) {
 #else
 #error setCACert not implemented
 #endif
-            }
-            
-            if(_client_cert && _client_key) {
 #if defined(SSL_BARESSL)
-                _client.ssl->setClientRSACert(_client_cert, _client_key);
-                DEBUG_WEBSOCKETS("[WS-Client] setting client certificate and key");
-#else
-#error client certs not implemented when not using bearssl
+            } else if(_fingerprint) {
+                _client.ssl->setFingerprint(_fingerprint);
+            } else {
+                _client.ssl->setInsecure();
 #endif
             }
-            else if(!_CA_cert && !_fingerprint) {
-                _client.ssl->setInsecure();
+            
+#if defined(SSL_BARESSL) 
+            if(_client_cert && _client_key) {
+                _client.ssl->setClientRSACert(_client_cert, _client_key);
+                DEBUG_WEBSOCKETS("[WS-Client] setting client certificate and key");
+#endif
             }
-#endif    
                
         } else {
             DEBUG_WEBSOCKETS("[WS-Client] connect ws...\n");
