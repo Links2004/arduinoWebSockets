@@ -166,8 +166,8 @@ void WebSocketsClient::beginSocketIOSSL(const char * host, uint16_t port, const 
 void WebSocketsClient::beginSocketIOSSL(String host, uint16_t port, String url, String protocol) {
     beginSocketIOSSL(host.c_str(), port, url.c_str(), protocol.c_str());
 }
-#if !defined(SSL_AXTLS)
 
+#if defined(SSL_BARESSL)
 void WebSocketsClient::beginSocketIOSSLWithCA(const char * host, uint16_t port, const char * url,  BearSSL::X509List * CA_cert, const char * protocol) {
     begin(host, port, url, protocol);
     _client.isSocketIO = true;
@@ -175,10 +175,20 @@ void WebSocketsClient::beginSocketIOSSLWithCA(const char * host, uint16_t port, 
     _fingerprint       = SSL_FINGERPRINT_NULL;
     _CA_cert = CA_cert;
 }
+#endif
 
 void WebSocketsClient::beginSocketIOSSLWithCA(const char * host, uint16_t port, const char * url, const char * CA_cert, const char * protocol) {
-    beginSocketIOSSLWithCA(host, port, url, new BearSSL::X509List(CA_cert), protocol);
+    begin(host, port, url, protocol);
+    _client.isSocketIO = true;
+    _client.isSSL      = true;
+    _fingerprint       = SSL_FINGERPRINT_NULL;
+#if defined(SSL_BARESSL)
+    _CA_cert = new BearSSL::X509List(CA_cert);
+#else
+    _CA_cert = CA_cert;
+#endif
 }
+
 
 #endif
 
