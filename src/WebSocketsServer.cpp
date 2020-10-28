@@ -402,7 +402,7 @@ int WebSocketsServerCore::connectedClients(bool ping) {
  * see if one client is connected
  * @param num uint8_t client id
  */
-bool WebSocketsServer::clientIsConnected(uint8_t num) {
+bool WebSocketsServerCore::clientIsConnected(uint8_t num) {
     if(num >= WEBSOCKETS_SERVER_CLIENT_MAX) {
         return false;
     }
@@ -436,7 +436,7 @@ IPAddress WebSocketsServerCore::remoteIP(uint8_t num) {
  * handle new client connection
  * @param client
  */
-bool WebSocketsServerCore::newClient(WEBSOCKETS_NETWORK_CLASS * TCPclient) {
+WSclient_t * WebSocketsServerCore::newClient(WEBSOCKETS_NETWORK_CLASS * TCPclient) {
     WSclient_t * client;
     // search free list entry for client
     for(uint8_t i = 0; i < WEBSOCKETS_SERVER_CLIENT_MAX; i++) {
@@ -486,11 +486,11 @@ bool WebSocketsServerCore::newClient(WEBSOCKETS_NETWORK_CLASS * TCPclient) {
             client->lastPing               = millis();
             client->pongReceived           = false;
 
-            return true;
+            return client;
             break;
         }
     }
-    return false;
+    return nullptr;
 }
 
 /**
@@ -614,27 +614,11 @@ bool WebSocketsServerCore::clientIsConnected(WSclient_t * client) {
 /**
  * Handle incoming Connection Request
  */
-void WebSocketsServer::handleNewClients(void) {
-#if(WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP32)
-    while(_server->hasClient()) {
-#endif
-        bool ok = false;
+WSclient_t * WebSocketsServerCore::handleNewClient(WEBSOCKETS_NETWORK_CLASS * tcpClient) {
 
-#if(WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP32)
-        // store new connection
-        WEBSOCKETS_NETWORK_CLASS * tcpClient = new WEBSOCKETS_NETWORK_CLASS(_server->available());
-#else
-    WEBSOCKETS_NETWORK_CLASS * tcpClient = new WEBSOCKETS_NETWORK_CLASS(_server->available());
-#endif
+        WSclient_t * client = newClient(tcpClient);
 
-        if(!tcpClient) {
-            DEBUG_WEBSOCKETS("[WS-Client] creating Network class failed!");
-            return;
-        }
-
-        ok = newClient(tcpClient);
-
-        if(!ok) {
+        if(!client) {
             // no free space to handle client
 #if(WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP32)
 #ifndef NODEBUG_WEBSOCKETS
@@ -648,6 +632,32 @@ void WebSocketsServer::handleNewClients(void) {
         }
 
         WEBSOCKETS_YIELD();
+
+        return client;
+}
+
+/**
+ * Handle incoming Connection Request
+ */
+void WebSocketsServer::handleNewClients(void) {
+#if(WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP32)
+    while(_server->hasClient()) {
+#endif
+
+#if(WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP32)
+        // store new connection
+        WEBSOCKETS_NETWORK_CLASS * tcpClient = new WEBSOCKETS_NETWORK_CLASS(_server->available());
+#else
+    WEBSOCKETS_NETWORK_CLASS * tcpClient = new WEBSOCKETS_NETWORK_CLASS(_server->available());
+#endif
+
+        if(!tcpClient) {
+            DEBUG_WEBSOCKETS("[WS-Client] creating Network class failed!");
+            return;
+        }
+
+        handleNewClient(tcpClient);
+
 #if(WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP32)
     }
 #endif
@@ -932,12 +942,21 @@ void WebSocketsServer::close(void) {
 /**
  * called in arduino loop
  */
+void WebSocketsServerCore::loop(void) {
+    if(_runnning) {
+        WEBSOCKETS_YIELD();
+        handleClientData();
+    }
+}
+
+/**
+ * called in arduino loop
+ */
 void WebSocketsServer::loop(void) {
     if(_runnning) {
         WEBSOCKETS_YIELD();
         handleNewClients();
-        WEBSOCKETS_YIELD();
-        handleClientData();
+        WebSocketsServerCore::loop();
     }
 }
 #endif

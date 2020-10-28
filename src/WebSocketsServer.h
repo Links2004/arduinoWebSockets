@@ -95,6 +95,10 @@ class WebSocketsServerCore : protected WebSockets {
     IPAddress remoteIP(uint8_t num);
 #endif
 
+#if(WEBSOCKETS_NETWORK_TYPE != NETWORK_ESP8266_ASYNC)
+    void loop(void); // handle client data only
+#endif
+
   protected:
     String _origin;
     String _protocol;
@@ -113,7 +117,7 @@ class WebSocketsServerCore : protected WebSockets {
     uint32_t _pongTimeout;
     uint8_t _disconnectTimeoutCount;
 
-    bool newClient(WEBSOCKETS_NETWORK_CLASS * TCPclient);
+    WSclient_t * newClient(WEBSOCKETS_NETWORK_CLASS * TCPclient);
 
     void messageReceived(WSclient_t * client, WSopcode_t opcode, uint8_t * payload, size_t length, bool fin);
 
@@ -196,12 +200,17 @@ class WebSocketsServerCore : protected WebSockets {
         return true;
     }
 
+#if(WEBSOCKETS_NETWORK_TYPE != NETWORK_ESP8266_ASYNC)
+    WSclient_t * handleNewClient(WEBSOCKETS_NETWORK_CLASS * tcpClient);
+#endif
+
   private:
     /*
          * returns an indicator whether the given named header exists in the configured _mandatoryHttpHeaders collection
          * @param headerName String ///< the name of the header being checked
          */
     bool hasMandatoryHeader(String headerName);
+
 };
 
 class WebSocketsServer: public WebSocketsServerCore {
@@ -214,7 +223,7 @@ class WebSocketsServer: public WebSocketsServerCore {
     void close(void);
 
 #if(WEBSOCKETS_NETWORK_TYPE != NETWORK_ESP8266_ASYNC)
-    void loop(void);
+    void loop(void); // handle incoming client and client data
 #else
     // Async interface not need a loop call
     void loop(void) __attribute__((deprecated)) {}

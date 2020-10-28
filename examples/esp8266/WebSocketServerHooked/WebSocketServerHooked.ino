@@ -1,7 +1,8 @@
 /*
- * WebSocketServer.ino
+ * WebSocketServerHooked.ino
  *
  *  Created on: 22.05.2015
+ *  Hooked on:  28.10.2020
  *
  */
 
@@ -29,7 +30,7 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length
             {
                 IPAddress ip = webSocket.remoteIP(num);
                 USE_SERIAL.printf("[%u] Connected from %d.%d.%d.%d url: %s\n", num, ip[0], ip[1], ip[2], ip[3], payload);
-				
+
 				// send message to client
 				webSocket.sendTXT(num, "Connected");
             }
@@ -77,13 +78,18 @@ void setup() {
         delay(100);
     }
 
-    server.addHook(webSocket.hookForWebserver(webSocketEvent));
+    server.addHook(webSocket.hookForWebserver("/ws", webSocketEvent));
+    server.on("/", []() {
+        server.send(200, "text/plain", "I am a regular webserver!\r\n");
+    });
+
     server.begin();
     Serial.println("HTTP server started");
-    Serial.println("WebSocket server started onthe same port");
+    Serial.println("WebSocket server started on the same port");
 }
 
 void loop() {
     server.handleClient();
+    webSocket.loop();
 }
 

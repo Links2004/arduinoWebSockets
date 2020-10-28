@@ -5,20 +5,41 @@
 #include <WebSocketsServer.h>
 #include <ESP8266WebServer.h>
 
-#if WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266
+#if WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266 && WEBSERVER_HAS_HOOK
 
 class WebSockets4WebServer: public WebSocketsServerCore {
-  public:    
+  public:
 
     WebSockets4WebServer(const String& origin = "", const String& protocol = "arduino"):
         WebSocketsServerCore(origin, protocol)
     {
     }
 
-    ESP8266WebServer::HookFunction hookForWebserver (WebSocketServerEvent event);
+    ESP8266WebServer::HookFunction hookForWebserver (const String& wsRootDir, WebSocketServerEvent event)
+    {
+        onEvent(event);
 
+        return [&, wsRootDir](const String & method, const String & url, WiFiClient * tcpClient, ESP8266WebServer::ContentTypeFunction contentType)
+        {
+            if (!(method == "GET" && url.indexOf(wsRootDir) == 0)) {
+                return ESP8266WebServer::CLIENT_REQUEST_CAN_CONTINUE;
+            }
+
+            WSclient_t * client = handleNewClient(tcpClient);
+
+            // give "GET <url>"
+            String headerLine;
+            headerLine.reserve(url.length() + 5);
+            headerLine = "GET ";
+            headerLine += url;
+            handleHeader(client, &headerLine);
+
+            // tell webserver to not close but forget about this client
+            return ESP8266WebServer::CLIENT_IS_GIVEN;
+        };
+    }
 };
 
-#endif // WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266
+#endif // WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266 && WEBSERVER_HAS_HOOK
 
 #endif // __WEBSOCKETS4WEBSERVER_H
