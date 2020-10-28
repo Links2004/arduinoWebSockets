@@ -398,6 +398,18 @@ int WebSocketsServerCore::connectedClients(bool ping) {
     return count;
 }
 
+/**
+ * see if one client is connected
+ * @param num uint8_t client id
+ */
+bool WebSocketsServer::clientIsConnected(uint8_t num) {
+    if(num >= WEBSOCKETS_SERVER_CLIENT_MAX) {
+        return false;
+    }
+    WSclient_t * client = &_clients[num];
+    return clientIsConnected(client);
+}
+
 #if(WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266_ASYNC) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP32)
 /**
  * get an IP for a client
@@ -534,7 +546,7 @@ void WebSocketsServerCore::clientDisconnect(WSclient_t * client) {
 
     if(client->tcp) {
         if(client->tcp->connected()) {
-#if(WEBSOCKETS_NETWORK_TYPE != NETWORK_ESP8266_ASYNC)
+#if(WEBSOCKETS_NETWORK_TYPE != NETWORK_ESP8266_ASYNC) && (WEBSOCKETS_NETWORK_TYPE != NETWORK_ESP32)
             client->tcp->flush();
 #endif
             client->tcp->stop();
@@ -661,6 +673,7 @@ void WebSocketsServerCore::handleClientData(void) {
                         WebSockets::handleWebsocket(client);
                         break;
                     default:
+                        DEBUG_WEBSOCKETS("[WS-Server][%d][handleClientData] unknown client status %d\n", client->num, client->status);
                         WebSockets::clientDisconnect(client, 1002);
                         break;
                 }

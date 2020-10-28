@@ -65,8 +65,10 @@
 
 #if defined(ESP8266)
 #define WEBSOCKETS_YIELD() delay(0)
+#define WEBSOCKETS_YIELD_MORE() delay(1)
 #elif defined(ESP32)
 #define WEBSOCKETS_YIELD() yield()
+#define WEBSOCKETS_YIELD_MORE() delay(1)
 #endif
 
 #elif defined(STM32_DEVICE)
@@ -75,7 +77,7 @@
 #define WEBSOCKETS_USE_BIG_MEM
 #define GET_FREE_HEAP System.freeMemory()
 #define WEBSOCKETS_YIELD()
-
+#define WEBSOCKETS_YIELD_MORE()
 #else
 
 //atmega328p has only 2KB ram!
@@ -83,7 +85,7 @@
 // moves all Header strings to Flash
 #define WEBSOCKETS_SAVE_RAM
 #define WEBSOCKETS_YIELD()
-
+#define WEBSOCKETS_YIELD_MORE()
 #endif
 
 #define WEBSOCKETS_TCP_TIMEOUT (5000)
@@ -126,6 +128,7 @@
 #elif defined(ESP32)
 #include <WiFi.h>
 #include <WiFiClientSecure.h>
+#define SSL_AXTLS
 #elif defined(ESP31B)
 #include <ESP31BWiFi.h>
 #else
@@ -145,6 +148,11 @@
 
 #ifdef ESP8266
 #include <ESP8266WiFi.h>
+#if defined(wificlientbearssl_h) && !defined(USING_AXTLS) && !defined(wificlientsecure_h)
+#define SSL_BARESSL
+#else
+#define SSL_AXTLS
+#endif
 #else
 #include <ESP31BWiFi.h>
 #endif
@@ -174,6 +182,7 @@
 
 #include <WiFi.h>
 #include <WiFiClientSecure.h>
+#define SSL_AXTLS
 #define WEBSOCKETS_NETWORK_CLASS WiFiClient
 #define WEBSOCKETS_NETWORK_SSL_CLASS WiFiClientSecure
 #define WEBSOCKETS_NETWORK_SERVER_CLASS WiFiServer
