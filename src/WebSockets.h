@@ -40,6 +40,9 @@
 #include <functional>
 #endif
 
+//#define NODEBUG_WEBSOCKETS
+#define DEBUG_ESP_PORT Serial
+
 #ifndef NODEBUG_WEBSOCKETS
 #ifdef DEBUG_ESP_PORT
 #define DEBUG_WEBSOCKETS(...) DEBUG_ESP_PORT.printf(__VA_ARGS__)
@@ -50,8 +53,10 @@
 
 #ifndef DEBUG_WEBSOCKETS
 #define DEBUG_WEBSOCKETS(...)
+#error
 #ifndef NODEBUG_WEBSOCKETS
 #define NODEBUG_WEBSOCKETS
+#error
 #endif
 #endif
 

@@ -21,18 +21,23 @@ class WebSockets4WebServer: public WebSocketsServerCore {
 
         return [&, wsRootDir](const String & method, const String & url, WiFiClient * tcpClient, ESP8266WebServer::ContentTypeFunction contentType)
         {
+printf("hook '%s' '%s' '%s'\n", method.c_str(), url.c_str(), wsRootDir.c_str());
             if (!(method == "GET" && url.indexOf(wsRootDir) == 0)) {
                 return ESP8266WebServer::CLIENT_REQUEST_CAN_CONTINUE;
             }
 
             WSclient_t * client = handleNewClient(tcpClient);
-
-            // give "GET <url>"
-            String headerLine;
-            headerLine.reserve(url.length() + 5);
-            headerLine = "GET ";
-            headerLine += url;
-            handleHeader(client, &headerLine);
+            
+            if (client)
+            {
+                // give "GET <url>"
+                String headerLine;
+                headerLine.reserve(url.length() + 5);
+                headerLine = "GET ";
+                headerLine += url;
+                handleHeader(client, &headerLine);
+            }
+printf("conn? %i \n", tcpClient->connected());
 
             // tell webserver to not close but forget about this client
             return ESP8266WebServer::CLIENT_IS_GIVEN;

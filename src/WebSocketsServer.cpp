@@ -66,6 +66,9 @@ WebSocketsServerCore::~WebSocketsServerCore() {
     _mandatoryHttpHeaderCount = 0;
 }
 
+WebSocketsServer::~WebSocketsServer() {
+}
+
 /**
  * called to initialize the Websocket server
  */

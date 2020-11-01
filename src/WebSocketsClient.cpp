@@ -741,15 +741,16 @@ void WebSocketsClient::handleHeader(WSclient_t * client, String * headerLine) {
         if(ok) {
             switch(client->cCode) {
                 case 101:    ///< Switching Protocols
-
                     break;
                 case 200:
                     if(client->isSocketIO) {
                         break;
                     }
+                    // falls through
                 case 403:    ///< Forbidden
                     // todo handle login
-                default:    ///< Server dont unterstand requrst
+                    // falls through
+                default:    ///< Server don't unterstand request
                     ok = false;
                     DEBUG_WEBSOCKETS("[WS-Client][handleHeader] serverCode is not 101 (%d)\n", client->cCode);
                     clientDisconnect(client);

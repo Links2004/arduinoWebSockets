@@ -44,7 +44,7 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length
             break;
         case WStype_BIN:
             USE_SERIAL.printf("[%u] get binary length: %u\n", num, length);
-            hexdump(payload, length);
+            //hexdump(payload, length);
 
             // send message to client
             // webSocket.sendBIN(num, payload, length);
