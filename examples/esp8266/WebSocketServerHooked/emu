@@ -1,0 +1,20 @@
+#!/bin/sh
+
+# linux script to compile&run arduinoWebSockets in a mock environment
+
+if [ -z "$ESP8266ARDUINO" ]; then
+    echo "please set ESP8266ARDUINO env-var to where esp8266/arduino sits"
+    exit 1
+fi
+
+set -e
+
+where=$(pwd)
+
+cd $ESP8266ARDUINO/tests/host/
+
+make -j FORCE32=0 \
+    ULIBDIRS=../../libraries/Hash/:~/dev/proj/arduino/libraries/arduinoWebSockets \
+    ${where}/WebSocketServerHooked
+
+valgrind ./bin/WebSocketServerHooked/WebSocketServerHooked -b "$@"
