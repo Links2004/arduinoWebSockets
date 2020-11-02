@@ -89,12 +89,16 @@ void WebSocketsServerCore::begin(void) {
         client->cUrl         = "";
         client->cCode        = 0;
         client->cKey         = "";
+        client->cAccept      = "";
         client->cProtocol    = "";
+        client->cExtensions  = "";
         client->cVersion     = 0;
         client->cIsUpgrade   = false;
         client->cIsWebsocket = false;
 
         client->base64Authorization = "";
+        client->plainAuthorization = "";
+        client->extraHeaders = "";
 
         client->cWsRXsize = 0;
 
