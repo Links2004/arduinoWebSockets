@@ -1,6 +1,6 @@
 /**
  * @file WebSocketsServer.cpp
- * @date 20.05.2015
+ * @date 28.10.2020
  * @author Markus Sattler & esp8266/arduino community
  *
  * Copyright (c) 2020 Markus Sattler. All rights reserved.
