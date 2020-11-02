@@ -531,6 +531,28 @@ void WebSocketsServerCore::messageReceived(WSclient_t * client, WSopcode_t opcod
 }
 
 /**
+ * Discard a native client
+ * @param client WSclient_t *  ptr to the client struct contaning the native client "->tcp"
+ */
+void WebSocketsServerCore::dropNativeClient (WSclient_t * client)
+{
+    if(client->tcp) {
+        if(client->tcp->connected()) {
+#if(WEBSOCKETS_NETWORK_TYPE != NETWORK_ESP8266_ASYNC) && (WEBSOCKETS_NETWORK_TYPE != NETWORK_ESP32)
+            client->tcp->flush();
+#endif
+            client->tcp->stop();
+        }
+#if(WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266_ASYNC)
+        client->status = WSC_NOT_CONNECTED;
+#else
+        delete client->tcp;
+#endif
+        client->tcp = NULL;
+    }
+}
+
+/**
  * Disconnect an client
  * @param client WSclient_t *  ptr to the client struct
  */
@@ -547,20 +569,7 @@ void WebSocketsServerCore::clientDisconnect(WSclient_t * client) {
     }
 #endif
 
-    if(client->tcp) {
-        if(client->tcp->connected()) {
-#if(WEBSOCKETS_NETWORK_TYPE != NETWORK_ESP8266_ASYNC) && (WEBSOCKETS_NETWORK_TYPE != NETWORK_ESP32)
-            client->tcp->flush();
-#endif
-            client->tcp->stop();
-        }
-#if(WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266_ASYNC)
-        client->status = WSC_NOT_CONNECTED;
-#else
-        delete client->tcp;
-#endif
-        client->tcp = NULL;
-    }
+    dropNativeClient(client);
 
     client->cUrl         = "";
     client->cKey         = "";
@@ -629,9 +638,9 @@ WSclient_t * WebSocketsServerCore::handleNewClient(WEBSOCKETS_NETWORK_CLASS * tc
 #endif
             DEBUG_WEBSOCKETS("[WS-Server] no free space new client from %d.%d.%d.%d\n", ip[0], ip[1], ip[2], ip[3]);
 #else
-        DEBUG_WEBSOCKETS("[WS-Server] no free space new client\n");
+            DEBUG_WEBSOCKETS("[WS-Server] no free space new client\n");
 #endif
-            tcpClient->stop();
+            dropNativeClient(client);
         }
 
         WEBSOCKETS_YIELD();
@@ -647,13 +656,8 @@ void WebSocketsServer::handleNewClients(void) {
     while(_server->hasClient()) {
 #endif
 
-#if(WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP32)
         // store new connection
         WEBSOCKETS_NETWORK_CLASS * tcpClient = new WEBSOCKETS_NETWORK_CLASS(_server->available());
-#else
-    WEBSOCKETS_NETWORK_CLASS * tcpClient = new WEBSOCKETS_NETWORK_CLASS(_server->available());
-#endif
-
         if(!tcpClient) {
             DEBUG_WEBSOCKETS("[WS-Client] creating Network class failed!");
             return;
@@ -833,7 +837,7 @@ void WebSocketsServerCore::handleHeader(WSclient_t * client, String * headerLine
 
             String handshake = WEBSOCKETS_STRING(
                 "HTTP/1.1 101 Switching Protocols\r\n"
-                "Server: arduino-WebSocketsServerCore\r\n"
+                "Server: arduino-WebSocketsServer\r\n"
                 "Upgrade: websocket\r\n"
                 "Connection: Upgrade\r\n"
                 "Sec-WebSocket-Version: 13\r\n"

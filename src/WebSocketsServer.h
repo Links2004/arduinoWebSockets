@@ -204,6 +204,11 @@ class WebSocketsServerCore : protected WebSockets {
     WSclient_t * handleNewClient(WEBSOCKETS_NETWORK_CLASS * tcpClient);
 #endif
 
+    /**
+     * drop native tcp connection (client->tcp)
+    */
+    void dropNativeClient (WSclient_t * client);
+
   private:
     /*
          * returns an indicator whether the given named header exists in the configured _mandatoryHttpHeaders collection
