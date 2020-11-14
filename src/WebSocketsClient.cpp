@@ -636,7 +636,7 @@ void WebSocketsClient::sendHeader(WSclient_t * client) {
     }
 
     // add extra headers; by default this includes "Origin: file://"
-    if(client->extraHeaders) {
+    if(client->extraHeaders.length() > 0) {
         handshake += client->extraHeaders + NEW_LINE;
     }
 
