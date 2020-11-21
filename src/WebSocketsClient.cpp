@@ -705,7 +705,7 @@ void WebSocketsClient::handleHeader(WSclient_t * client, String * headerLine) {
             } else if(headerName.equalsIgnoreCase(WEBSOCKETS_STRING("Sec-WebSocket-Version"))) {
                 client->cVersion = headerValue.toInt();
             } else if(headerName.equalsIgnoreCase(WEBSOCKETS_STRING("Set-Cookie"))) {
-                if(headerValue.indexOf(WEBSOCKETS_STRING("HttpOnly")) > -1) {
+                if(headerValue.indexOf(';') > -1) {
                     client->cSessionId = headerValue.substring(headerValue.indexOf('=') + 1, headerValue.indexOf(";"));
                 } else {
                     client->cSessionId = headerValue.substring(headerValue.indexOf('=') + 1);
