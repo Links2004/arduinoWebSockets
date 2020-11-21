@@ -33,8 +33,7 @@
 
 class WebSocketsServerCore : protected WebSockets {
   public:
-
-    WebSocketsServerCore(const String& origin = "", const String& protocol = "arduino");
+    WebSocketsServerCore(const String & origin = "", const String & protocol = "arduino");
     virtual ~WebSocketsServerCore(void);
 
     void begin(void);
@@ -96,7 +95,7 @@ class WebSocketsServerCore : protected WebSockets {
 #endif
 
 #if(WEBSOCKETS_NETWORK_TYPE != NETWORK_ESP8266_ASYNC)
-    void loop(void); // handle client data only
+    void loop(void);    // handle client data only
 #endif
 
   protected:
@@ -207,7 +206,7 @@ class WebSocketsServerCore : protected WebSockets {
     /**
      * drop native tcp connection (client->tcp)
     */
-    void dropNativeClient (WSclient_t * client);
+    void dropNativeClient(WSclient_t * client);
 
   private:
     /*
@@ -215,27 +214,24 @@ class WebSocketsServerCore : protected WebSockets {
          * @param headerName String ///< the name of the header being checked
          */
     bool hasMandatoryHeader(String headerName);
-
 };
 
-class WebSocketsServer: public WebSocketsServerCore {
+class WebSocketsServer : public WebSocketsServerCore {
   public:
-
-    WebSocketsServer(uint16_t port, const String& origin = "", const String& protocol = "arduino");
+    WebSocketsServer(uint16_t port, const String & origin = "", const String & protocol = "arduino");
     virtual ~WebSocketsServer(void);
 
     void begin(void);
     void close(void);
 
 #if(WEBSOCKETS_NETWORK_TYPE != NETWORK_ESP8266_ASYNC)
-    void loop(void); // handle incoming client and client data
+    void loop(void);    // handle incoming client and client data
 #else
     // Async interface not need a loop call
     void loop(void) __attribute__((deprecated)) {}
 #endif
 
   protected:
-
 #if(WEBSOCKETS_NETWORK_TYPE != NETWORK_ESP8266_ASYNC)
     void handleNewClients(void);
 #endif

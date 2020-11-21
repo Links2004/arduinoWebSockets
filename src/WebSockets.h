@@ -42,7 +42,11 @@
 
 #ifndef NODEBUG_WEBSOCKETS
 #ifdef DEBUG_ESP_PORT
-#define DEBUG_WEBSOCKETS(...) { DEBUG_ESP_PORT.printf(__VA_ARGS__); DEBUG_ESP_PORT.flush(); }
+#define DEBUG_WEBSOCKETS(...)               \
+    {                                       \
+        DEBUG_ESP_PORT.printf(__VA_ARGS__); \
+        DEBUG_ESP_PORT.flush();             \
+    }
 #else
 //#define DEBUG_WEBSOCKETS(...) os_printf( __VA_ARGS__ )
 #endif

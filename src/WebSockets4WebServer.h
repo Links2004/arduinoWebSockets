@@ -30,22 +30,18 @@
 
 #if WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266 && WEBSERVER_HAS_HOOK
 
-class WebSockets4WebServer: public WebSocketsServerCore {
+class WebSockets4WebServer : public WebSocketsServerCore {
   public:
-
-    WebSockets4WebServer(const String& origin = "", const String& protocol = "arduino"):
-        WebSocketsServerCore(origin, protocol)
-    {
+    WebSockets4WebServer(const String & origin = "", const String & protocol = "arduino")
+        : WebSocketsServerCore(origin, protocol) {
         begin();
     }
 
-    ESP8266WebServer::HookFunction hookForWebserver (const String& wsRootDir, WebSocketServerEvent event)
-    {
+    ESP8266WebServer::HookFunction hookForWebserver(const String & wsRootDir, WebSocketServerEvent event) {
         onEvent(event);
 
-        return [&, wsRootDir](const String & method, const String & url, WiFiClient * tcpClient, ESP8266WebServer::ContentTypeFunction contentType)
-        {
-            if (!(method == "GET" && url.indexOf(wsRootDir) == 0)) {
+        return [&, wsRootDir](const String & method, const String & url, WiFiClient * tcpClient, ESP8266WebServer::ContentTypeFunction contentType) {
+            if(!(method == "GET" && url.indexOf(wsRootDir) == 0)) {
                 return ESP8266WebServer::CLIENT_REQUEST_CAN_CONTINUE;
             }
 
@@ -55,8 +51,7 @@ class WebSockets4WebServer: public WebSocketsServerCore {
             // Then initialize a new WSclient_t (like in WebSocketsServer::handleNewClient())
             WSclient_t * client = handleNewClient(newTcpClient);
 
-            if (client)
-            {
+            if(client) {
                 // give "GET <url>"
                 String headerLine;
                 headerLine.reserve(url.length() + 5);
@@ -71,6 +66,6 @@ class WebSockets4WebServer: public WebSocketsServerCore {
     }
 };
 
-#endif // WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266 && WEBSERVER_HAS_HOOK
+#endif    // WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266 && WEBSERVER_HAS_HOOK
 
-#endif // __WEBSOCKETS4WEBSERVER_H
+#endif    // __WEBSOCKETS4WEBSERVER_H
