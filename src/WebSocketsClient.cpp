@@ -505,7 +505,8 @@ void WebSocketsClient::clientDisconnect(WSclient_t * client) {
     client->cIsWebsocket = false;
     client->cSessionId   = "";
 
-    client->status = WSC_NOT_CONNECTED;
+    client->status      = WSC_NOT_CONNECTED;
+    _lastConnectionFail = millis();
 
     DEBUG_WEBSOCKETS("[WS-Client] client disconnected.\n");
     if(event) {
@@ -548,18 +549,25 @@ bool WebSocketsClient::clientIsConnected(WSclient_t * client) {
  * Handel incomming data from Client
  */
 void WebSocketsClient::handleClientData(void) {
-    if(_client.status == WSC_HEADER && _lastHeaderSent + WEBSOCKETS_TCP_TIMEOUT < millis()) {
+    if((_client.status == WSC_HEADER || _client.status == WSC_BODY) && _lastHeaderSent + WEBSOCKETS_TCP_TIMEOUT < millis()) {
         DEBUG_WEBSOCKETS("[WS-Client][handleClientData] header response timeout.. disconnecting!\n");
         clientDisconnect(&_client);
         WEBSOCKETS_YIELD();
         return;
     }
+
     int len = _client.tcp->available();
     if(len > 0) {
         switch(_client.status) {
             case WSC_HEADER: {
                 String headerLine = _client.tcp->readStringUntil('\n');
                 handleHeader(&_client, &headerLine);
+            } break;
+            case WSC_BODY: {
+                char buf[256] = { 0 };
+                _client.tcp->readBytes(&buf[0], std::min((size_t)len, sizeof(buf)));
+                String bodyLine = buf;
+                handleHeader(&_client, &bodyLine);
             } break;
             case WSC_CONNECTED:
                 WebSockets::handleWebsocket(&_client);
@@ -672,6 +680,22 @@ void WebSocketsClient::sendHeader(WSclient_t * client) {
 void WebSocketsClient::handleHeader(WSclient_t * client, String * headerLine) {
     headerLine->trim();    // remove \r
 
+    // this code handels the http body for Socket.IO V3 requests
+    if(headerLine->length() > 0 && client->isSocketIO && client->status == WSC_BODY && client->cSessionId.length() == 0) {
+        DEBUG_WEBSOCKETS("[WS-Client][handleHeader] socket.io json: %s\n", headerLine->c_str());
+        String sid_begin = WEBSOCKETS_STRING("\"sid\":\"");
+        if(headerLine->indexOf(sid_begin) > -1) {
+            int start          = headerLine->indexOf(sid_begin) + sid_begin.length();
+            int end            = headerLine->indexOf('"', start);
+            client->cSessionId = headerLine->substring(start, end);
+            DEBUG_WEBSOCKETS("[WS-Client][handleHeader]  - cSessionId: %s\n", client->cSessionId.c_str());
+
+            // Trigger websocket connection code path
+            *headerLine = "";
+        }
+    }
+
+    // headle HTTP header
     if(headerLine->length() > 0) {
         DEBUG_WEBSOCKETS("[WS-Client][handleHeader] RX: %s\n", headerLine->c_str());
 
@@ -736,6 +760,14 @@ void WebSocketsClient::handleHeader(WSclient_t * client, String * headerLine) {
         DEBUG_WEBSOCKETS("[WS-Client][handleHeader]  - cVersion: %d\n", client->cVersion);
         DEBUG_WEBSOCKETS("[WS-Client][handleHeader]  - cSessionId: %s\n", client->cSessionId.c_str());
 
+        if(client->isSocketIO && client->cSessionId.length() == 0 && clientIsConnected(client)) {
+            DEBUG_WEBSOCKETS("[WS-Client][handleHeader] still missing cSessionId try socket.io V3\n");
+            client->status = WSC_BODY;
+            return;
+        } else {
+            client->status = WSC_HEADER;
+        }
+
         bool ok = (client->cIsUpgrade && client->cIsWebsocket);
 
         if(ok) {
@@ -777,15 +809,18 @@ void WebSocketsClient::handleHeader(WSclient_t * client, String * headerLine) {
 
             runCbEvent(WStype_CONNECTED, (uint8_t *)client->cUrl.c_str(), client->cUrl.length());
 #if(WEBSOCKETS_NETWORK_TYPE != NETWORK_ESP8266_ASYNC)
-        } else if(clientIsConnected(client) && client->isSocketIO && client->cSessionId.length() > 0) {
-            if(_client.tcp->available()) {
-                // read not needed data
-                DEBUG_WEBSOCKETS("[WS-Client][handleHeader] still data in buffer (%d), clean up.\n", _client.tcp->available());
-                while(_client.tcp->available() > 0) {
-                    _client.tcp->read();
+        } else if(client->isSocketIO) {
+            if(client->cSessionId.length() > 0) {
+                DEBUG_WEBSOCKETS("[WS-Client][handleHeader] found cSessionId\n");
+                if(clientIsConnected(client) && _client.tcp->available()) {
+                    // read not needed data
+                    DEBUG_WEBSOCKETS("[WS-Client][handleHeader] still data in buffer (%d), clean up.\n", _client.tcp->available());
+                    while(_client.tcp->available() > 0) {
+                        _client.tcp->read();
+                    }
                 }
+                sendHeader(client);
             }
-            sendHeader(client);
 #endif
         } else {
             DEBUG_WEBSOCKETS("[WS-Client][handleHeader] no Websocket connection close.\n");

@@ -215,6 +215,7 @@
 typedef enum {
     WSC_NOT_CONNECTED,
     WSC_HEADER,
+    WSC_BODY,
     WSC_CONNECTED
 } WSclientsStatus_t;
 
