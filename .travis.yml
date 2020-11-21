@@ -1,6 +1,6 @@
 sudo: false
 dist:
-  - bionic
+  - xenial
 addons:
   apt:
     packages:
