@@ -25,7 +25,7 @@
 #include "WebSockets.h"
 #include "WebSocketsServer.h"
 
-WebSocketsServerCore::WebSocketsServerCore(const String& origin, const String& protocol) {
+WebSocketsServerCore::WebSocketsServerCore(const String & origin, const String & protocol) {
     _origin                 = origin;
     _protocol               = protocol;
     _runnning               = false;
@@ -42,9 +42,9 @@ WebSocketsServerCore::WebSocketsServerCore(const String& origin, const String& p
     memset(&_clients[0], 0x00, (sizeof(WSclient_t) * WEBSOCKETS_SERVER_CLIENT_MAX));
 }
 
-WebSocketsServer::WebSocketsServer(uint16_t port, const String& origin, const String& protocol):
-  WebSocketsServerCore(origin, protocol) {
-    _port                   = port;
+WebSocketsServer::WebSocketsServer(uint16_t port, const String & origin, const String & protocol)
+    : WebSocketsServerCore(origin, protocol) {
+    _port = port;
 
     _server = new WEBSOCKETS_NETWORK_SERVER_CLASS(port);
 
@@ -538,8 +538,7 @@ void WebSocketsServerCore::messageReceived(WSclient_t * client, WSopcode_t opcod
  * Discard a native client
  * @param client WSclient_t *  ptr to the client struct contaning the native client "->tcp"
  */
-void WebSocketsServerCore::dropNativeClient (WSclient_t * client)
-{
+void WebSocketsServerCore::dropNativeClient(WSclient_t * client) {
     if(client->tcp) {
         if(client->tcp->connected()) {
 #if(WEBSOCKETS_NETWORK_TYPE != NETWORK_ESP8266_ASYNC) && (WEBSOCKETS_NETWORK_TYPE != NETWORK_ESP32)
@@ -631,25 +630,24 @@ bool WebSocketsServerCore::clientIsConnected(WSclient_t * client) {
  * Handle incoming Connection Request
  */
 WSclient_t * WebSocketsServerCore::handleNewClient(WEBSOCKETS_NETWORK_CLASS * tcpClient) {
+    WSclient_t * client = newClient(tcpClient);
 
-        WSclient_t * client = newClient(tcpClient);
-
-        if(!client) {
-            // no free space to handle client
+    if(!client) {
+        // no free space to handle client
 #if(WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP32)
 #ifndef NODEBUG_WEBSOCKETS
-            IPAddress ip = tcpClient->remoteIP();
+        IPAddress ip = tcpClient->remoteIP();
 #endif
-            DEBUG_WEBSOCKETS("[WS-Server] no free space new client from %d.%d.%d.%d\n", ip[0], ip[1], ip[2], ip[3]);
+        DEBUG_WEBSOCKETS("[WS-Server] no free space new client from %d.%d.%d.%d\n", ip[0], ip[1], ip[2], ip[3]);
 #else
-            DEBUG_WEBSOCKETS("[WS-Server] no free space new client\n");
+        DEBUG_WEBSOCKETS("[WS-Server] no free space new client\n");
 #endif
-            dropNativeClient(client);
-        }
+        dropNativeClient(client);
+    }
 
-        WEBSOCKETS_YIELD();
+    WEBSOCKETS_YIELD();
 
-        return client;
+    return client;
 }
 
 /**
@@ -971,4 +969,3 @@ void WebSocketsServer::loop(void) {
     }
 }
 #endif
-
