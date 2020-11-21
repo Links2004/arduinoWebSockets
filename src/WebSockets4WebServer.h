@@ -65,6 +65,13 @@ class WebSockets4WebServer : public WebSocketsServerCore {
         };
     }
 };
+#else // WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266 && WEBSERVER_HAS_HOOK
+
+#ifndef WEBSERVER_HAS_HOOK
+#error Your current Framework / Arduino core version does not support Webserver Hook Functions
+#else
+#error Your Hardware Platform does not support Webserver Hook Functions
+#endif
 
 #endif    // WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266 && WEBSERVER_HAS_HOOK
 
