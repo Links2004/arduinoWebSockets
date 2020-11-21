@@ -29,6 +29,9 @@ void socketIOEvent(socketIOmessageType_t type, uint8_t * payload, size_t length)
             break;
         case sIOtype_CONNECT:
             USE_SERIAL.printf("[IOc] Connected to url: %s\n", payload);
+
+            // join default namespace (no auto join in Socket.IO V3)
+            socketIO.send(sIOtype_CONNECT, "/");
             break;
         case sIOtype_EVENT:
             USE_SERIAL.printf("[IOc] get event: %s\n", payload);
