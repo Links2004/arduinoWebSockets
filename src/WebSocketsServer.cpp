@@ -86,21 +86,26 @@ void WebSocketsServerCore::begin(void) {
         client->isSSL = false;
         client->ssl   = NULL;
 #endif
-        client->cUrl         = "";
-        client->cCode        = 0;
-        client->cKey         = "";
-        client->cAccept      = "";
-        client->cProtocol    = "";
-        client->cExtensions  = "";
-        client->cVersion     = 0;
+        client->cUrl  = "";
+        client->cCode = 0;
+
+        client->cIsClient    = false;
         client->cIsUpgrade   = false;
         client->cIsWebsocket = false;
 
-        client->base64Authorization = "";
-        client->plainAuthorization = "";
-        client->extraHeaders = "";
+        client->cSessionId  = "";
+        client->cKey        = "";
+        client->cAccept     = "";
+        client->cProtocol   = "";
+        client->cExtensions = "";
+        client->cVersion    = 0;
 
         client->cWsRXsize = 0;
+
+        client->base64Authorization = "";
+        client->plainAuthorization  = "";
+
+        client->extraHeaders = "";
 
 #if(WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266_ASYNC)
         client->cHttpLine = "";
