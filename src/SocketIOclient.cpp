@@ -81,7 +81,7 @@ bool SocketIOclient::send(socketIOmessageType_t type, uint8_t * payload, size_t 
     if(length == 0) {
         length = strlen((const char *)payload);
     }
-    if(clientIsConnected(&_client)) {
+    if(clientIsConnected(&_client) && _client.status == WSC_CONNECTED) {
         if(!headerToPayload) {
             // webSocket Header
             ret = WebSocketsClient::sendFrameHeader(&_client, WSop_text, length + 2, true);
@@ -165,6 +165,7 @@ void SocketIOclient::handleCbEvent(WStype_t type, uint8_t * payload, size_t leng
             DEBUG_WEBSOCKETS("[wsIOc] Connected to url: %s\n", payload);
             // send message to server when Connected
             // Engine.io upgrade confirmation message (required)
+            WebSocketsClient::sendTXT("2probe");
             WebSocketsClient::sendTXT(eIOtype_UPGRADE);
             runIOCbEvent(sIOtype_CONNECT, payload, length);
         } break;
@@ -195,6 +196,8 @@ void SocketIOclient::handleCbEvent(WStype_t type, uint8_t * payload, size_t leng
                             DEBUG_WEBSOCKETS("[wsIOc] get event (%d): %s\n", lData, data);
                             break;
                         case sIOtype_CONNECT:
+                            DEBUG_WEBSOCKETS("[wsIOc] connected (%d): %s\n", lData, data);
+                            return;
                         case sIOtype_DISCONNECT:
                         case sIOtype_ACK:
                         case sIOtype_ERROR:
