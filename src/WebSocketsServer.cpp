@@ -98,15 +98,10 @@ void WebSocketsServerCore::close(void) {
     _runnning = false;
     disconnect();
 
-    // reset _clients[]
+    // restore _clients[] to their initial state
+    // before next call to ::begin()
     for (int i = 0; i < WEBSOCKETS_SERVER_CLIENT_MAX; i++) {
-        WSclient_t * client = &_clients[i];
-
-        // reset instance:
-        // destructor in place
-        client->~WSclient_t();
-        // constructor in place (reset Strings, set scalars to 0)
-        new (client) WSclient_t;
+        _clients[i] = WSclient_t();
     }
 }
 
