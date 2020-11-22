@@ -41,6 +41,8 @@ class WebSockets4WebServer : public WebSocketsServerCore {
         onEvent(event);
 
         return [&, wsRootDir](const String & method, const String & url, WiFiClient * tcpClient, ESP8266WebServer::ContentTypeFunction contentType) {
+            (void)contentType;
+
             if(!(method == "GET" && url.indexOf(wsRootDir) == 0)) {
                 return ESP8266WebServer::CLIENT_REQUEST_CAN_CONTINUE;
             }
