@@ -38,8 +38,6 @@ WebSocketsServerCore::WebSocketsServerCore(const String & origin, const String &
     _httpHeaderValidationFunc = NULL;
     _mandatoryHttpHeaders     = NULL;
     _mandatoryHttpHeaderCount = 0;
-
-    memset(&_clients[0], 0x00, (sizeof(WSclient_t) * WEBSOCKETS_SERVER_CLIENT_MAX));
 }
 
 WebSocketsServer::WebSocketsServer(uint16_t port, const String & origin, const String & protocol)
@@ -73,47 +71,15 @@ WebSocketsServer::~WebSocketsServer() {
  * called to initialize the Websocket server
  */
 void WebSocketsServerCore::begin(void) {
-    WSclient_t * client;
-
     // init client storage
-    for(uint8_t i = 0; i < WEBSOCKETS_SERVER_CLIENT_MAX; i++) {
-        client = &_clients[i];
+    for (int i = 0; i < WEBSOCKETS_SERVER_CLIENT_MAX; i++) {
+        WSclient_t * client = &_clients[i];
 
-        client->num    = i;
-        client->status = WSC_NOT_CONNECTED;
-        client->tcp    = NULL;
-#if(WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP32)
-        client->isSSL = false;
-        client->ssl   = NULL;
-#endif
-        client->cUrl  = "";
-        client->cCode = 0;
-
-        client->cIsClient    = false;
-        client->cIsUpgrade   = false;
-        client->cIsWebsocket = false;
-
-        client->cSessionId  = "";
-        client->cKey        = "";
-        client->cAccept     = "";
-        client->cProtocol   = "";
-        client->cExtensions = "";
-        client->cVersion    = 0;
-
-        client->cWsRXsize = 0;
-
-        client->base64Authorization = "";
-        client->plainAuthorization  = "";
-
-        client->extraHeaders = "";
-
-#if(WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266_ASYNC)
-        client->cHttpLine = "";
-#endif
-
-        client->pingInterval           = _pingInterval;
-        client->pongTimeout            = _pongTimeout;
-        client->disconnectTimeoutCount = _disconnectTimeoutCount;
+        // reset instance:
+        // destructor in place
+        client->~WSclient_t();
+        // constructor in place
+        new (client) WSclient_t(i, _pingInterval, _pongTimeout, _disconnectTimeoutCount);
     }
 
 #ifdef ESP8266
