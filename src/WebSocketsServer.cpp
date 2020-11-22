@@ -71,15 +71,14 @@ WebSocketsServer::~WebSocketsServer() {
  * called to initialize the Websocket server
  */
 void WebSocketsServerCore::begin(void) {
-    // init client storage
-    for (int i = 0; i < WEBSOCKETS_SERVER_CLIENT_MAX; i++) {
-        WSclient_t * client = &_clients[i];
 
-        // reset instance:
-        // destructor in place
-        client->~WSclient_t();
-        // constructor in place
-        new (client) WSclient_t(i, _pingInterval, _pongTimeout, _disconnectTimeoutCount);
+    // adjust clients storage:
+    // _clients[i]'s constructor are already called,
+    // all its members are initialized to their default value,
+    // except the ones explicitly detailed in WSclient_t() constructor.
+    // Then we need to initialize some members to non-trivial values:
+    for (int i = 0; i < WEBSOCKETS_SERVER_CLIENT_MAX; i++) {
+        _clients[i].init(i, _pingInterval, _pongTimeout, _disconnectTimeoutCount);
     }
 
 #ifdef ESP8266
@@ -98,6 +97,17 @@ void WebSocketsServerCore::begin(void) {
 void WebSocketsServerCore::close(void) {
     _runnning = false;
     disconnect();
+
+    // reset _clients[]
+    for (int i = 0; i < WEBSOCKETS_SERVER_CLIENT_MAX; i++) {
+        WSclient_t * client = &_clients[i];
+
+        // reset instance:
+        // destructor in place
+        client->~WSclient_t();
+        // constructor in place (reset Strings, set scalars to 0)
+        new (client) WSclient_t;
+    }
 }
 
 /**
