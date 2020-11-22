@@ -260,15 +260,19 @@ typedef struct {
 
 struct WSclient_t {
 
-    WSclient_t() = default;
-
-    WSclient_t(uint8_t num, uint32_t pingInterval, uint32_t pongTimeout, uint8_t disconnectTimeoutCount):
-        num(num),
-        status(WSC_NOT_CONNECTED),
-        pingInterval(pingInterval),
-        pongTimeout(pongTimeout),
-        disconnectTimeoutCount(disconnectTimeoutCount)
+    WSclient_t (): status(WSC_NOT_CONNECTED)
     {
+    }
+
+    void init (uint8_t  num,
+               uint32_t pingInterval,
+               uint32_t pongTimeout,
+               uint8_t  disconnectTimeoutCount)
+    {
+        this->num = num;
+        this->pingInterval = pingInterval;
+        this->pongTimeout = pongTimeout;
+        this->disconnectTimeoutCount = disconnectTimeoutCount;
     }
 
     uint8_t num;    ///< connection number
