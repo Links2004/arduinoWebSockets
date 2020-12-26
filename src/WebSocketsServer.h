@@ -35,7 +35,9 @@ class WebSocketsServerCore : protected WebSockets {
   public:
     WebSocketsServerCore(const String & origin = "", const String & protocol = "arduino");
     virtual ~WebSocketsServerCore(void);
-
+    
+    WSclient_t * newClient(WEBSOCKETS_NETWORK_CLASS * TCPclient);
+  
     void begin(void);
     void close(void);
 
@@ -116,7 +118,6 @@ class WebSocketsServerCore : protected WebSockets {
     uint32_t _pongTimeout;
     uint8_t _disconnectTimeoutCount;
 
-    WSclient_t * newClient(WEBSOCKETS_NETWORK_CLASS * TCPclient);
 
     void messageReceived(WSclient_t * client, WSopcode_t opcode, uint8_t * payload, size_t length, bool fin);
 
