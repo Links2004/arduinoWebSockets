@@ -169,6 +169,6 @@ jobs:
     needs: [prepare_ide, prepare_example_json, build]
     runs-on: ubuntu-latest
     steps:
-      name: Done
-      run: |
-        echo DONE
+      - name: Done
+        run: |
+          echo DONE
