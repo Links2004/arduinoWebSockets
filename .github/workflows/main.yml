@@ -19,13 +19,23 @@ jobs:
   build:
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
+    strategy:
+        matrix:
+          env:
+            - CPU="esp8266" BOARD="esp8266com:esp8266:generic:xtal=80" IDE_VERSION=1.6.13
+            - CPU="esp8266" BOARD="esp8266com:esp8266:generic:xtal=80,dbg=Serial1" IDE_VERSION=1.6.13
+            - CPU="esp8266" BOARD="esp8266com:esp8266:generic:xtal=80,eesz=1M,FlashMode=qio,FlashFreq=80" IDE_VERSION=1.8.13
+            - CPU="esp32" BOARD="espressif:esp32:esp32:FlashFreq=80" IDE_VERSION=1.8.5
+            - CPU="esp32" BOARD="espressif:esp32:esp32:FlashFreq=80" IDE_VERSION=1.8.9
+            - CPU="esp32" BOARD="espressif:esp32:esp32:FlashFreq=80" IDE_VERSION=1.8.13
+    env: ${{ matrix.env }}
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
         
-      - name: build examples
+      - name: prepare
         run: |
           /sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_1.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :1 -ac -screen 0 1280x1024x16
           export DISPLAY=:1.0
@@ -47,4 +57,9 @@ jobs:
           arduino --board $BOARD --save-prefs
           arduino --get-pref sketchbook.path
           arduino --pref update.check=false
+
+      - name: build examples
+        run: |
+          source $GITHUB_WORKSPACE/travis/common.sh
+          cd $GITHUB_WORKSPACE
           build_sketches arduino $HOME/Arduino/libraries/arduinoWebSockets/examples/$CPU $CPU
