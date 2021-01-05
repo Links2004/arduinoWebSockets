@@ -27,6 +27,66 @@ function build_sketches()
     done
 }
 
+function build_sketch()
+{    
+    local arduino=$1
+    local sketch=$2
+    $arduino --verify $sketch;
+    local result=$?
+    if [ $result -ne 0 ]; then
+        echo "Build failed ($sketch) build verbose..."
+        $arduino --verify --verbose --preserve-temp-files $sketch
+        result=$?
+    fi
+    if [ $result -ne 0 ]; then
+        echo "Build failed ($1) $sketch"
+        return $result
+    fi
+}
+
+function get_sketches_json()
+{
+    local arduino=$1
+    local srcpath=$2
+    local platform=$3
+    local sketches=($(find $srcpath -name *.ino))
+    echo -en "["
+    for sketch in "${sketches[@]}" ; do
+        local sketchdir=$(dirname $sketch)
+        if [[ -f "$sketchdir/.$platform.skip" ]]; then
+            continue
+        fi
+        echo -en "\"$sketch\""
+        if [[ $sketch != ${sketches[-1]} ]] ; then
+            echo -en ","
+        fi
+        
+    done
+    echo -en "]"
+}
+
+function get_sketches_json_matrix()
+{
+    local arduino=$1
+    local srcpath=$2
+    local platform=$3
+    local ideversion=$4
+    local board=$5
+    local sketches=($(find $srcpath -name *.ino))
+    for sketch in "${sketches[@]}" ; do
+        local sketchdir=$(dirname $sketch)
+        local sketchname=$(basename $sketch)
+        if [[ -f "$sketchdir/.$platform.skip" ]]; then
+            continue
+        fi
+        echo -en "{\"name\":\"$sketchname\",\"board\":\"$board\",\"ideversion\":\"$ideversion\",\"cpu\":\"$platform\",\"sketch\":\"$sketch\"}"
+        if [[ $sketch != ${sketches[-1]} ]] ; then
+            echo -en ","
+        fi
+    done
+}
+
+
 
 function get_core()
 {
@@ -38,7 +98,9 @@ function get_core()
         mkdir esp8266com
         cd esp8266com
         git clone https://github.com/esp8266/Arduino.git esp8266
-        cd esp8266/tools
+        cd esp8266/
+        rm -rf .git
+        cd tools
         python get.py
     fi
 
@@ -46,7 +108,9 @@ function get_core()
         mkdir espressif
         cd espressif
         git clone https://github.com/espressif/arduino-esp32.git esp32
-        cd esp32/tools
+        cd esp32/
+        rm -rf .git
+        cd tools
         python get.py
     fi
 
