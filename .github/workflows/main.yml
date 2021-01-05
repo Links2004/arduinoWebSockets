@@ -22,12 +22,24 @@ jobs:
     strategy:
         matrix:
           env:
-            - CPU="esp8266" BOARD="esp8266com:esp8266:generic:xtal=80" IDE_VERSION=1.6.13
-            - CPU="esp8266" BOARD="esp8266com:esp8266:generic:xtal=80,dbg=Serial1" IDE_VERSION=1.6.13
-            - CPU="esp8266" BOARD="esp8266com:esp8266:generic:xtal=80,eesz=1M,FlashMode=qio,FlashFreq=80" IDE_VERSION=1.8.13
-            - CPU="esp32" BOARD="espressif:esp32:esp32:FlashFreq=80" IDE_VERSION=1.8.5
-            - CPU="esp32" BOARD="espressif:esp32:esp32:FlashFreq=80" IDE_VERSION=1.8.9
-            - CPU="esp32" BOARD="espressif:esp32:esp32:FlashFreq=80" IDE_VERSION=1.8.13
+            - CPU: esp8266
+              BOARD: esp8266com:esp8266:generic:xtal=80
+              IDE_VERSION: 1.6.13
+            - CPU: esp8266              
+              BOARD: esp8266com:esp8266:generic:xtal=80,dbg=Serial1
+              IDE_VERSION: 1.6.13
+            - CPU: esp8266              
+              BOARD: esp8266com:esp8266:generic:xtal=80,eesz=1M,FlashMode=qio,FlashFreq=80
+              IDE_VERSION: 1.8.13
+            - CPU: esp32              
+              BOARD: espressif:esp32:esp32:FlashFreq=80
+              IDE_VERSION: 1.8.5
+            - CPU: esp32              
+              BOARD: espressif:esp32:esp32:FlashFreq=80
+              IDE_VERSION: 1.8.9
+            - CPU: esp32              
+              BOARD: espressif:esp32:esp32:FlashFreq=80
+              IDE_VERSION: 1.8.13
     env: ${{ matrix.env }}
 
     # Steps represent a sequence of tasks that will be executed as part of the job
