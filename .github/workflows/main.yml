@@ -165,3 +165,10 @@ jobs:
           cd $GITHUB_WORKSPACE
           build_sketch arduino $SKETCH
 
+  done:
+    needs: [prepare_ide, prepare_example_json, build]
+    runs-on: ubuntu-latest
+    steps:
+      name: Done
+      run: |
+        echo DONE
