@@ -97,7 +97,7 @@ function get_core()
     if [ "$1" = "esp8266" ] ; then
         mkdir esp8266com
         cd esp8266com
-        git clone https://github.com/esp8266/Arduino.git esp8266
+        git clone --depth 1 https://github.com/esp8266/Arduino.git esp8266
         cd esp8266/
         rm -rf .git
         cd tools
@@ -107,7 +107,7 @@ function get_core()
     if [ "$1" = "esp32" ] ; then
         mkdir espressif
         cd espressif
-        git clone https://github.com/espressif/arduino-esp32.git esp32
+        git clone --depth 1 https://github.com/espressif/arduino-esp32.git esp32
         cd esp32/
         rm -rf .git
         cd tools
