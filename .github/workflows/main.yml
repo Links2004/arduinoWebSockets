@@ -14,6 +14,14 @@ on:
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
+  check_version_files:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: check version
+        run: |
+          $GITHUB_WORKSPACE/travis/version.py --check
 
   prepare_example_json:
     runs-on: ubuntu-latest
@@ -147,6 +155,7 @@ jobs:
 
       - name: copy code
         run: |
+          mkdir -p $HOME/Arduino/libraries/
           cp -r $GITHUB_WORKSPACE $HOME/Arduino/libraries/arduinoWebSockets
       
       - name: config IDE
@@ -158,6 +167,7 @@ jobs:
           arduino --pref update.check=false
 
       - name: build example
+        timeout-minutes: 20
         run: |
           export DISPLAY=:1.0
           export PATH="$HOME/arduino_ide:$PATH"
@@ -166,7 +176,7 @@ jobs:
           build_sketch arduino $SKETCH
 
   done:
-    needs: [prepare_ide, prepare_example_json, build]
+    needs: [prepare_ide, prepare_example_json, build, check_version_files]
     runs-on: ubuntu-latest
     steps:
       - name: Done

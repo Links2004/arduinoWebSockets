@@ -40,6 +40,8 @@
 #include <functional>
 #endif
 
+#include "WebSocketsVersion.h"
+
 #ifndef NODEBUG_WEBSOCKETS
 #ifdef DEBUG_ESP_PORT
 #define DEBUG_WEBSOCKETS(...)               \
