@@ -2,7 +2,7 @@
  * @file WebSocketsVersion.h
  * @date 07.01.2021
  * @author Markus Sattler
- * 
+ *
  * Copyright (c) 2015 Markus Sattler. All rights reserved.
  * This file is part of the WebSockets for Arduino.
  *
