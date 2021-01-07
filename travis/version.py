@@ -38,9 +38,9 @@ def get_header_versions():
 
 parser = argparse.ArgumentParser(description='Checks and update Version files')
 parser.add_argument(
-    '--update', action=argparse.BooleanOptionalAction, default=False)
+    '--update', action='store_true', default=False)
 parser.add_argument(
-    '--check', action=argparse.BooleanOptionalAction, default=True)
+    '--check', action='store_true', default=True)
 
 args = parser.parse_args()
 
