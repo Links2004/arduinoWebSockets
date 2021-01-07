@@ -91,6 +91,8 @@ void WebSocketsServerCore::begin(void) {
 #endif
 
     _runnning = true;
+
+    DEBUG_WEBSOCKETS("[WS-Server] Websocket Version: " WEBSOCKETS_VERSION "\n");
 }
 
 void WebSocketsServerCore::close(void) {
