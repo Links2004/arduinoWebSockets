@@ -913,7 +913,7 @@ void WebSocketsServer::begin(void) {
 }
 
 void WebSocketsServer::close(void) {
-    WebSocketsServer::close();
+    WebSocketsServerCore::close();
 #if(WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
     _server->close();
 #elif(WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP32) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266_ASYNC)
