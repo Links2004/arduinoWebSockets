@@ -40,6 +40,8 @@
 #include <functional>
 #endif
 
+#include "WebSocketsVersion.h"
+
 #ifndef NODEBUG_WEBSOCKETS
 #ifdef DEBUG_ESP_PORT
 #define DEBUG_WEBSOCKETS(...)               \
@@ -259,15 +261,13 @@ typedef struct {
 } WSMessageHeader_t;
 
 typedef struct {
-
-    void init (uint8_t  num,
-               uint32_t pingInterval,
-               uint32_t pongTimeout,
-               uint8_t  disconnectTimeoutCount)
-    {
-        this->num = num;
-        this->pingInterval = pingInterval;
-        this->pongTimeout = pongTimeout;
+    void init(uint8_t num,
+        uint32_t pingInterval,
+        uint32_t pongTimeout,
+        uint8_t disconnectTimeoutCount) {
+        this->num                    = num;
+        this->pingInterval           = pingInterval;
+        this->pongTimeout            = pongTimeout;
         this->disconnectTimeoutCount = disconnectTimeoutCount;
     }
 
@@ -284,19 +284,19 @@ typedef struct {
     WEBSOCKETS_NETWORK_SSL_CLASS * ssl;
 #endif
 
-    String cUrl;        ///< http url
-    uint16_t cCode = 0; ///< http code
+    String cUrl;           ///< http url
+    uint16_t cCode = 0;    ///< http code
 
-    bool cIsClient = false;    ///< will be used for masking
-    bool cIsUpgrade = false;   ///< Connection == Upgrade
-    bool cIsWebsocket = false; ///< Upgrade == websocket
+    bool cIsClient    = false;    ///< will be used for masking
+    bool cIsUpgrade   = false;    ///< Connection == Upgrade
+    bool cIsWebsocket = false;    ///< Upgrade == websocket
 
-    String cSessionId;     ///< client Set-Cookie (session id)
-    String cKey;           ///< client Sec-WebSocket-Key
-    String cAccept;        ///< client Sec-WebSocket-Accept
-    String cProtocol;      ///< client Sec-WebSocket-Protocol
-    String cExtensions;    ///< client Sec-WebSocket-Extensions
-    uint16_t cVersion = 0; ///< client Sec-WebSocket-Version
+    String cSessionId;        ///< client Set-Cookie (session id)
+    String cKey;              ///< client Sec-WebSocket-Key
+    String cAccept;           ///< client Sec-WebSocket-Accept
+    String cProtocol;         ///< client Sec-WebSocket-Protocol
+    String cExtensions;       ///< client Sec-WebSocket-Extensions
+    uint16_t cVersion = 0;    ///< client Sec-WebSocket-Version
 
     uint8_t cWsRXsize = 0;                            ///< State of the RX
     uint8_t cWsHeader[WEBSOCKETS_MAX_HEADER_SIZE];    ///< RX WS Message buffer
@@ -307,15 +307,15 @@ typedef struct {
 
     String extraHeaders;
 
-    bool cHttpHeadersValid = false;   ///< non-websocket http header validity indicator
-    size_t cMandatoryHeadersCount;    ///< non-websocket mandatory http headers present count
+    bool cHttpHeadersValid = false;    ///< non-websocket http header validity indicator
+    size_t cMandatoryHeadersCount;     ///< non-websocket mandatory http headers present count
 
-    bool pongReceived = false;
-    uint32_t pingInterval = 0;          // how often ping will be sent, 0 means "heartbeat is not active"
-    uint32_t lastPing = 0;              // millis when last pong has been received
-    uint32_t pongTimeout = 0;           // interval in millis after which pong is considered to timeout
-    uint8_t disconnectTimeoutCount = 0; // after how many subsequent pong timeouts discconnect will happen, 0 means "do not disconnect"
-    uint8_t pongTimeoutCount = 0;       // current pong timeout count
+    bool pongReceived              = false;
+    uint32_t pingInterval          = 0;    // how often ping will be sent, 0 means "heartbeat is not active"
+    uint32_t lastPing              = 0;    // millis when last pong has been received
+    uint32_t pongTimeout           = 0;    // interval in millis after which pong is considered to timeout
+    uint8_t disconnectTimeoutCount = 0;    // after how many subsequent pong timeouts discconnect will happen, 0 means "do not disconnect"
+    uint8_t pongTimeoutCount       = 0;    // current pong timeout count
 
 #if(WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266_ASYNC)
     String cHttpLine;    ///< HTTP header lines

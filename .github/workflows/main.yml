@@ -1,0 +1,184 @@
+name: CI
+on:
+  schedule:
+    - cron: '0 0 * * 5'
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+  release:
+    types: [ published, created, edited ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  check_version_files:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: check version
+        run: |
+          $GITHUB_WORKSPACE/travis/version.py --check
+
+  prepare_example_json:
+    runs-on: ubuntu-latest
+    steps: 
+      - uses: actions/checkout@v2
+
+      - name: generate examples
+        id: set-matrix
+        run: |
+          source $GITHUB_WORKSPACE/travis/common.sh
+          cd $GITHUB_WORKSPACE
+          echo -en "::set-output name=matrix::"
+          echo -en "["
+
+          get_sketches_json_matrix arduino $GITHUB_WORKSPACE/examples/esp8266 esp8266 1.6.13 esp8266com:esp8266:generic:xtal=80
+          echo -en ","
+
+          get_sketches_json_matrix arduino $GITHUB_WORKSPACE/examples/esp8266 esp8266 1.6.13 esp8266com:esp8266:generic:xtal=80,dbg=Serial1
+          echo -en ","
+
+          get_sketches_json_matrix arduino $GITHUB_WORKSPACE/examples/esp8266 esp8266 1.8.13 esp8266com:esp8266:generic:xtal=80,eesz=1M,FlashMode=qio,FlashFreq=80
+          echo -en ","
+
+          get_sketches_json_matrix arduino $GITHUB_WORKSPACE/examples/esp32 esp32 1.8.13 espressif:esp32:esp32:FlashFreq=80
+
+          echo -en "]"
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+
+  prepare_ide:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        IDE_VERSION: [1.8.13, 1.6.13]
+    env:
+      IDE_VERSION: ${{ matrix.IDE_VERSION }}
+
+    steps: 
+      - uses: actions/checkout@v2
+
+      - name: Get Date
+        id: get-date
+        run: |
+          echo "::set-output name=date::$(/bin/date -u "+%Y%m%d")"
+        shell: bash
+
+      - uses: actions/cache@v2
+        id: cache_all
+        with:
+          path: |
+            /home/runner/arduino_ide
+            /home/runner/Arduino
+          key: ${{ runner.os }}-${{ steps.get-date.outputs.date }}-${{ matrix.IDE_VERSION }}
+
+      - name: download IDE
+        if: steps.cache_all.outputs.cache-hit != 'true'
+        run: |
+          wget http://downloads.arduino.cc/arduino-$IDE_VERSION-linux64.tar.xz -q
+          tar xf arduino-$IDE_VERSION-linux64.tar.xz
+          mv arduino-$IDE_VERSION $HOME/arduino_ide
+
+      - name: download ArduinoJson
+        if: steps.cache_all.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p $HOME/Arduino/libraries
+          wget https://github.com/bblanchon/ArduinoJson/archive/6.x.zip -q
+          unzip 6.x.zip
+          mv ArduinoJson-6.x $HOME/Arduino/libraries/ArduinoJson
+
+      - name: download esp8266
+        if: steps.cache_all.outputs.cache-hit != 'true'
+        run: |
+          source $GITHUB_WORKSPACE/travis/common.sh
+          get_core esp8266
+
+      - name: download esp32
+        if: steps.cache_all.outputs.cache-hit != 'true' && matrix.IDE_VERSION != '1.6.13'
+        run: |
+          source $GITHUB_WORKSPACE/travis/common.sh
+          get_core esp32
+
+  build:
+    needs: [prepare_ide, prepare_example_json]
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJson(needs.prepare_example_json.outputs.matrix) }}
+    env:
+      CPU: ${{ matrix.cpu }}
+      BOARD: ${{ matrix.board }}
+      IDE_VERSION: ${{ matrix.ideversion }}
+      SKETCH: ${{ matrix.sketch }}
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Get Date
+        id: get-date
+        run: |
+          echo "::set-output name=date::$(/bin/date -u "+%Y%m%d")"
+        shell: bash
+
+      - uses: actions/cache@v2
+        id: cache_all
+        with:
+          path: |
+            /home/runner/arduino_ide
+            /home/runner/Arduino
+          key: ${{ runner.os }}-${{ steps.get-date.outputs.date }}-${{ matrix.ideversion }}
+      
+      - name: install python serial
+        if: matrix.cpu == 'esp32'
+        run: |
+          sudo pip3 install pyserial
+          sudo pip install pyserial
+#          sudo apt install python-is-python3
+
+      - name: start DISPLAY
+        run: |
+          /sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_1.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :1 -ac -screen 0 1280x1024x16
+          export DISPLAY=:1.0
+          sleep 3
+
+      - name: test IDE
+        run: |
+          export PATH="$HOME/arduino_ide:$PATH"
+          which arduino
+
+      - name: copy code
+        run: |
+          mkdir -p $HOME/Arduino/libraries/
+          cp -r $GITHUB_WORKSPACE $HOME/Arduino/libraries/arduinoWebSockets
+      
+      - name: config IDE
+        run: |
+          export DISPLAY=:1.0
+          export PATH="$HOME/arduino_ide:$PATH"
+          arduino --board $BOARD --save-prefs
+          arduino --get-pref sketchbook.path
+          arduino --pref update.check=false
+
+      - name: build example
+        timeout-minutes: 20
+        run: |
+          export DISPLAY=:1.0
+          export PATH="$HOME/arduino_ide:$PATH"
+          source $GITHUB_WORKSPACE/travis/common.sh
+          cd $GITHUB_WORKSPACE
+          build_sketch arduino $SKETCH
+
+  done:
+    needs: [prepare_ide, prepare_example_json, build, check_version_files]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Done
+        run: |
+          echo DONE
