@@ -98,6 +98,8 @@ class WebSocketsServerCore : protected WebSockets {
     void loop(void);    // handle client data only
 #endif
 
+    WSclient_t * newClient(WEBSOCKETS_NETWORK_CLASS * TCPclient);
+
   protected:
     String _origin;
     String _protocol;
@@ -115,8 +117,6 @@ class WebSocketsServerCore : protected WebSockets {
     uint32_t _pingInterval;
     uint32_t _pongTimeout;
     uint8_t _disconnectTimeoutCount;
-
-    WSclient_t * newClient(WEBSOCKETS_NETWORK_CLASS * TCPclient);
 
     void messageReceived(WSclient_t * client, WSopcode_t opcode, uint8_t * payload, size_t length, bool fin);
 
