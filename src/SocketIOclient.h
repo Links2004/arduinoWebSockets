@@ -77,7 +77,10 @@ class SocketIOclient : protected WebSocketsClient {
 
     void loop(void);
 
+    void configureEIOping(bool disableHeartbeat = false);
+
   protected:
+    bool _disableHeartbeat  = false;
     uint64_t _lastHeartbeat = 0;
     SocketIOclientEvent _cbEvent;
     virtual void runIOCbEvent(socketIOmessageType_t type, uint8_t * payload, size_t length) {
@@ -85,6 +88,8 @@ class SocketIOclient : protected WebSocketsClient {
             _cbEvent(type, payload, length);
         }
     }
+
+    void initClient(void);
 
     // Handeling events from websocket layer
     virtual void runCbEvent(WStype_t type, uint8_t * payload, size_t length) {
