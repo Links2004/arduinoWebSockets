@@ -229,8 +229,11 @@ void WebSocketsClient::loop(void) {
 #else
 #error setCACert not implemented
 #endif
-#if defined(SSL_BARESSL)
-            } else if(_fingerprint) {
+#if defined(ESP32)
+            } else if(!_fingerprint.length()) {
+                _client.ssl->setInsecure();
+#elif defined(SSL_BARESSL) 
+            } else if(_fingerprint.length()) {
                 _client.ssl->setFingerprint(_fingerprint);
             } else {
                 _client.ssl->setInsecure();
@@ -872,7 +875,7 @@ void WebSocketsClient::connectedCb() {
             return;
         }
 #else
-    if(_client.isSSL && _fingerprint) {
+    if(_client.isSSL && _fingerprint.lenght()) {
 #endif
     } else if(_client.isSSL && !_CA_cert) {
 #if defined(SSL_BARESSL)
