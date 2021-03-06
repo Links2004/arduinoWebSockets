@@ -229,8 +229,11 @@ void WebSocketsClient::loop(void) {
 #else
 #error setCACert not implemented
 #endif
-#if defined(SSL_BARESSL)
-            } else if(_fingerprint) {
+#if defined(ESP32)
+            } else if(!SSL_FINGERPRINT_IS_SET) {
+                _client.ssl->setInsecure();
+#elif defined(SSL_BARESSL)
+            } else if(SSL_FINGERPRINT_IS_SET) {
                 _client.ssl->setFingerprint(_fingerprint);
             } else {
                 _client.ssl->setInsecure();
@@ -865,14 +868,14 @@ void WebSocketsClient::connectedCb() {
 
 #if defined(HAS_SSL)
 #if defined(SSL_AXTLS) || defined(ESP32)
-    if(_client.isSSL && _fingerprint.length()) {
+    if(_client.isSSL && SSL_FINGERPRINT_IS_SET) {
         if(!_client.ssl->verify(_fingerprint.c_str(), _host.c_str())) {
             DEBUG_WEBSOCKETS("[WS-Client] certificate mismatch\n");
             WebSockets::clientDisconnect(&_client, 1000);
             return;
         }
 #else
-    if(_client.isSSL && _fingerprint) {
+    if(_client.isSSL && SSL_FINGERPRINT_IS_SET) {
 #endif
     } else if(_client.isSSL && !_CA_cert) {
 #if defined(SSL_BARESSL)

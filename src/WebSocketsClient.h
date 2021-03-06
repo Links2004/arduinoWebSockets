@@ -112,12 +112,14 @@ class WebSocketsClient : protected WebSockets {
 #ifdef SSL_AXTLS
     String _fingerprint;
     const char * _CA_cert;
+#define SSL_FINGERPRINT_IS_SET (_fingerprint.length())
 #define SSL_FINGERPRINT_NULL ""
 #else
     const uint8_t * _fingerprint;
     BearSSL::X509List * _CA_cert;
     BearSSL::X509List * _client_cert;
     BearSSL::PrivateKey * _client_key;
+#define SSL_FINGERPRINT_IS_SET (_fingerprint != NULL)
 #define SSL_FINGERPRINT_NULL NULL
 #endif
 
