@@ -28,7 +28,7 @@ function build_sketches()
 }
 
 function build_sketch()
-{    
+{
     local arduino=$1
     local sketch=$2
     $arduino --verify $sketch;
@@ -60,7 +60,7 @@ function get_sketches_json()
         if [[ $sketch != ${sketches[-1]} ]] ; then
             echo -en ","
         fi
-        
+
     done
     echo -en "]"
 }
@@ -97,6 +97,7 @@ function get_core()
         cd esp8266com
         git clone --depth 1 https://github.com/esp8266/Arduino.git esp8266
         cd esp8266/
+        git submodule update --init
         rm -rf .git
         cd tools
         python get.py
@@ -127,5 +128,5 @@ function clone_library() {
 
 function hash_library_names() {
     cd $HOME/Arduino/libraries
-    ls | sha1sum -z | cut -c1-5 
+    ls | sha1sum -z | cut -c1-5
 }
