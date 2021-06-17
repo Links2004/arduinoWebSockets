@@ -49,7 +49,7 @@ void socketIOEvent(socketIOmessageType_t type, uint8_t * payload, size_t length)
                 USE_SERIAL.println(error.c_str());
                 return;
             }
-            
+
             String eventName = doc[0];
             USE_SERIAL.printf("[IOc] event name: %s\n", eventName.c_str());
 
@@ -58,7 +58,7 @@ void socketIOEvent(socketIOmessageType_t type, uint8_t * payload, size_t length)
                 // creat JSON message for Socket.IO (ack)
                 DynamicJsonDocument docOut(1024);
                 JsonArray array = docOut.to<JsonArray>();
-                
+
                 // add payload (parameters) for the ack (callback function)
                 JsonObject param1 = array.createNestedObject();
                 param1["now"] = millis();
@@ -68,7 +68,7 @@ void socketIOEvent(socketIOmessageType_t type, uint8_t * payload, size_t length)
                 output += id;
                 serializeJson(docOut, output);
 
-                // Send event        
+                // Send event
                 socketIO.send(sIOtype_ACK, output);
             }
         }
@@ -125,7 +125,7 @@ void setup() {
     USE_SERIAL.printf("[SETUP] WiFi Connected %s\n", ip.c_str());
 
     // server address, port and URL
-    socketIO.begin("10.11.100.100", 8880);
+    socketIO.begin("10.11.100.100", 8880, "/socket.io/?EIO=4");
 
     // event handler
     socketIO.onEvent(socketIOEvent);
@@ -143,7 +143,7 @@ void loop() {
         // creat JSON message for Socket.IO (event)
         DynamicJsonDocument doc(1024);
         JsonArray array = doc.to<JsonArray>();
-        
+
         // add evnet name
         // Hint: socket.on('event_name', ....
         array.add("event_name");
@@ -156,7 +156,7 @@ void loop() {
         String output;
         serializeJson(doc, output);
 
-        // Send event        
+        // Send event
         socketIO.sendEVENT(output);
 
         // Print JSON for debugging
