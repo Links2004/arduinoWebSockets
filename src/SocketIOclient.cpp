@@ -85,6 +85,14 @@ bool SocketIOclient::isConnected(void) {
     return WebSocketsClient::isConnected();
 }
 
+void SocketIOclient::setExtraHeaders(const char * extraHeaders) {
+    return WebSocketsClient::setExtraHeaders(extraHeaders);
+}
+
+void SocketIOclient::setReconnectInterval(unsigned long time) {
+    return WebSocketsClient::setReconnectInterval(time);
+}
+
 /**
  * send text data to client
  * @param num uint8_t client id
