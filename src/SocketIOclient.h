@@ -9,6 +9,7 @@
 #define SOCKETIOCLIENT_H_
 
 #include "WebSockets.h"
+#include "WebSocketsClient.h"
 
 #define EIO_HEARTBEAT_INTERVAL 20000
 
