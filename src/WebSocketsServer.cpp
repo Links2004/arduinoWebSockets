@@ -619,6 +619,10 @@ WSclient_t * WebSocketsServerCore::handleNewClient(WEBSOCKETS_NETWORK_CLASS * tc
 #else
         DEBUG_WEBSOCKETS("[WS-Server] no free space new client\n");
 #endif
+        // no client! => create dummy!
+        WSclient_t dummy = WSclient_t();
+        client = & dummy;
+        client->tcp = tcpClient;
         dropNativeClient(client);
     }
 
