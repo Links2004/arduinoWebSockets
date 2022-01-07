@@ -193,6 +193,7 @@ void SocketIOclient::handleCbEvent(WStype_t type, uint8_t * payload, size_t leng
             // Engine.io upgrade confirmation message (required)
             WebSocketsClient::sendTXT("2probe");
             WebSocketsClient::sendTXT(eIOtype_UPGRADE);
+            setNamespace();
             runIOCbEvent(sIOtype_CONNECT, payload, length);
         } break;
         case WStype_TEXT: {
@@ -214,9 +215,21 @@ void SocketIOclient::handleCbEvent(WStype_t type, uint8_t * payload, size_t leng
                     if(length < 2) {
                         break;
                     }
+                    int i = 2;
+                    if(payload[2] == '/') {
+                        for(i = 2; i < length; i++) {
+                            if(payload[i] == ',')
+                                break;
+                        }
+                        i++;
+                    }
+
+                    uint8_t * data               = &payload[i];
+                    size_t lData                 = length - i;
                     socketIOmessageType_t ioType = (socketIOmessageType_t)payload[1];
-                    uint8_t * data               = &payload[2];
-                    size_t lData                 = length - 2;
+                    //  uint8_t * data               = &payload[2];
+                    //  size_t lData                 = length - 2;
+
                     switch(ioType) {
                         case sIOtype_EVENT:
                             DEBUG_WEBSOCKETS("[wsIOc] get event (%d): %s\n", lData, data);
@@ -257,4 +270,47 @@ void SocketIOclient::handleCbEvent(WStype_t type, uint8_t * payload, size_t leng
         case WStype_PONG:
             break;
     }
+}
+
+// Socket io with namespace
+void SocketIOclient::connect(String host, uint16_t port, String name_space, String url, String protocol) {
+    WebSocketsClient::beginSocketIO(host, port, url, protocol);
+    WebSocketsClient::enableHeartbeat(60 * 1000, 90 * 1000, 5);
+    nsp = name_space;
+    initClient();
+}
+bool SocketIOclient::setNamespace() {
+    String msg        = "40/" + nsp;
+    uint8_t * payload = (uint8_t *)msg.c_str();
+    size_t length     = msg.length();
+
+    bool ret = false;
+    if(clientIsConnected(&_client) && _client.status == WSC_CONNECTED) {
+        ret = WebSocketsClient::sendFrameHeader(&_client, WSop_text, length, true);
+        if(ret && payload && length > 0) {
+            ret = WebSocketsClient::write(&_client, payload, length);
+        }
+        return ret;
+    }
+    return false;
+}
+bool SocketIOclient::emit(String event_name, String _payload) {
+    String msg = "42/" + nsp + ",[\"" + event_name + "\"" + "," + _payload + "]";
+    Serial.println(msg);
+
+    uint8_t * payload = (uint8_t *)msg.c_str();
+
+    size_t length = msg.length();
+
+    bool ret = false;
+    if(clientIsConnected(&_client) && _client.status == WSC_CONNECTED) {
+        ret = WebSocketsClient::sendFrameHeader(&_client, WSop_text, length, true);
+
+        // send data
+        if(ret && payload && length > 0) {
+            ret = WebSocketsClient::write(&_client, payload, length);
+        }
+        return ret;
+    }
+    return false;
 }
