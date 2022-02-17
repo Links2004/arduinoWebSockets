@@ -42,9 +42,13 @@ extern "C" {
 #include <esp_system.h>
 
 #if ESP_IDF_VERSION_MAJOR >= 4
-#include <esp32/sha.h>
+  #if ( ESP_ARDUINO_VERSION >= ESP_ARDUINO_VERSION_VAL(1, 0, 6) )
+    #include "sha/sha_parallel_engine.h"
+  #else
+    #include <esp32/sha.h>
+  #endif  
 #else
-#include <hwcrypto/sha.h>
+  #include <hwcrypto/sha.h>
 #endif
 
 #else
