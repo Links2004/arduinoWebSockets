@@ -170,6 +170,7 @@ jobs:
       - name: build example
         timeout-minutes: 20
         run: |
+          set -ex
           export DISPLAY=:1.0
           export PATH="$HOME/arduino_ide:$PATH"
           source $GITHUB_WORKSPACE/travis/common.sh

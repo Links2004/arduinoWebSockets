@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -ex
+
 function build_sketches()
 {
     local arduino=$1
