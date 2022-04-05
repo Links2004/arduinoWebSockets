@@ -786,9 +786,9 @@ void WebSocketsClient::handleHeader(WSclient_t * client, String * headerLine) {
                     }
                     // falls through
                 case 403:    ///< Forbidden
-                    // todo handle login
-                    // falls through
-                default:    ///< Server dont unterstand requrst
+                             // todo handle login
+                             // falls through
+                default:     ///< Server dont unterstand requrst
                     ok = false;
                     DEBUG_WEBSOCKETS("[WS-Client][handleHeader] serverCode is not 101 (%d)\n", client->cCode);
                     clientDisconnect(client);

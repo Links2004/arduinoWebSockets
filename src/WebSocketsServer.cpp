@@ -516,6 +516,9 @@ void WebSocketsServerCore::messageReceived(WSclient_t * client, WSopcode_t opcod
  * @param client WSclient_t *  ptr to the client struct contaning the native client "->tcp"
  */
 void WebSocketsServerCore::dropNativeClient(WSclient_t * client) {
+    if(!client) {
+        return;
+    }
     if(client->tcp) {
         if(client->tcp->connected()) {
 #if(WEBSOCKETS_NETWORK_TYPE != NETWORK_ESP8266_ASYNC) && (WEBSOCKETS_NETWORK_TYPE != NETWORK_ESP32)
