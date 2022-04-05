@@ -42,13 +42,13 @@ extern "C" {
 #include <esp_system.h>
 
 #if ESP_IDF_VERSION_MAJOR >= 4
-  #if ( ESP_ARDUINO_VERSION >= ESP_ARDUINO_VERSION_VAL(1, 0, 6) )
-    #include "sha/sha_parallel_engine.h"
-  #else
-    #include <esp32/sha.h>
-  #endif  
+#if(ESP_ARDUINO_VERSION >= ESP_ARDUINO_VERSION_VAL(1, 0, 6))
+#include "sha/sha_parallel_engine.h"
 #else
-  #include <hwcrypto/sha.h>
+#include <esp32/sha.h>
+#endif
+#else
+#include <hwcrypto/sha.h>
 #endif
 
 #else
@@ -472,7 +472,7 @@ void WebSockets::handleWebsocketPayloadCb(WSclient_t * client, bool ok, uint8_t 
             payload[header->payloadLen] = 0x00;
 
             if(header->mask) {
-                //decode XOR
+                // decode XOR
                 for(size_t i = 0; i < header->payloadLen; i++) {
                     payload[i] = (payload[i] ^ header->maskKey[i % 4]);
                 }
@@ -526,7 +526,7 @@ void WebSockets::handleWebsocketPayloadCb(WSclient_t * client, bool ok, uint8_t 
         // reset input
         client->cWsRXsize = 0;
 #if(WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266_ASYNC)
-        //register callback for next message
+        // register callback for next message
         handleWebsocketWaitFor(client, 2);
 #endif
 
@@ -644,9 +644,9 @@ bool WebSockets::readCb(WSclient_t * client, uint8_t * out, size_t n, WSreadWait
             t = millis();
             out += len;
             n -= len;
-            //DEBUG_WEBSOCKETS("Receive %d left %d!\n", len, n);
+            // DEBUG_WEBSOCKETS("Receive %d left %d!\n", len, n);
         } else {
-            //DEBUG_WEBSOCKETS("Receive %d left %d!\n", len, n);
+            // DEBUG_WEBSOCKETS("Receive %d left %d!\n", len, n);
         }
         if(n > 0) {
             WEBSOCKETS_YIELD();
@@ -698,7 +698,7 @@ size_t WebSockets::write(WSclient_t * client, uint8_t * out, size_t n) {
             out += len;
             n -= len;
             total += len;
-            //DEBUG_WEBSOCKETS("write %d left %d!\n", len, n);
+            // DEBUG_WEBSOCKETS("write %d left %d!\n", len, n);
         } else {
             DEBUG_WEBSOCKETS("WS write %d failed left %d!\n", len, n);
         }

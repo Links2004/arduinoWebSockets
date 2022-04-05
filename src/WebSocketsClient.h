@@ -154,11 +154,11 @@ class WebSocketsClient : protected WebSockets {
 #endif
 
     /**
-         * called for sending a Event to the app
-         * @param type WStype_t
-         * @param payload uint8_t *
-         * @param length size_t
-         */
+     * called for sending a Event to the app
+     * @param type WStype_t
+     * @param payload uint8_t *
+     * @param length size_t
+     */
     virtual void runCbEvent(WStype_t type, uint8_t * payload, size_t length) {
         if(_cbEvent) {
             _cbEvent(type, payload, length);

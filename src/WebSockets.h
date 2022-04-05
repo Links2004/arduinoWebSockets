@@ -86,7 +86,7 @@
 #define WEBSOCKETS_YIELD_MORE()
 #else
 
-//atmega328p has only 2KB ram!
+// atmega328p has only 2KB ram!
 #define WEBSOCKETS_MAX_DATA_SIZE (1024)
 // moves all Header strings to Flash
 #define WEBSOCKETS_SAVE_RAM
