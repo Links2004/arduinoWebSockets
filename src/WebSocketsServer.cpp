@@ -627,6 +627,7 @@ WSclient_t * WebSocketsServerCore::handleNewClient(WEBSOCKETS_NETWORK_CLASS * tc
         client           = &dummy;
         client->tcp      = tcpClient;
         dropNativeClient(client);
+        return nullptr;
     }
 
     WEBSOCKETS_YIELD();
