@@ -38,6 +38,11 @@ void SocketIOclient::beginSSL(String host, uint16_t port, String url, String pro
     WebSocketsClient::enableHeartbeat(60 * 1000, 90 * 1000, 5);
     initClient();
 }
+void SocketIOclient::beginSSLWithCA(const char * host, uint16_t port, const char * url, const char * CA_cert, const char * protocol) {
+    WebSocketsClient::beginSocketIOSSLWithCA(host, port, url, CA_cert, protocol);
+    WebSocketsClient::enableHeartbeat(60 * 1000, 90 * 1000, 5);
+    initClient();
+}
 #if defined(SSL_BARESSL)
 void SocketIOclient::beginSSLWithCA(const char * host, uint16_t port, const char * url, const char * CA_cert, const char * protocol) {
     WebSocketsClient::beginSocketIOSSLWithCA(host, port, url, CA_cert, protocol);
@@ -171,7 +176,20 @@ bool SocketIOclient::sendEVENT(String & payload) {
     return sendEVENT((uint8_t *)payload.c_str(), payload.length());
 }
 
+void SocketIOclient::disconnect(void) {
+    WebSocketsClient::disconnect();
+}
+
+void SocketIOclient::enableLoop(void){
+    _loopEnabled = true;
+}
+
+void SocketIOclient::disableLoop(void){
+    _loopEnabled = false;
+}
+
 void SocketIOclient::loop(void) {
+    if( !_loopEnabled ){ return; }
     WebSocketsClient::loop();
     unsigned long t = millis();
     if(!_disableHeartbeat && (t - _lastHeartbeat) > EIO_HEARTBEAT_INTERVAL) {
