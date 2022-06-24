@@ -31,6 +31,7 @@ function build_sketches()
 
 function build_sketch()
 {
+    set -e +x
     local arduino=$1
     local sketch=$2
     $arduino --verify $sketch;

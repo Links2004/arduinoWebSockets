@@ -166,7 +166,7 @@ jobs:
           export PATH="$HOME/arduino_ide:$PATH"
           arduino --board $BOARD --save-prefs
           arduino --get-pref sketchbook.path
-
+          arduino --get-pref
 
       - name: build example
         timeout-minutes: 20
