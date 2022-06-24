@@ -165,6 +165,7 @@ jobs:
           export DISPLAY=:1.0
           export PATH="$HOME/arduino_ide:$PATH"
           arduino --board $BOARD --save-prefs
+          arduino --pref update.check=false --pref build.verbose=false --pref cache.enable=true --pref compiler.cache_core=true --pref compiler.warning_level=default --save-prefs
           arduino --get-pref sketchbook.path
           arduino --get-pref
 

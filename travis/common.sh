@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -ex
+set -x
 
 function build_sketches()
 {
@@ -31,10 +31,9 @@ function build_sketches()
 
 function build_sketch()
 {
-    set -e +x
     local arduino=$1
     local sketch=$2
-    $arduino --verify $sketch;
+    $arduino --verify --verbose $sketch;
     local result=$?
     if [ $result -ne 0 ]; then
         echo "Build failed ($sketch) build verbose..."
