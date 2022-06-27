@@ -31,7 +31,7 @@
     ],
     "repository": {
         "type": "git",
-        "url": "https://github.com/Links2004/arduinoWebSockets.git"
+        "url": "https://github.com/lemonkey/arduinoWebSockets.git"
     },
     "version": "2.6.1"
 }
