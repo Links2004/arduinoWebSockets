@@ -16,7 +16,19 @@
     "keywords": "wifi, http, web, server, client, websocket",
     "license": "LGPL-2.1",
     "name": "WebSockets",
-    "platforms": "*",
+    "platforms": "atmelavr, espressif8266, espressif32",
+    "dependencies": [
+        {
+            "name": "WiFi",
+            "version": "1.0",
+            "platforms": "espressif32"
+        },
+        {
+            "name": "WiFiClientSecure",
+            "version": "1.0",
+            "platforms": "espressif32"
+        }        
+    ],
     "repository": {
         "type": "git",
         "url": "https://github.com/Links2004/arduinoWebSockets.git"
