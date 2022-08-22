@@ -163,7 +163,7 @@ async def _register(websocket, message):
     Logger.info("Client(%s) mac: %s", name, mac)
     # Some code
 
-    response = {'response_type': 'registry', 'state': 'ok'}
+    response = {'type': 'registry', 'state': 'ok'}
     await websocket.send(json.dumps(response))
 
 
@@ -173,13 +173,13 @@ async def _state(websocket, message):
     Logger.info("Client(%s) mac: %s", name, mac)
     # Some code
 
-    response = {'response_type': 'state', 'state': 'ok'}
+    response = {'type': 'state', 'state': 'ok'}
     await websocket.send(json.dumps(response))
 
 
 async def _unhandleld(websocket, msg):
     Logger.info("Unhandled message from device: %s", str(msg))
-    response = {'response_type': 'response', 'state': 'nok'}
+    response = {'type': 'response', 'state': 'nok'}
     await websocket.send(json.dumps(response))
 
 
