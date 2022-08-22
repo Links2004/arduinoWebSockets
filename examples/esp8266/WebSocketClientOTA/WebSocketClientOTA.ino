@@ -117,6 +117,10 @@ void STATE(JsonDocument &msg){
     // Do something with message
 }
 
+// Count of responses handled by RESPONSES_STRUCT
+// increase increase if another response handler is added
+int nrOfResponses = 2;
+
 RESPONSES_STRUCT responses[] = {
   {"ota",           OTA},
   {"state",      STATE},
@@ -145,7 +149,7 @@ void text(uint8_t * payload, size_t length){
     // Handle each TYPE of message
     int b = 0;
 
-    for( b=0 ; strlen(responses[b].type) ; b++ )
+    for( b=0 ; b<nrOfResponses ; b++ )
     {
         if( strncmp(doc_in["type"], responses[b].type, strlen(responses[b].type)) == 0 ) {
             responses[b].func(doc_in);
