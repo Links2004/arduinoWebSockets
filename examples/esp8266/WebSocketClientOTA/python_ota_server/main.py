@@ -79,7 +79,7 @@ def version_checker(name, vdev, vapp):
 class WsOtaHandler (threading.Thread):
     """Thread handling ota update
 
-    Runing ota directly from message would kill WS
+    Running ota directly from message would kill WS
     as message bus would timeout.
     """
     def __init__(self, name, message, websocket):
@@ -177,7 +177,7 @@ async def _state(websocket, message):
     await websocket.send(json.dumps(response))
 
 
-async def _unhandleld(websocket, msg):
+async def _unhandled(websocket, msg):
     Logger.info("Unhandled message from device: %s", str(msg))
     response = {'type': 'response', 'state': 'nok'}
     await websocket.send(json.dumps(response))
@@ -206,7 +206,7 @@ async def message_received(websocket, message) -> None:
 
         type_ = msg_json.get('type')
         name = msg_json.get('name')
-        func = switcher.get(type_, _unhandleld)
+        func = switcher.get(type_, _unhandled)
         Logger.debug("Client(%s)said: %s", name, type_)
 
         try:
@@ -225,7 +225,7 @@ async def ws_server(websocket, path) -> None:
 async def main():
     """Server starter
 
-    Normal user can bind only port nubers greater than 1024
+    Normal user can bind only port numbers greater than 1024
     """
     async with websockets.serve(ws_server, "10.0.1.5", 8081):
         await asyncio.Future()  # run forever
