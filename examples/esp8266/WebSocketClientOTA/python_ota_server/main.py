@@ -55,7 +55,7 @@ async def binary_send(websocket, fw_file):
     with open(fw_file, "rb") as binaryfile:
 
         while True:
-            chunk = binaryfile.read(2048)
+            chunk = binaryfile.read(4096)
             if not chunk:
                 break
             try:
@@ -63,7 +63,7 @@ async def binary_send(websocket, fw_file):
             except Exception as exception:
                 Logger.exception(exception)
                 return False
-            time.sleep(0.2)
+            asyncio.sleep(0.2)
 
 
 def version_checker(name, vdev, vapp):
