@@ -90,7 +90,7 @@ class WsOtaHandler (threading.Thread):
 
     def run(self, ):
         try:
-            asyncio.run(self.start_)
+            asyncio.run(self.start_())
         except Exception as exception:
             Logger.exception(exception)
         finally:
