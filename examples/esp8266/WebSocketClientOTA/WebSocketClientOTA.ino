@@ -127,7 +127,7 @@ RESPONSES_STRUCT responses[] = {
 };
 
 void text(uint8_t * payload, size_t length){
-    // Convert mesage to something usable
+    // Convert message to something usable
     char msgch[length];
     for (unsigned int i = 0; i < length; i++)
     {
