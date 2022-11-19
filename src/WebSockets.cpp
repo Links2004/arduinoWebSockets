@@ -328,7 +328,7 @@ void WebSockets::headerDone(WSclient_t * client) {
     client->status    = WSC_CONNECTED;
     client->cWsRXsize = 0;
     DEBUG_WEBSOCKETS("[WS][%d][headerDone] Header Handling Done.\n", client->num);
-#if(WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266_ASYNC)
+#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266_ASYNC || NETWORK_ESP32_ASYNC)
     client->cHttpLine = "";
     handleWebsocket(client);
 #endif

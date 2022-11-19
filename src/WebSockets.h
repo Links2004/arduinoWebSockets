@@ -110,6 +110,7 @@
 #define NETWORK_ENC28J60 (3)
 #define NETWORK_ESP32 (4)
 #define NETWORK_ESP32_ETH (5)
+#define NETWORK_ESP32_ASYNC (6)
 
 // max size of the WS Message Header
 #define WEBSOCKETS_MAX_HEADER_SIZE (14)
@@ -200,6 +201,15 @@
 #define WEBSOCKETS_NETWORK_CLASS WiFiClient
 #define WEBSOCKETS_NETWORK_SSL_CLASS WiFiClientSecure
 #define WEBSOCKETS_NETWORK_SERVER_CLASS WiFiServer
+
+#elif (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP32_ASYNC)
+
+#include <AsyncTCP.h>
+#include <WiFi.h>
+#include <WiFiClientSecure.h>
+#define SSL_AXTLS
+#define WEBSOCKETS_NETWORK_CLASS AsyncClient
+#define WEBSOCKETS_NETWORK_SERVER_CLASS AsyncServer
 
 #elif(WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP32_ETH)
 
