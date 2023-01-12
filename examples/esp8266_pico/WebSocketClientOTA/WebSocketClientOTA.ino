@@ -8,15 +8,16 @@
 #include <Arduino.h>
 #include <ArduinoJson.h>
 
-#ifdef ESP8266
+#if defined(ESP8266)
     #include <ESP8266WiFi.h>
     #include <ESP8266mDNS.h>
-	#include <Updater.h>
-#endif
-#ifdef ESP32
+    #include <Updater.h>
+#elif defined(ESP32)
     #include "WiFi.h"
     #include "ESPmDNS.h"
-	#include <Update.h>
+    #include <Update.h>
+#else
+    #error Unsupported device
 #endif
 
 #include <WiFiUdp.h>
