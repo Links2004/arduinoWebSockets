@@ -84,6 +84,15 @@
 #define GET_FREE_HEAP System.freeMemory()
 #define WEBSOCKETS_YIELD()
 #define WEBSOCKETS_YIELD_MORE()
+
+#elif defined(ARDUINO_ARCH_RP2040)
+
+#define WEBSOCKETS_MAX_DATA_SIZE (15 * 1024)
+#define WEBSOCKETS_USE_BIG_MEM
+#define GET_FREE_HEAP rp2040.getFreeHeap()
+#define WEBSOCKETS_YIELD() yield()
+#define WEBSOCKETS_YIELD_MORE() delay(1)
+
 #else
 
 // atmega328p has only 2KB ram!
@@ -104,6 +113,7 @@
 #define NETWORK_ENC28J60 (3)
 #define NETWORK_ESP32 (4)
 #define NETWORK_ESP32_ETH (5)
+#define NETWORK_RP2040 (6)
 
 // max size of the WS Message Header
 #define WEBSOCKETS_MAX_HEADER_SIZE (14)
@@ -118,6 +128,10 @@
 #elif defined(ESP32)
 #define WEBSOCKETS_NETWORK_TYPE NETWORK_ESP32
 //#define WEBSOCKETS_NETWORK_TYPE NETWORK_ESP32_ETH
+
+#elif defined(ARDUINO_ARCH_RP2040)
+#define WEBSOCKETS_NETWORK_TYPE NETWORK_RP2040
+
 #else
 #define WEBSOCKETS_NETWORK_TYPE NETWORK_W5100
 
@@ -199,6 +213,15 @@
 
 #include <ETH.h>
 #define WEBSOCKETS_NETWORK_CLASS WiFiClient
+#define WEBSOCKETS_NETWORK_SERVER_CLASS WiFiServer
+
+#elif(WEBSOCKETS_NETWORK_TYPE == NETWORK_RP2040)
+
+#include <WiFi.h>
+#include <WiFiClientSecure.h>
+#define SSL_BARESSL
+#define WEBSOCKETS_NETWORK_CLASS WiFiClient
+#define WEBSOCKETS_NETWORK_SSL_CLASS WiFiClientSecure
 #define WEBSOCKETS_NETWORK_SERVER_CLASS WiFiServer
 
 #else

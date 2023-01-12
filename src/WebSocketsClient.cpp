@@ -76,6 +76,8 @@ void WebSocketsClient::begin(const char * host, uint16_t port, const char * url,
 
 #ifdef ESP8266
     randomSeed(RANDOM_REG32);
+#elif defined(ARDUINO_ARCH_RP2040)
+    randomSeed(rp2040.hwrand32());
 #else
     // todo find better seed
     randomSeed(millis());
@@ -224,7 +226,7 @@ void WebSocketsClient::loop(void) {
                 _client.ssl->setCACert(_CA_cert);
 #elif defined(ESP8266) && defined(SSL_AXTLS)
                 _client.ssl->setCACert((const uint8_t *)_CA_cert, strlen(_CA_cert) + 1);
-#elif defined(ESP8266) && defined(SSL_BARESSL)
+#elif (defined(ESP8266) || defined(ARDUINO_ARCH_RP2040)) && defined(SSL_BARESSL)
                 _client.ssl->setTrustAnchors(_CA_cert);
 #else
 #error setCACert not implemented
@@ -473,7 +475,7 @@ void WebSocketsClient::messageReceived(WSclient_t * client, WSopcode_t opcode, u
 void WebSocketsClient::clientDisconnect(WSclient_t * client) {
     bool event = false;
 
-#if(WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP32)
+#if(WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP32) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_RP2040)
     if(client->isSSL && client->ssl) {
         if(client->ssl->connected()) {
             client->ssl->flush();
@@ -864,7 +866,7 @@ void WebSocketsClient::connectedCb() {
     _client.tcp->setTimeout(WEBSOCKETS_TCP_TIMEOUT);
 #endif
 
-#if(WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP32)
+#if(WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP32) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_RP2040)
     _client.tcp->setNoDelay(true);
 #endif
 
