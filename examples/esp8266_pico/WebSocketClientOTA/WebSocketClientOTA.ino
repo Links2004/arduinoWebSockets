@@ -10,24 +10,27 @@
 
 #if defined(ESP8266)
     #include <ESP8266WiFi.h>
+    #include <ESP8266WiFiMulti.h>
     #include <ESP8266mDNS.h>
     #include <Updater.h>
+    #include <Hash.h>
+
+    ESP8266WiFiMulti WiFiMulti;
 #elif defined(ESP32)
-    #include "WiFi.h"
+    #include <WiFi.h>
+    #include <WiFiMulti.h>
     #include "ESPmDNS.h"
     #include <Update.h>
+
+    WiFiMulti WiFiMulti;
 #else
     #error Unsupported device
 #endif
 
 #include <WiFiUdp.h>
-#include <ESP8266WiFiMulti.h>
-
 #include <WebSocketsClient.h>
 
-#include <Hash.h>
 
-ESP8266WiFiMulti WiFiMulti;
 WebSocketsClient webSocket;
 
 #define USE_SERIAL Serial
@@ -49,19 +52,12 @@ uint32_t maxSketchSpace = 0;
 int SketchSize = 0;
 bool ws_conn = false;
 
-String IpAddress2String(const IPAddress& ipAddress)
-{
-    return String(ipAddress[0]) + String(".") +
-           String(ipAddress[1]) + String(".") +
-           String(ipAddress[2]) + String(".") +
-           String(ipAddress[3]);
-}
 
 void greetings_(){
 	StaticJsonDocument<200> doc;
 	doc["type"] = "greetings";
 	doc["mac"] = WiFi.macAddress();
-	doc["ip"] = IpAddress2String(WiFi.localIP());
+	doc["ip"] = WiFi.localIP().toString();
 	doc["version"] = version;
 	doc["name"] = name;
 	doc["chip"] = chip;
@@ -89,7 +85,7 @@ typedef struct {
    CALLBACK_FUNCTION  func;
 } RESPONSES_STRUCT;
 
-void OTA(JsonDocument &msg){
+void OTA_RESPONSES(JsonDocument &msg){
     USE_SERIAL.print(F("[WSc] OTA mode: "));
     const char* go = "go";
     const char* ok = "ok";
@@ -114,17 +110,17 @@ void OTA(JsonDocument &msg){
     }
 }
 
-void STATE(JsonDocument &msg){
+void STA_RESPONSES(JsonDocument &msg){
     // Do something with message
 }
 
 // Count of responses handled by RESPONSES_STRUCT
 // increase increase if another response handler is added
-int nrOfResponses = 2;
+const int nrOfResponses = 2;
 
-RESPONSES_STRUCT responses[] = {
-  {"ota",           OTA},
-  {"state",      STATE},
+RESPONSES_STRUCT responses[nrOfResponses] = {
+  {"ota",        OTA_RESPONSES},
+  {"state",      STA_RESPONSES},
 };
 
 void text(uint8_t * payload, size_t length){
