@@ -50,7 +50,7 @@
         DEBUG_ESP_PORT.flush();             \
     }
 #else
-//#define DEBUG_WEBSOCKETS(...) os_printf( __VA_ARGS__ )
+// #define DEBUG_WEBSOCKETS(...) os_printf( __VA_ARGS__ )
 #endif
 #endif
 
@@ -67,7 +67,7 @@
 #define WEBSOCKETS_USE_BIG_MEM
 #define GET_FREE_HEAP ESP.getFreeHeap()
 // moves all Header strings to Flash (~300 Byte)
-//#define WEBSOCKETS_SAVE_RAM
+// #define WEBSOCKETS_SAVE_RAM
 
 #if defined(ESP8266)
 #define WEBSOCKETS_YIELD() delay(0)
@@ -122,12 +122,12 @@
 // select Network type based
 #if defined(ESP8266) || defined(ESP31B)
 #define WEBSOCKETS_NETWORK_TYPE NETWORK_ESP8266
-//#define WEBSOCKETS_NETWORK_TYPE NETWORK_ESP8266_ASYNC
-//#define WEBSOCKETS_NETWORK_TYPE NETWORK_W5100
+// #define WEBSOCKETS_NETWORK_TYPE NETWORK_ESP8266_ASYNC
+// #define WEBSOCKETS_NETWORK_TYPE NETWORK_W5100
 
 #elif defined(ESP32)
 #define WEBSOCKETS_NETWORK_TYPE NETWORK_ESP32
-//#define WEBSOCKETS_NETWORK_TYPE NETWORK_ESP32_ETH
+// #define WEBSOCKETS_NETWORK_TYPE NETWORK_ESP32_ETH
 
 #elif defined(ARDUINO_ARCH_RP2040)
 #define WEBSOCKETS_NETWORK_TYPE NETWORK_RP2040

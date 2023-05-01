@@ -226,7 +226,7 @@ void WebSocketsClient::loop(void) {
                 _client.ssl->setCACert(_CA_cert);
 #elif defined(ESP8266) && defined(SSL_AXTLS)
                 _client.ssl->setCACert((const uint8_t *)_CA_cert, strlen(_CA_cert) + 1);
-#elif (defined(ESP8266) || defined(ARDUINO_ARCH_RP2040)) && defined(SSL_BARESSL)
+#elif(defined(ESP8266) || defined(ARDUINO_ARCH_RP2040)) && defined(SSL_BARESSL)
                 _client.ssl->setTrustAnchors(_CA_cert);
 #else
 #error setCACert not implemented
@@ -428,9 +428,9 @@ bool WebSocketsClient::isConnected(void) {
     return (_client.status == WSC_CONNECTED);
 }
 
-//#################################################################################
-//#################################################################################
-//#################################################################################
+// #################################################################################
+// #################################################################################
+// #################################################################################
 
 /**
  *

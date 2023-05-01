@@ -28,14 +28,13 @@
 #include <WebSocketsServer.h>
 #include <ESP8266WebServer.h>
 
-
-#if ((WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_RP2040)) && WEBSERVER_HAS_HOOK
+#if((WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_RP2040)) && WEBSERVER_HAS_HOOK
 
 class WebSockets4WebServer : public WebSocketsServerCore {
 #if defined(ESP8266)
-  using WebServerClass = ESP8266WebServer;
+    using WebServerClass = ESP8266WebServer;
 #else
-  using WebServerClass = WebServer;
+    using WebServerClass = WebServer;
 #endif
 
   public:
