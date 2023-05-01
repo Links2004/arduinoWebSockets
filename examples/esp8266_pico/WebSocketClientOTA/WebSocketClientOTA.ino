@@ -56,8 +56,8 @@ bool ws_conn = false;
 void greetings_(){
 	StaticJsonDocument<200> doc;
 	doc["type"] = "greetings";
-	doc["mac"] = WiFi.macAddress();
-	doc["ip"] = WiFi.localIP().toString();
+	doc["mac"] = WiFi.macAddress().c_str();
+	doc["ip"] = WiFi.localIP().toString().c_str();
 	doc["version"] = version;
 	doc["name"] = name;
 	doc["chip"] = chip;
@@ -70,7 +70,7 @@ void greetings_(){
 void register_(){
 	StaticJsonDocument<200> doc;
 	doc["type"] = "register";
-    doc["mac"] = WiFi.macAddress();
+    doc["mac"] = WiFi.macAddress().c_str();
 
 	char data[200];
 	serializeJson(doc, data);
@@ -87,9 +87,8 @@ typedef struct {
 
 void OTA_RESPONSES(JsonDocument &msg){
     USE_SERIAL.print(F("[WSc] OTA mode: "));
-    const char* go = "go";
-    const char* ok = "ok";
-    if(strncmp( msg["value"], go, strlen(go)) == 0 ) {
+    String val = msg["value"];
+    if(val == "go") {
         USE_SERIAL.print(F("go\n"));
         SketchSize = int(msg["size"]);
         maxSketchSpace = (ESP.getFreeSketchSpace() - 0x1000) & 0xFFFFF000;
@@ -100,12 +99,12 @@ void OTA_RESPONSES(JsonDocument &msg){
             Update.printError(Serial);
             ESP.restart();
         }
-    } else if (strncmp( msg["value"], ok, strlen(ok)) == 0) {
+    } else if (val == "ok") {
         USE_SERIAL.print(F("OK\n"));
         register_();
     } else {
         USE_SERIAL.print(F("unknown value : "));
-        USE_SERIAL.print(msg["value"].as<char>());
+        USE_SERIAL.print(val);
         USE_SERIAL.print(F("\n"));
     }
 }
@@ -146,9 +145,10 @@ void text(uint8_t * payload, size_t length){
     // Handle each TYPE of message
     int b = 0;
 
+    String t = doc_in["type"];
     for( b=0 ; b<nrOfResponses ; b++ )
     {
-        if( strncmp(doc_in["type"], responses[b].type, strlen(responses[b].type)) == 0 ) {
+        if(t == responses[b].type) {
             responses[b].func(doc_in);
         }
     }
