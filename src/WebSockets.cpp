@@ -571,6 +571,7 @@ String WebSockets::acceptKey(String & clientKey) {
  */
 String WebSockets::base64_encode(uint8_t * data, size_t length) {
     size_t size   = ((length * 1.6f) + 1);
+    size = std::max(size, (size_t) 5); //minimum buffer size
     char * buffer = (char *)malloc(size);
     if(buffer) {
         base64_encodestate _state;
