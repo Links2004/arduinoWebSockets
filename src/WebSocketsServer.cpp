@@ -65,6 +65,7 @@ WebSocketsServerCore::~WebSocketsServerCore() {
 }
 
 WebSocketsServer::~WebSocketsServer() {
+    delete _server;
 }
 
 /**
@@ -428,8 +429,16 @@ WSclient_t * WebSocketsServerCore::newClient(WEBSOCKETS_NETWORK_CLASS * TCPclien
     for(uint8_t i = 0; i < WEBSOCKETS_SERVER_CLIENT_MAX; i++) {
         client = &_clients[i];
 
+        // look for match to existing socket before creating a new one
+        if (clientIsConnected(client))
+        {
+          // Check to see if it is the same socket - if so, return it
+          if (client->tcp->getSocketNumber() == TCPclient->getSocketNumber())
+          {
+            return client;
+          }
+        } else {
         // state is not connected or tcp connection is lost
-        if(!clientIsConnected(client)) {
             client->tcp = TCPclient;
 
 #if(WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP32)
