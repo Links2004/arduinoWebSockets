@@ -26,6 +26,7 @@ a WebSocket Server and Client for Arduino based on RFC6455.
  - ESP8266 [Arduino for ESP8266](https://github.com/esp8266/Arduino/)
  - ESP32 [Arduino for ESP32](https://github.com/espressif/arduino-esp32)
  - ESP31B
+ - Raspberry Pi Pico W [Arduino for Pico](https://github.com/earlephilhower/arduino-pico)
  - Particle with STM32 ARM Cortex M3
  - ATmega328 with Ethernet Shield (ATmega branch)
  - ATmega328 with enc28j60 (ATmega branch)

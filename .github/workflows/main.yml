@@ -33,18 +33,20 @@ jobs:
         run: |
           source $GITHUB_WORKSPACE/travis/common.sh
           cd $GITHUB_WORKSPACE
-          echo -en "::set-output name=matrix::"
-          echo -en "["
 
-          get_sketches_json_matrix arduino $GITHUB_WORKSPACE/examples/esp8266 esp8266 1.8.19 esp8266com:esp8266:generic:xtal=80,vt=flash,exception=disabled,stacksmash=disabled,ssl=all,mmu=3232,non32xfer=fast,ResetMethod=nodemcu,CrystalFreq=26,FlashFreq=80,FlashMode=qio,eesz=4M2M,led=2,sdk=nonosdk_190703,ip=lm2f,dbg=Serial1,lvl=SSL,wipe=none,baud=115200
-          echo -en ","
+          echo -en "matrix=" >> $GITHUB_OUTPUT
+          echo -en "[" >> $GITHUB_OUTPUT
 
-          get_sketches_json_matrix arduino $GITHUB_WORKSPACE/examples/esp8266 esp8266 1.8.19 esp8266com:esp8266:generic:xtal=80,vt=flash,exception=disabled,stacksmash=disabled,ssl=all,mmu=3232,non32xfer=fast,ResetMethod=nodemcu,CrystalFreq=26,FlashFreq=80,FlashMode=qio,eesz=4M2M,led=2,sdk=nonosdk_190703,ip=lm2f,dbg=Disabled,lvl=None____,wipe=none,baud=115200
-          echo -en ","
+          get_sketches_json_matrix arduino $GITHUB_WORKSPACE/examples/esp8266_pico esp8266 1.8.19 esp8266com:esp8266:generic:xtal=80,vt=flash,exception=disabled,stacksmash=disabled,ssl=all,mmu=3232,non32xfer=fast,ResetMethod=nodemcu,CrystalFreq=26,FlashFreq=80,FlashMode=qio,eesz=4M2M,led=2,sdk=nonosdk_190703,ip=lm2f,dbg=Serial1,lvl=SSL,wipe=none,baud=115200 >> $GITHUB_OUTPUT
+          echo -en "," >> $GITHUB_OUTPUT
 
-          get_sketches_json_matrix arduino $GITHUB_WORKSPACE/examples/esp32 esp32 1.8.19 espressif:esp32:esp32:FlashFreq=80
+          get_sketches_json_matrix arduino $GITHUB_WORKSPACE/examples/esp8266_pico esp8266 1.8.19 esp8266com:esp8266:generic:xtal=80,vt=flash,exception=disabled,stacksmash=disabled,ssl=all,mmu=3232,non32xfer=fast,ResetMethod=nodemcu,CrystalFreq=26,FlashFreq=80,FlashMode=qio,eesz=4M2M,led=2,sdk=nonosdk_190703,ip=lm2f,dbg=Disabled,lvl=None____,wipe=none,baud=115200 >> $GITHUB_OUTPUT
+          echo -en "," >> $GITHUB_OUTPUT
 
-          echo -en "]"
+          get_sketches_json_matrix arduino $GITHUB_WORKSPACE/examples/esp32 esp32 1.8.19 espressif:esp32:esp32:FlashFreq=80 >> $GITHUB_OUTPUT
+
+          echo -en "]" >> $GITHUB_OUTPUT
+          echo >> $GITHUB_OUTPUT
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
 
@@ -63,7 +65,7 @@ jobs:
       - name: Get Date
         id: get-date
         run: |
-          echo "::set-output name=date::$(/bin/date -u "+%Y%m%d")"
+          echo "date=$(/bin/date -u "+%Y%m%d")" >> $GITHUB_OUTPUT
         shell: bash
 
       - uses: actions/cache@v2
@@ -125,7 +127,7 @@ jobs:
       - name: Get Date
         id: get-date
         run: |
-          echo "::set-output name=date::$(/bin/date -u "+%Y%m%d")"
+          echo "date=$(/bin/date -u "+%Y%m%d")" >> $GITHUB_OUTPUT
         shell: bash
 
       - uses: actions/cache@v2

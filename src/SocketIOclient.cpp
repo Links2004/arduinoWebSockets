@@ -93,6 +93,10 @@ void SocketIOclient::setReconnectInterval(unsigned long time) {
     return WebSocketsClient::setReconnectInterval(time);
 }
 
+void SocketIOclient::disconnect(void) {
+    WebSocketsClient::disconnect();
+}
+
 /**
  * send text data to client
  * @param num uint8_t client id

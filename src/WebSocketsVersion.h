@@ -1,6 +1,6 @@
 /**
  * @file WebSocketsVersion.h
- * @date 05.04.2022
+ * @date 01.05.2023
  * @author Markus Sattler
  *
  * Copyright (c) 2015 Markus Sattler. All rights reserved.
@@ -25,12 +25,12 @@
 #ifndef WEBSOCKETSVERSION_H_
 #define WEBSOCKETSVERSION_H_
 
-#define WEBSOCKETS_VERSION "2.3.7"
+#define WEBSOCKETS_VERSION "2.4.1"
 
 #define WEBSOCKETS_VERSION_MAJOR 2
-#define WEBSOCKETS_VERSION_MINOR 3
-#define WEBSOCKETS_VERSION_PATCH 7
+#define WEBSOCKETS_VERSION_MINOR 4
+#define WEBSOCKETS_VERSION_PATCH 1
 
-#define WEBSOCKETS_VERSION_INT 2003007
+#define WEBSOCKETS_VERSION_INT 2004001
 
 #endif /* WEBSOCKETSVERSION_H_ */
