@@ -655,7 +655,7 @@ void WebSocketsServer::handleNewClients(void) {
 #endif
 
         // store new connection
-        WEBSOCKETS_NETWORK_CLASS * tcpClient = new WEBSOCKETS_NETWORK_CLASS(_server->available());
+        WEBSOCKETS_NETWORK_CLASS * tcpClient = new WEBSOCKETS_NETWORK_CLASS(_server->accept());
         if(!tcpClient) {
             DEBUG_WEBSOCKETS("[WS-Client] creating Network class failed!");
             return;
