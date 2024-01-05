@@ -430,15 +430,15 @@ WSclient_t * WebSocketsServerCore::newClient(WEBSOCKETS_NETWORK_CLASS * TCPclien
         client = &_clients[i];
 
         // look for match to existing socket before creating a new one
-        if (clientIsConnected(client))
-        {
-          // Check to see if it is the same socket - if so, return it
-          if (client->tcp->getSocketNumber() == TCPclient->getSocketNumber())
-          {
-            return client;
-          }
+        if(clientIsConnected(client)) {
+#if(WEBSOCKETS_NETWORK_TYPE == NETWORK_W5100)
+            // Check to see if it is the same socket - if so, return it
+            if(client->tcp->getSocketNumber() == TCPclient->getSocketNumber()) {
+                return client;
+            }
+#endif
         } else {
-        // state is not connected or tcp connection is lost
+            // state is not connected or tcp connection is lost
             client->tcp = TCPclient;
 
 #if(WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP32)
