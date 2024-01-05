@@ -34,6 +34,7 @@ function build_sketch_cli()
     local sketch=$1
     local board=$2
     arduino-cli --log --log-level info compile -b "$board" "$sketch"
+    result=$?
     if [ $result -ne 0 ]; then
         echo "Build failed ($sketch) build verbose..."
         arduino-cli --log --log-level debug compile -b "$board" "$sketch"
