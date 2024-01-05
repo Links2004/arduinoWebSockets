@@ -88,7 +88,7 @@ function get_sketches_json_matrix()
     local arduino=$1
     local srcpath=$2
     local platform=$3
-    local ideversion=$4
+    local cliversion=$4
     local board=$5
     local sketches=($(find $srcpath -name *.ino))
     for sketch in "${sketches[@]}" ; do
@@ -97,7 +97,7 @@ function get_sketches_json_matrix()
         if [[ -f "$sketchdir/.$platform.skip" ]]; then
             continue
         fi
-        echo -en "{\"name\":\"$sketchname\",\"board\":\"$board\",\"ideversion\":\"$ideversion\",\"cpu\":\"$platform\",\"sketch\":\"$sketch\"}"
+        echo -en "{\"name\":\"$sketchname\",\"board\":\"$board\",\"cliversion\":\"$cliversion\",\"cpu\":\"$platform\",\"sketch\":\"$sketch\"}"
         if [[ $sketch != ${sketches[-1]} ]] ; then
             echo -en ","
         fi

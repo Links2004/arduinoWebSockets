@@ -55,9 +55,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        IDE_VERSION: [0.35.0]
+        CLI_VERSION: [0.35.0]
     env:
-      IDE_VERSION: ${{ matrix.IDE_VERSION }}
+      CLI_VERSION: ${{ matrix.CLI_VERSION }}
       ARDUINO_DIRECTORIES_DATA: /home/runner/arduino_ide
 
     steps:
@@ -75,13 +75,13 @@ jobs:
           path: |
             /home/runner/arduino_ide
             /home/runner/Arduino
-          key: ${{ runner.os }}-${{ steps.get-date.outputs.date }}-${{ matrix.IDE_VERSION }}-cli
+          key: ${{ runner.os }}-${{ steps.get-date.outputs.date }}-${{ matrix.CLI_VERSION }}-cli
 
       - name: download IDE
         if: steps.cache_all.outputs.cache-hit != 'true'
         run: |
-          wget https://github.com/arduino/arduino-cli/releases/download/v$IDE_VERSION/arduino-cli$IDE_VERSION_Linux_64bit.tar.gz -q
-          tar xf arduino-cli_$IDE_VERSION_Linux_64bit.tar.gz
+          wget https://github.com/arduino/arduino-cli/releases/download/v${CLI_VERSION}/arduino-cli${CLI_VERSION}_Linux_64bit.tar.gz -q
+          tar xf arduino-cli_${CLI_VERSION}_Linux_64bit.tar.gz
           mkdir -p $ARDUINO_DIRECTORIES_DATA
           mv arduino-cli $ARDUINO_DIRECTORIES_DATA/
 
@@ -110,7 +110,7 @@ jobs:
     env:
       CPU: ${{ matrix.cpu }}
       BOARD: ${{ matrix.board }}
-      IDE_VERSION: ${{ matrix.ideversion }}
+      CLI_VERSION: ${{ matrix.cliversion }}
       SKETCH: ${{ matrix.sketch }}
       ARDUINO_DIRECTORIES_DATA: /home/runner/arduino_ide
 
@@ -134,7 +134,7 @@ jobs:
           path: |
             /home/runner/arduino_ide
             /home/runner/Arduino
-          key: ${{ runner.os }}-${{ steps.get-date.outputs.date }}-${{ matrix.ideversion }}-cli
+          key: ${{ runner.os }}-${{ steps.get-date.outputs.date }}-${{ matrix.cliversion }}-cli
 
       - name: install python serial
         if: matrix.cpu == 'esp32'
