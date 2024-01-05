@@ -61,7 +61,7 @@ class SocketIOclient : protected WebSocketsClient {
 #endif
 #endif
     bool isConnected(void);
-    
+
     void onEvent(SocketIOclientEvent cbEvent);
     void disconnect(void);
 
