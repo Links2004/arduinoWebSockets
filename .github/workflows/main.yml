@@ -80,7 +80,7 @@ jobs:
       - name: download IDE
         if: steps.cache_all.outputs.cache-hit != 'true'
         run: |
-          wget https://github.com/arduino/arduino-cli/releases/download/v${CLI_VERSION}/arduino-cli${CLI_VERSION}_Linux_64bit.tar.gz -q
+          wget https://github.com/arduino/arduino-cli/releases/download/v${CLI_VERSION}/arduino-cli_${CLI_VERSION}_Linux_64bit.tar.gz -q
           tar xf arduino-cli_${CLI_VERSION}_Linux_64bit.tar.gz
           mkdir -p $ARDUINO_DIRECTORIES_DATA
           mv arduino-cli $ARDUINO_DIRECTORIES_DATA/
