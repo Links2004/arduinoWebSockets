@@ -27,25 +27,25 @@ void SocketIOclient::begin(String host, uint16_t port, String url, String protoc
     initClient();
 }
 #if defined(HAS_SSL)
-void SocketIOclient::beginSSL(const char * host, uint16_t port, const char * url, const char * protocol,  uint32_t pingInterval, uint32_t pongTimeout, uint8_t disconnectTimeoutCount) {
+void SocketIOclient::beginSSL(const char * host, uint16_t port, const char * url, const char * protocol, uint32_t pingInterval, uint32_t pongTimeout, uint8_t disconnectTimeoutCount) {
     WebSocketsClient::beginSocketIOSSL(host, port, url, protocol);
     WebSocketsClient::enableHeartbeat(pingInterval, pongTimeout, disconnectTimeoutCount);
     initClient();
 }
 
-void SocketIOclient::beginSSL(String host, uint16_t port, String url, String protocol,  uint32_t pingInterval, uint32_t pongTimeout, uint8_t disconnectTimeoutCount) {
+void SocketIOclient::beginSSL(String host, uint16_t port, String url, String protocol, uint32_t pingInterval, uint32_t pongTimeout, uint8_t disconnectTimeoutCount) {
     WebSocketsClient::beginSocketIOSSL(host, port, url, protocol);
     WebSocketsClient::enableHeartbeat(pingInterval, pongTimeout, disconnectTimeoutCount);
     initClient();
 }
 #if defined(SSL_BARESSL)
-void SocketIOclient::beginSSLWithCA(const char * host, uint16_t port, const char * url, const char * CA_cert, const char * protocol,  uint32_t pingInterval, uint32_t pongTimeout, uint8_t disconnectTimeoutCount) {
+void SocketIOclient::beginSSLWithCA(const char * host, uint16_t port, const char * url, const char * CA_cert, const char * protocol, uint32_t pingInterval, uint32_t pongTimeout, uint8_t disconnectTimeoutCount) {
     WebSocketsClient::beginSocketIOSSLWithCA(host, port, url, CA_cert, protocol);
     WebSocketsClient::enableHeartbeat(pingInterval, pongTimeout, disconnectTimeoutCount);
     initClient();
 }
 
-void SocketIOclient::beginSSLWithCA(const char * host, uint16_t port, const char * url, BearSSL::X509List * CA_cert, const char * protocol,  uint32_t pingInterval, uint32_t pongTimeout, uint8_t disconnectTimeoutCount) {
+void SocketIOclient::beginSSLWithCA(const char * host, uint16_t port, const char * url, BearSSL::X509List * CA_cert, const char * protocol, uint32_t pingInterval, uint32_t pongTimeout, uint8_t disconnectTimeoutCount) {
     WebSocketsClient::beginSocketIOSSLWithCA(host, port, url, CA_cert, protocol);
     WebSocketsClient::enableHeartbeat(pingInterval, pongTimeout, disconnectTimeoutCount);
     initClient();
