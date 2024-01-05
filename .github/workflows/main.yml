@@ -69,7 +69,7 @@ jobs:
           echo "date=$(/bin/date -u "+%Y%m%d")" >> $GITHUB_OUTPUT
         shell: bash
 
-      - uses: actions/cache@v2
+      - uses: actions/cache@v3
         id: cache_all
         with:
           path: |
@@ -128,7 +128,7 @@ jobs:
           echo "date=$(/bin/date -u "+%Y%m%d")" >> $GITHUB_OUTPUT
         shell: bash
 
-      - uses: actions/cache@v2
+      - uses: actions/cache@v3
         id: cache_all
         with:
           path: |
@@ -157,7 +157,6 @@ jobs:
         timeout-minutes: 20
         run: |
           set -ex
-          export DISPLAY=:1.0
           export PATH="$HOME/arduino_ide:$PATH"
           source $GITHUB_WORKSPACE/travis/common.sh
           cd $GITHUB_WORKSPACE
