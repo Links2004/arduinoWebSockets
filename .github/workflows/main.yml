@@ -37,13 +37,13 @@ jobs:
           echo -en "matrix=" >> $GITHUB_OUTPUT
           echo -en "[" >> $GITHUB_OUTPUT
 
-          get_sketches_json_matrix arduino $GITHUB_WORKSPACE/examples/esp8266_pico esp8266 1.8.19 esp8266com:esp8266:generic:xtal=80,vt=flash,exception=disabled,stacksmash=disabled,ssl=all,mmu=3232,non32xfer=fast,ResetMethod=nodemcu,CrystalFreq=26,FlashFreq=80,FlashMode=qio,eesz=4M2M,led=2,sdk=nonosdk_190703,ip=lm2f,dbg=Serial1,lvl=SSL,wipe=none,baud=115200 >> $GITHUB_OUTPUT
+          get_sketches_json_matrix arduino $GITHUB_WORKSPACE/examples/esp8266_pico esp8266 0.35.0 esp8266:esp8266:generic:xtal=80,vt=flash,exception=disabled,stacksmash=disabled,ssl=all,mmu=3232,non32xfer=fast,ResetMethod=nodemcu,CrystalFreq=26,FlashFreq=80,FlashMode=qio,eesz=4M2M,led=2,sdk=nonosdk_190703,ip=lm2f,dbg=Serial1,lvl=SSL,wipe=none,baud=115200 >> $GITHUB_OUTPUT
           echo -en "," >> $GITHUB_OUTPUT
 
-          get_sketches_json_matrix arduino $GITHUB_WORKSPACE/examples/esp8266_pico esp8266 1.8.19 esp8266com:esp8266:generic:xtal=80,vt=flash,exception=disabled,stacksmash=disabled,ssl=all,mmu=3232,non32xfer=fast,ResetMethod=nodemcu,CrystalFreq=26,FlashFreq=80,FlashMode=qio,eesz=4M2M,led=2,sdk=nonosdk_190703,ip=lm2f,dbg=Disabled,lvl=None____,wipe=none,baud=115200 >> $GITHUB_OUTPUT
+          get_sketches_json_matrix arduino $GITHUB_WORKSPACE/examples/esp8266_pico esp8266 0.35.0 esp8266:esp8266:generic:xtal=80,vt=flash,exception=disabled,stacksmash=disabled,ssl=all,mmu=3232,non32xfer=fast,ResetMethod=nodemcu,CrystalFreq=26,FlashFreq=80,FlashMode=qio,eesz=4M2M,led=2,sdk=nonosdk_190703,ip=lm2f,dbg=Disabled,lvl=None____,wipe=none,baud=115200 >> $GITHUB_OUTPUT
           echo -en "," >> $GITHUB_OUTPUT
 
-          get_sketches_json_matrix arduino $GITHUB_WORKSPACE/examples/esp32 esp32 1.8.19 espressif:esp32:esp32:FlashFreq=80 >> $GITHUB_OUTPUT
+          get_sketches_json_matrix arduino $GITHUB_WORKSPACE/examples/esp32 esp32 0.35.0 esp32:esp32:esp32:FlashFreq=80 >> $GITHUB_OUTPUT
 
           echo -en "]" >> $GITHUB_OUTPUT
           echo >> $GITHUB_OUTPUT
@@ -55,9 +55,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        IDE_VERSION: [1.8.19]
+        CLI_VERSION: [0.35.0]
     env:
-      IDE_VERSION: ${{ matrix.IDE_VERSION }}
+      CLI_VERSION: ${{ matrix.CLI_VERSION }}
+      ARDUINO_DIRECTORIES_DATA: /home/runner/arduino_ide
 
     steps:
       - uses: actions/checkout@v2
@@ -68,20 +69,21 @@ jobs:
           echo "date=$(/bin/date -u "+%Y%m%d")" >> $GITHUB_OUTPUT
         shell: bash
 
-      - uses: actions/cache@v2
+      - uses: actions/cache@v3
         id: cache_all
         with:
           path: |
             /home/runner/arduino_ide
             /home/runner/Arduino
-          key: ${{ runner.os }}-${{ steps.get-date.outputs.date }}-${{ matrix.IDE_VERSION }}
+          key: ${{ runner.os }}-${{ steps.get-date.outputs.date }}-${{ matrix.CLI_VERSION }}-cli
 
       - name: download IDE
         if: steps.cache_all.outputs.cache-hit != 'true'
         run: |
-          wget http://downloads.arduino.cc/arduino-$IDE_VERSION-linux64.tar.xz -q
-          tar xf arduino-$IDE_VERSION-linux64.tar.xz
-          mv arduino-$IDE_VERSION $HOME/arduino_ide
+          wget https://github.com/arduino/arduino-cli/releases/download/v${CLI_VERSION}/arduino-cli_${CLI_VERSION}_Linux_64bit.tar.gz -q
+          tar xf arduino-cli_${CLI_VERSION}_Linux_64bit.tar.gz
+          mkdir -p $ARDUINO_DIRECTORIES_DATA
+          mv arduino-cli $ARDUINO_DIRECTORIES_DATA/
 
       - name: download ArduinoJson
         if: steps.cache_all.outputs.cache-hit != 'true'
@@ -91,17 +93,12 @@ jobs:
           unzip 6.x.zip
           mv ArduinoJson-6.x $HOME/Arduino/libraries/ArduinoJson
 
-      - name: download esp8266
+      - name: download cores
         if: steps.cache_all.outputs.cache-hit != 'true'
         run: |
+          export PATH="$ARDUINO_DIRECTORIES_DATA:$PATH"
           source $GITHUB_WORKSPACE/travis/common.sh
-          get_core esp8266
-
-      - name: download esp32
-        if: steps.cache_all.outputs.cache-hit != 'true'
-        run: |
-          source $GITHUB_WORKSPACE/travis/common.sh
-          get_core esp32
+          get_core_cli
 
   build:
     needs: [prepare_ide, prepare_example_json]
@@ -113,8 +110,9 @@ jobs:
     env:
       CPU: ${{ matrix.cpu }}
       BOARD: ${{ matrix.board }}
-      IDE_VERSION: ${{ matrix.ideversion }}
+      CLI_VERSION: ${{ matrix.cliversion }}
       SKETCH: ${{ matrix.sketch }}
+      ARDUINO_DIRECTORIES_DATA: /home/runner/arduino_ide
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
@@ -130,13 +128,13 @@ jobs:
           echo "date=$(/bin/date -u "+%Y%m%d")" >> $GITHUB_OUTPUT
         shell: bash
 
-      - uses: actions/cache@v2
+      - uses: actions/cache@v3
         id: cache_all
         with:
           path: |
             /home/runner/arduino_ide
             /home/runner/Arduino
-          key: ${{ runner.os }}-${{ steps.get-date.outputs.date }}-${{ matrix.ideversion }}
+          key: ${{ runner.os }}-${{ steps.get-date.outputs.date }}-${{ matrix.cliversion }}-cli
 
       - name: install python serial
         if: matrix.cpu == 'esp32'
@@ -145,41 +143,24 @@ jobs:
           sudo pip install pyserial
 #          sudo apt install python-is-python3
 
-      - name: start DISPLAY
-        run: |
-          /sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_1.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :1 -ac -screen 0 1280x1024x16
-          export DISPLAY=:1.0
-          sleep 3
-
       - name: test IDE
         run: |
-          export PATH="$HOME/arduino_ide:$PATH"
-          which arduino
+          export PATH="$ARDUINO_DIRECTORIES_DATA:$PATH"
+          which arduino-cli
 
       - name: copy code
         run: |
           mkdir -p $HOME/Arduino/libraries/
           cp -r $GITHUB_WORKSPACE $HOME/Arduino/libraries/arduinoWebSockets
 
-      - name: config IDE
-        run: |
-          set +x
-          export DISPLAY=:1.0
-          export PATH="$HOME/arduino_ide:$PATH"
-          arduino --board $BOARD --save-prefs
-          arduino --pref update.check=false --pref build.verbose=false --pref cache.enable=true --pref compiler.cache_core=true --pref compiler.warning_level=default --save-prefs
-          arduino --get-pref sketchbook.path
-          arduino --get-pref
-
       - name: build example
         timeout-minutes: 20
         run: |
           set -ex
-          export DISPLAY=:1.0
           export PATH="$HOME/arduino_ide:$PATH"
           source $GITHUB_WORKSPACE/travis/common.sh
           cd $GITHUB_WORKSPACE
-          build_sketch arduino $SKETCH
+          build_sketch_cli "$SKETCH" "$BOARD"
 
   done:
     needs: [prepare_ide, prepare_example_json, build, check_version_files]
