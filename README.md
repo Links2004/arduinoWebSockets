@@ -48,6 +48,16 @@ a WebSocket Server and Client for Arduino based on RFC6455.
    by running the device behind an SSL proxy. See [Nginx](examples/Nginx/esp8266.ssl.reverse.proxy.conf) for a
    sample Nginx server configuration file to enable this.
 
+### Root CA Cert Bundles for SSL/TLS connections ###
+
+Secure connections require the certificate of the server to be verified. One option is to provide a single certificate in the chain of trust. However, for flexibility and robustness, a certificate bundle is recommended. If a server changes the root CA from which it derives its certificates, this will not be a problem. With a single CA cert it will not connect.
+
+ - For [technical details](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/protocols/esp_crt_bundle.html)
+ - For a [PlatformIO setup](https://github.com/Duckle29/esp32-certBundle/)
+ - For an [example](examples/esp32/WebSocketClientSSLBundle/)
+
+Including a bundle with all CA certs will use 77.2 kB but this list can be reduced to 16.5 kB for the 41 most common. This results in 90% absolute usage coverage and 99% market share coverage according to [W3Techs](https://w3techs.com/technologies/overview/ssl_certificate). The bundle is inserted into the compiled firmware. The bundle is not loaded into RAM, only its index.
+
 ### ESP Async TCP ###
 
 This libary can run in Async TCP mode on the ESP.
