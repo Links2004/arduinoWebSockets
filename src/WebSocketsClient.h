@@ -53,7 +53,9 @@ class WebSocketsClient : protected WebSockets {
     void setSSLClientCertKey(const char * clientCert = NULL, const char * clientPrivateKey = NULL);
 #endif
     void beginSslWithCA(const char * host, uint16_t port, const char * url = "/", const char * CA_cert = NULL, const char * protocol = "arduino");
+#ifdef ESP32
     void beginSslWithBundle(const char * host, uint16_t port, const char * url = "/", const uint8_t * CA_bundle = NULL, const char * protocol = "arduino");
+#endif
 #endif
 
     void beginSocketIO(const char * host, uint16_t port, const char * url = "/socket.io/?EIO=3", const char * protocol = "arduino");

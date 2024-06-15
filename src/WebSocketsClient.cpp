@@ -48,7 +48,9 @@ void WebSocketsClient::begin(const char * host, uint16_t port, const char * url,
 #if defined(HAS_SSL)
     _fingerprint = SSL_FINGERPRINT_NULL;
     _CA_cert     = NULL;
+#ifdef ESP32
     _CA_bundle   = NULL;
+#endif
 #endif
 
     _client.num    = 0;
@@ -242,12 +244,10 @@ void WebSocketsClient::loop(void) {
 #else
 #error setCACert not implemented
 #endif
+#if defined(ESP32)
             } else if(_CA_bundle) {
                 DEBUG_WEBSOCKETS("[WS-Client] setting CA bundle");
-#if defined(ESP32)
                 _client.ssl->setCACertBundle(_CA_bundle);
-#else
-#error setCABundle not implemented
 #endif
 #if defined(ESP32)
             } else if(!SSL_FINGERPRINT_IS_SET) {
