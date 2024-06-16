@@ -5,4 +5,4 @@
 .vscode/ipch
 *secret*
 !*secrets.hpp.template
-*x509_crt_bundle
+*x509_crt_bundle.bin
