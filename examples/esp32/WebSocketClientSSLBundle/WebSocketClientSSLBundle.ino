@@ -11,8 +11,9 @@
 
 #include <WebSocketsClient.h>
 
-extern const uint8_t rootca_crt_bundle_start[] asm(
-    "_binary_data_cert_x509_crt_bundle_bin_start");
+// Use the incbin library to embedd the cert binary
+// extern const uint8_t rootca_crt_bundle_start[] asm(
+//     "_binary_data_cert_x509_crt_bundle_bin_start");
 
 WiFiMulti wifiMulti;
 WebSocketsClient webSocket;
@@ -110,7 +111,8 @@ void setup() {
 
     // server address, port and URL. This server can be flakey.
     // Expected response: Request served by 0123456789abcdef
-    webSocket.beginSslWithBundle("echo.websocket.org", 443, "/", rootca_crt_bundle_start, "");
+    // webSocket.beginSslWithBundle("echo.websocket.org", 443, "/", rootca_crt_bundle_start, "");
+    webSocket.beginSslWithBundle("echo.websocket.org", 443, "/", NULL, "");
 
     // event handler
     webSocket.onEvent(webSocketEvent);
