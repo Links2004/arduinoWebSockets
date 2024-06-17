@@ -105,10 +105,11 @@ function get_sketches_json_matrix()
 }
 
 function get_core_cli() {
-    export ARDUINO_BOARD_MANAGER_ADDITIONAL_URLS="https://arduino.esp8266.com/stable/package_esp8266com_index.json https://espressif.github.io/arduino-esp32/package_esp32_index.json"
+    export ARDUINO_BOARD_MANAGER_ADDITIONAL_URLS="https://arduino.esp8266.com/stable/package_esp8266com_index.json https://espressif.github.io/arduino-esp32/package_esp32_index.json https://github.com/earlephilhower/arduino-pico/releases/download/3.9.2/package_rp2040_index.json"
     arduino-cli core update-index
     arduino-cli core install esp8266:esp8266
     arduino-cli core install esp32:esp32
+    arduino-cli core install rp2040:rp2040
 }
 
 function get_core()
