@@ -37,13 +37,13 @@ jobs:
           echo -en "matrix=" >> $GITHUB_OUTPUT
           echo -en "[" >> $GITHUB_OUTPUT
 
-          get_sketches_json_matrix arduino $GITHUB_WORKSPACE/examples/esp8266_pico esp8266 0.35.0 esp8266:esp8266:generic:xtal=80,vt=flash,exception=disabled,stacksmash=disabled,ssl=all,mmu=3232,non32xfer=fast,ResetMethod=nodemcu,CrystalFreq=26,FlashFreq=80,FlashMode=qio,eesz=4M2M,led=2,sdk=nonosdk_190703,ip=lm2f,dbg=Serial1,lvl=SSL,wipe=none,baud=115200 >> $GITHUB_OUTPUT
+          get_sketches_json_matrix arduino $GITHUB_WORKSPACE/examples/esp8266_pico esp8266 0.35.3 esp8266:esp8266:generic:xtal=80,vt=flash,exception=disabled,stacksmash=disabled,ssl=all,mmu=3232,non32xfer=fast,ResetMethod=nodemcu,CrystalFreq=26,FlashFreq=80,FlashMode=qio,eesz=4M2M,led=2,sdk=nonosdk_190703,ip=lm2f,dbg=Serial1,lvl=SSL,wipe=none,baud=115200 >> $GITHUB_OUTPUT
           echo -en "," >> $GITHUB_OUTPUT
 
-          get_sketches_json_matrix arduino $GITHUB_WORKSPACE/examples/esp8266_pico esp8266 0.35.0 esp8266:esp8266:generic:xtal=80,vt=flash,exception=disabled,stacksmash=disabled,ssl=all,mmu=3232,non32xfer=fast,ResetMethod=nodemcu,CrystalFreq=26,FlashFreq=80,FlashMode=qio,eesz=4M2M,led=2,sdk=nonosdk_190703,ip=lm2f,dbg=Disabled,lvl=None____,wipe=none,baud=115200 >> $GITHUB_OUTPUT
+          get_sketches_json_matrix arduino $GITHUB_WORKSPACE/examples/esp8266_pico esp8266 0.35.3 esp8266:esp8266:generic:xtal=80,vt=flash,exception=disabled,stacksmash=disabled,ssl=all,mmu=3232,non32xfer=fast,ResetMethod=nodemcu,CrystalFreq=26,FlashFreq=80,FlashMode=qio,eesz=4M2M,led=2,sdk=nonosdk_190703,ip=lm2f,dbg=Disabled,lvl=None____,wipe=none,baud=115200 >> $GITHUB_OUTPUT
           echo -en "," >> $GITHUB_OUTPUT
 
-          get_sketches_json_matrix arduino $GITHUB_WORKSPACE/examples/esp32 esp32 0.35.0 esp32:esp32:esp32:FlashFreq=80 >> $GITHUB_OUTPUT
+          get_sketches_json_matrix arduino $GITHUB_WORKSPACE/examples/esp32 esp32 0.35.3 esp32:esp32:esp32:FlashFreq=80 >> $GITHUB_OUTPUT
 
           echo -en "]" >> $GITHUB_OUTPUT
           echo >> $GITHUB_OUTPUT
@@ -55,7 +55,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        CLI_VERSION: [0.35.0]
+        CLI_VERSION: [0.35.3]
     env:
       CLI_VERSION: ${{ matrix.CLI_VERSION }}
       ARDUINO_DIRECTORIES_DATA: /home/runner/arduino_ide
@@ -63,10 +63,10 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Get Date
-        id: get-date
+      - name: Get hash
+        id: get-hash
         run: |
-          echo "date=$(/bin/date -u "+%Y%m%d")" >> $GITHUB_OUTPUT
+          echo "hash=$(/bin/date -u "+%Y%m%d")-$(md5sum ".github/workflows/main.yml" | cut -d ' ' -f 1)" >> $GITHUB_OUTPUT
         shell: bash
 
       - uses: actions/cache@v3
@@ -75,7 +75,7 @@ jobs:
           path: |
             /home/runner/arduino_ide
             /home/runner/Arduino
-          key: ${{ runner.os }}-${{ steps.get-date.outputs.date }}-${{ matrix.CLI_VERSION }}-cli
+          key: ${{ runner.os }}-${{ steps.get-hash.outputs.hash }}-${{ matrix.CLI_VERSION }}-cli
 
       - name: download IDE
         if: steps.cache_all.outputs.cache-hit != 'true'
@@ -122,10 +122,10 @@ jobs:
         run: |
           sudo apt-get install -y libgtk2.0-0
 
-      - name: Get Date
-        id: get-date
+      - name: Get hash
+        id: get-hash
         run: |
-          echo "date=$(/bin/date -u "+%Y%m%d")" >> $GITHUB_OUTPUT
+          echo "hash=$(/bin/date -u "+%Y%m%d")-$(md5sum ".github/workflows/main.yml" | cut -d ' ' -f 1)" >> $GITHUB_OUTPUT
         shell: bash
 
       - uses: actions/cache@v3
@@ -134,7 +134,7 @@ jobs:
           path: |
             /home/runner/arduino_ide
             /home/runner/Arduino
-          key: ${{ runner.os }}-${{ steps.get-date.outputs.date }}-${{ matrix.cliversion }}-cli
+          key: ${{ runner.os }}-${{ steps.get-hash.outputs.hash }}-${{ matrix.cliversion }}-cli
 
       - name: install python serial
         if: matrix.cpu == 'esp32'

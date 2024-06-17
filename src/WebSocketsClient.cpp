@@ -49,7 +49,7 @@ void WebSocketsClient::begin(const char * host, uint16_t port, const char * url,
     _fingerprint = SSL_FINGERPRINT_NULL;
     _CA_cert     = NULL;
 #ifdef ESP32
-    _CA_bundle   = NULL;
+    _CA_bundle = NULL;
 #endif
 #endif
 
