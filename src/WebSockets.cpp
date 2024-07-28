@@ -571,6 +571,7 @@ String WebSockets::acceptKey(String & clientKey) {
  */
 String WebSockets::base64_encode(uint8_t * data, size_t length) {
     size_t size   = ((length * 1.6f) + 1);
+    size          = std::max(size, (size_t)5);    // minimum buffer size
     char * buffer = (char *)malloc(size);
     if(buffer) {
         base64_encodestate _state;
@@ -749,7 +750,7 @@ void WebSockets::handleHBTimeout(WSclient_t * client) {
                 client->pongTimeoutCount++;
                 client->lastPing = millis() - client->pingInterval - 500;    // force ping on the next run
 
-                DEBUG_WEBSOCKETS("[HBtimeout] pong TIMEOUT! lp=%d millis=%d pi=%d count=%d\n", client->lastPing, millis(), pi, client->pongTimeoutCount);
+                DEBUG_WEBSOCKETS("[HBtimeout] pong TIMEOUT! lp=%d millis=%lu pi=%d count=%d\n", client->lastPing, millis(), pi, client->pongTimeoutCount);
 
                 if(client->disconnectTimeoutCount && client->pongTimeoutCount >= client->disconnectTimeoutCount) {
                     DEBUG_WEBSOCKETS("[HBtimeout] count=%d, DISCONNECTING\n", client->pongTimeoutCount);

@@ -1,6 +1,5 @@
 #!/bin/bash
-
-set -x
+set -e
 
 function build_sketches()
 {
@@ -27,6 +26,23 @@ function build_sketches()
             return $result
         fi
     done
+}
+
+function build_sketch_cli()
+{
+    local sketch=$1
+    local board=$2
+    arduino-cli --log --log-level info compile -b "$board" "$sketch"
+    result=$?
+    if [ $result -ne 0 ]; then
+        echo "Build failed ($sketch) build verbose..."
+        arduino-cli --log --log-level debug compile -b "$board" "$sketch"
+        result=$?
+    fi
+    if [ $result -ne 0 ]; then
+        echo "Build failed ($1) $sketch"
+        return $result
+    fi
 }
 
 function build_sketch()
@@ -72,7 +88,7 @@ function get_sketches_json_matrix()
     local arduino=$1
     local srcpath=$2
     local platform=$3
-    local ideversion=$4
+    local cliversion=$4
     local board=$5
     local sketches=($(find $srcpath -name *.ino))
     for sketch in "${sketches[@]}" ; do
@@ -81,18 +97,27 @@ function get_sketches_json_matrix()
         if [[ -f "$sketchdir/.$platform.skip" ]]; then
             continue
         fi
-        echo -en "{\"name\":\"$sketchname\",\"board\":\"$board\",\"ideversion\":\"$ideversion\",\"cpu\":\"$platform\",\"sketch\":\"$sketch\"}"
+        echo -en "{\"name\":\"$sketchname\",\"board\":\"$board\",\"cliversion\":\"$cliversion\",\"cpu\":\"$platform\",\"sketch\":\"$sketch\"}"
         if [[ $sketch != ${sketches[-1]} ]] ; then
             echo -en ","
         fi
     done
 }
 
+function get_core_cli() {
+    export ARDUINO_BOARD_MANAGER_ADDITIONAL_URLS="https://arduino.esp8266.com/stable/package_esp8266com_index.json https://espressif.github.io/arduino-esp32/package_esp32_index.json https://github.com/earlephilhower/arduino-pico/releases/download/3.9.2/package_rp2040_index.json"
+    arduino-cli core update-index
+    arduino-cli core install esp8266:esp8266
+    arduino-cli core install esp32:esp32
+    arduino-cli core install rp2040:rp2040
+}
+
 function get_core()
 {
     echo Setup core for $1
 
-    cd $HOME/arduino_ide/hardware
+    mkdir -p $HOME/arduino_ide/packages/hardware
+    cd $HOME/arduino_ide/packages/hardware
 
     if [ "$1" = "esp8266" ] ; then
         mkdir esp8266com

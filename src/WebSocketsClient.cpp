@@ -48,6 +48,9 @@ void WebSocketsClient::begin(const char * host, uint16_t port, const char * url,
 #if defined(HAS_SSL)
     _fingerprint = SSL_FINGERPRINT_NULL;
     _CA_cert     = NULL;
+#ifdef ESP32
+    _CA_bundle = NULL;
+#endif
 #endif
 
     _client.num    = 0;
@@ -107,6 +110,7 @@ void WebSocketsClient::beginSSL(const char * host, uint16_t port, const char * u
     _client.isSSL = true;
     _fingerprint  = fingerprint;
     _CA_cert      = NULL;
+    _CA_bundle    = NULL;
 }
 
 void WebSocketsClient::beginSSL(String host, uint16_t port, String url, String fingerprint, String protocol) {
@@ -118,7 +122,16 @@ void WebSocketsClient::beginSslWithCA(const char * host, uint16_t port, const ch
     _client.isSSL = true;
     _fingerprint  = SSL_FINGERPRINT_NULL;
     _CA_cert      = CA_cert;
+    _CA_bundle    = NULL;
 }
+void WebSocketsClient::beginSslWithBundle(const char * host, uint16_t port, const char * url, const uint8_t * CA_bundle, const char * protocol) {
+    begin(host, port, url, protocol);
+    _client.isSSL = true;
+    _fingerprint  = SSL_FINGERPRINT_NULL;
+    _CA_cert      = NULL;
+    _CA_bundle    = CA_bundle;
+}
+
 #else
 void WebSocketsClient::beginSSL(const char * host, uint16_t port, const char * url, const uint8_t * fingerprint, const char * protocol) {
     begin(host, port, url, protocol);
@@ -230,6 +243,11 @@ void WebSocketsClient::loop(void) {
                 _client.ssl->setTrustAnchors(_CA_cert);
 #else
 #error setCACert not implemented
+#endif
+#if defined(ESP32)
+            } else if(_CA_bundle) {
+                DEBUG_WEBSOCKETS("[WS-Client] setting CA bundle");
+                _client.ssl->setCACertBundle(_CA_bundle);
 #endif
 #if defined(ESP32)
             } else if(!SSL_FINGERPRINT_IS_SET) {
