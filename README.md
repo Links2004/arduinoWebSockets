@@ -1,4 +1,4 @@
-WebSocket Server and Client for Arduino [![Build Status](https://github.com/Links2004/arduinoWebSockets/workflows/CI/badge.svg?branch=master)](https://github.com/Links2004/arduinoWebSockets/actions?query=workflow%3ACI+branch%3Amaster)
+WebSocket Server and Client for Arduino [![Build Status](https://github.com/Links2004/arduinoWebSockets/actions/workflows/main.yml/badge.svg?branch=master)](https://github.com/Links2004/arduinoWebSockets/actions?query=branch%3Amaster)
 ===========================================
 
 a WebSocket Server and Client for Arduino based on RFC6455.
@@ -74,19 +74,19 @@ The mode can be activated in the ```WebSockets.h``` (see WEBSOCKETS_NETWORK_TYPE
 ```c++
 void begin(const char *host, uint16_t port, const char * url = "/", const char * protocol = "arduino");
 void begin(String host, uint16_t port, String url = "/", String protocol = "arduino");
- ```
+```
  - `onEvent`: Callback to handle for websocket events
 
- ```c++
+```c++
  void onEvent(WebSocketClientEvent cbEvent);
- ```
+```
 
  - `WebSocketClientEvent`: Handler for websocket events
- ```c++
+```c++
  void (*WebSocketClientEvent)(WStype_t type, uint8_t * payload, size_t length)
- ```
+```
 Where `WStype_t type` is defined as:
-  ```c++
+```c++
   typedef enum {
       WStype_ERROR,
       WStype_DISCONNECTED,
@@ -100,12 +100,10 @@ Where `WStype_t type` is defined as:
       WStype_PING,
       WStype_PONG,
   } WStype_t;
-  ```
+```
 
 ### Issues ###
 Submit issues to: https://github.com/Links2004/arduinoWebSockets/issues
-
-[![Join the chat at https://gitter.im/Links2004/arduinoWebSockets](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/Links2004/arduinoWebSockets?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 ### License and credits ###
 
