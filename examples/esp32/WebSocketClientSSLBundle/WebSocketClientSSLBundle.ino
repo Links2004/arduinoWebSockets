@@ -112,7 +112,13 @@ void setup() {
     // server address, port and URL. This server can be flakey.
     // Expected response: Request served by 0123456789abcdef
     // webSocket.beginSslWithBundle("echo.websocket.org", 443, "/", rootca_crt_bundle_start, "");
+    // ESP32 3.0.4 or higher needs the size of the bundle
+    // webSocket.beginSslWithBundle("echo.websocket.org", 443, "/", rootca_crt_bundle_start, sizeof(rootca_crt_bundle_start), "");
+#if ESP_ARDUINO_VERSION >= ESP_ARDUINO_VERSION_VAL(3, 0, 4)
+    webSocket.beginSslWithBundle("echo.websocket.org", 443, "/", NULL, 0, "");
+#else
     webSocket.beginSslWithBundle("echo.websocket.org", 443, "/", NULL, "");
+#endif
 
     // event handler
     webSocket.onEvent(webSocketEvent);

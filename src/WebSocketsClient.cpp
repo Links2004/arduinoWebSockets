@@ -50,6 +50,9 @@ void WebSocketsClient::begin(const char * host, uint16_t port, const char * url,
     _CA_cert     = NULL;
 #ifdef ESP32
     _CA_bundle = NULL;
+#if ESP_ARDUINO_VERSION >= ESP_ARDUINO_VERSION_VAL(3, 0, 4)
+    _CA_bundle_size = 0;
+#endif
 #endif
 #endif
 
@@ -124,6 +127,17 @@ void WebSocketsClient::beginSslWithCA(const char * host, uint16_t port, const ch
     _CA_cert      = CA_cert;
     _CA_bundle    = NULL;
 }
+
+#if defined(ESP32) && ESP_ARDUINO_VERSION >= ESP_ARDUINO_VERSION_VAL(3, 0, 4)
+void WebSocketsClient::beginSslWithBundle(const char * host, uint16_t port, const char * url, const uint8_t * CA_bundle, size_t CA_bundle_size, const char * protocol) {
+    begin(host, port, url, protocol);
+    _client.isSSL   = true;
+    _fingerprint    = SSL_FINGERPRINT_NULL;
+    _CA_cert        = NULL;
+    _CA_bundle      = CA_bundle;
+    _CA_bundle_size = CA_bundle_size;
+}
+#else
 void WebSocketsClient::beginSslWithBundle(const char * host, uint16_t port, const char * url, const uint8_t * CA_bundle, const char * protocol) {
     begin(host, port, url, protocol);
     _client.isSSL = true;
@@ -131,6 +145,7 @@ void WebSocketsClient::beginSslWithBundle(const char * host, uint16_t port, cons
     _CA_cert      = NULL;
     _CA_bundle    = CA_bundle;
 }
+#endif
 
 #else
 void WebSocketsClient::beginSSL(const char * host, uint16_t port, const char * url, const uint8_t * fingerprint, const char * protocol) {
@@ -247,9 +262,11 @@ void WebSocketsClient::loop(void) {
 #if defined(ESP32)
             } else if(_CA_bundle) {
                 DEBUG_WEBSOCKETS("[WS-Client] setting CA bundle");
+#if ESP_ARDUINO_VERSION >= ESP_ARDUINO_VERSION_VAL(3, 0, 4)
+                _client.ssl->setCACertBundle(_CA_bundle, _CA_bundle_size);
+#else
                 _client.ssl->setCACertBundle(_CA_bundle);
 #endif
-#if defined(ESP32)
             } else if(!SSL_FINGERPRINT_IS_SET) {
                 _client.ssl->setInsecure();
 #elif defined(SSL_BARESSL)
