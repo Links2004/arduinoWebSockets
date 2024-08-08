@@ -535,7 +535,7 @@ void WebSocketsClient::clientDisconnect(WSclient_t * client) {
         client->status = WSC_NOT_CONNECTED;
 #else
         #if(WEBSOCKETS_NETWORK_TYPE == NETWORK_WIFI_NINA)
-            // does not support delete. no destructor
+            // does not support delete (no destructor)
         #else
             delete client->tcp;
         #endif
