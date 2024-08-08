@@ -33,6 +33,7 @@ a WebSocket Server and Client for Arduino based on RFC6455.
  - ATmega2560 with Ethernet Shield (ATmega branch)
  - ATmega2560 with enc28j60 (ATmega branch)
  - Arduino UNO [R4 WiFi](https://github.com/arduino/ArduinoCore-renesas)
+ - Arduino Nano 33 IoT, MKR WIFI 1010, Uno WiFi Rev2 (WiFiNINA)
 
 ###### Note: ######
 
