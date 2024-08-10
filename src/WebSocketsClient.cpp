@@ -155,6 +155,7 @@ void WebSocketsClient::beginSSL(const char * host, uint16_t port, const char * u
     _CA_cert      = NULL;
 }
 
+#if defined(SSL_BARESSL)
 void WebSocketsClient::beginSslWithCA(const char * host, uint16_t port, const char * url, BearSSL::X509List * CA_cert, const char * protocol) {
     begin(host, port, url, protocol);
     _client.isSSL = true;
@@ -174,6 +175,7 @@ void WebSocketsClient::setSSLClientCertKey(BearSSL::X509List * clientCert, BearS
 void WebSocketsClient::setSSLClientCertKey(const char * clientCert, const char * clientPrivateKey) {
     setSSLClientCertKey(new BearSSL::X509List(clientCert), new BearSSL::PrivateKey(clientPrivateKey));
 }
+#endif    // SSL_BARESSL
 
 #endif    // SSL_AXTLS
 #endif    // HAS_SSL
@@ -242,7 +244,11 @@ void WebSocketsClient::loop(void) {
         if(_client.isSSL) {
             DEBUG_WEBSOCKETS("[WS-Client] connect wss...\n");
             if(_client.ssl) {
-                delete _client.ssl;
+                #if defined(WIO_TERMINAL)
+                #elif
+                    delete _client.ssl;
+                #endif
+                
                 _client.ssl = NULL;
                 _client.tcp = NULL;
             }
@@ -256,6 +262,8 @@ void WebSocketsClient::loop(void) {
                 _client.ssl->setCACert((const uint8_t *)_CA_cert, strlen(_CA_cert) + 1);
 #elif(defined(ESP8266) || defined(ARDUINO_ARCH_RP2040)) && defined(SSL_BARESSL)
                 _client.ssl->setTrustAnchors(_CA_cert);
+#elif defined(WIO_TERMINAL)
+                _client.ssl->setCACert(_CA_cert);
 #else
 #error setCACert not implemented
 #endif
@@ -283,7 +291,10 @@ void WebSocketsClient::loop(void) {
         } else {
             DEBUG_WEBSOCKETS("[WS-Client] connect ws...\n");
             if(_client.tcp) {
+                #if defined(WIO_TERMINAL)
+                #elif
                 delete _client.tcp;
+                #endif
                 _client.tcp = NULL;
             }
             _client.tcp = new WEBSOCKETS_NETWORK_CLASS();
@@ -534,7 +545,7 @@ void WebSocketsClient::clientDisconnect(WSclient_t * client) {
 #if(WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266_ASYNC)
         client->status = WSC_NOT_CONNECTED;
 #else
-        #if(WEBSOCKETS_NETWORK_TYPE == NETWORK_WIFI_NINA)
+        #if(WEBSOCKETS_NETWORK_TYPE == NETWORK_WIFI_NINA || WEBSOCKETS_NETWORK_TYPE == NETWORK_WIO_TERMINAL)
             // does not support delete (no destructor)
         #else
             delete client->tcp;
