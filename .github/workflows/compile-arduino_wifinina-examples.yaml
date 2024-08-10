@@ -20,11 +20,14 @@ jobs:
             platforms: |
               - name: arduino:samd
             artifact-name-suffix: arduino-samd-mkrwifi1010
+            libraries: |
+              - name: WiFiNINA
           - fqbn: arduino:samd:nano_33_iot
             platforms: |
               - name: arduino:samd
             artifact-name-suffix: arduino-samd-nano_33_iot
-
+            libraries: |
+              - name: WiFiNINA
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -37,6 +40,7 @@ jobs:
           libraries: |
             # Install the library from the local path.
             - source-path: ./
+            ${{ matrix.board.libraries }}
           sketch-paths: |
             - examples/arduino_wifinina/arduino_wifinina.ino
           enable-deltas-report: true
