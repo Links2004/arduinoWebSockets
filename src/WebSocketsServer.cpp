@@ -65,7 +65,11 @@ WebSocketsServerCore::~WebSocketsServerCore() {
 }
 
 WebSocketsServer::~WebSocketsServer() {
-    delete _server;
+    #if(WEBSOCKETS_NETWORK_TYPE == NETWORK_WIFI_NINA)
+        // does not support delete (no destructor)
+    #else
+        delete _server;
+    #endif    
 }
 
 /**
@@ -539,6 +543,8 @@ void WebSocketsServerCore::dropNativeClient(WSclient_t * client) {
         }
 #if(WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266_ASYNC)
         client->status = WSC_NOT_CONNECTED;
+#elif(WEBSOCKETS_NETWORK_TYPE == NETWORK_WIFI_NINA)
+        // does not support delete (no destructor)
 #else
         delete client->tcp;
 #endif
@@ -655,7 +661,12 @@ void WebSocketsServer::handleNewClients(void) {
 #endif
 
         // store new connection
-        WEBSOCKETS_NETWORK_CLASS * tcpClient = new WEBSOCKETS_NETWORK_CLASS(_server->accept());
+        #if(WEBSOCKETS_NETWORK_TYPE == NETWORK_WIFI_NINA)
+            WEBSOCKETS_NETWORK_CLASS * tcpClient = new WEBSOCKETS_NETWORK_CLASS(_server->available());
+        #else
+            WEBSOCKETS_NETWORK_CLASS * tcpClient = new WEBSOCKETS_NETWORK_CLASS(_server->accept());
+        #endif
+
         if(!tcpClient) {
             DEBUG_WEBSOCKETS("[WS-Client] creating Network class failed!");
             return;

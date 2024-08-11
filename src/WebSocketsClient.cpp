@@ -534,7 +534,11 @@ void WebSocketsClient::clientDisconnect(WSclient_t * client) {
 #if(WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266_ASYNC)
         client->status = WSC_NOT_CONNECTED;
 #else
-        delete client->tcp;
+        #if(WEBSOCKETS_NETWORK_TYPE == NETWORK_WIFI_NINA)
+            // does not support delete (no destructor)
+        #else
+            delete client->tcp;
+        #endif
 #endif
         client->tcp = NULL;
     }
