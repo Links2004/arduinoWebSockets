@@ -1,4 +1,4 @@
-name: Compile Examples
+name: Compile SeedStudio Examples
 
 # See: https://docs.github.com/en/free-pro-team@latest/actions/reference/events-that-trigger-workflows
 on:
