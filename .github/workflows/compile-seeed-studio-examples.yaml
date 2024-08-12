@@ -41,7 +41,18 @@ jobs:
               - name: Seeed_Arduino_mbedtls
               - name: Seeed Arduino FS
               - name: Seeed Arduino SFUD
-            artifact-name-suffix: seeeduino-wio-terminal
+            artifact-name-suffix: seeeduino-xia0
+          - fqbn: Seeeduino:seeed_wio_terminal
+            platforms: |
+              - name: Seeeduino:samd
+                source-url: https://files.seeedstudio.com/arduino/package_seeeduino_boards_index.json
+            libraries: |
+              - name: Seeed Arduino rpcWiFi
+              - name: Seeed Arduino rpcUnified
+              - name: Seeed_Arduino_mbedtls
+              - name: Seeed Arduino FS
+              - name: Seeed Arduino SFUD
+            artifact-name-suffix: seeeduino-wio_terminal
 
     steps:
       - name: Checkout repository
