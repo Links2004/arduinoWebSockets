@@ -42,7 +42,7 @@ jobs:
               - name: Seeed Arduino FS
               - name: Seeed Arduino SFUD
             artifact-name-suffix: seeeduino-xia0
-          - fqbn: Seeeduino:seeed_wio_terminal
+          - fqbn: Seeeduino:samd:seeed_wio_terminal
             platforms: |
               - name: Seeeduino:samd
                 source-url: https://files.seeedstudio.com/arduino/package_seeeduino_boards_index.json
