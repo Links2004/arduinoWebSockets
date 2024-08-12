@@ -245,6 +245,7 @@ void WebSocketsClient::loop(void) {
             DEBUG_WEBSOCKETS("[WS-Client] connect wss...\n");
             if(_client.ssl) {
                 #if defined(WIO_TERMINAL)
+                    // does not support delete (no destructor)
                 #elif
                     delete _client.ssl;
                 #endif
