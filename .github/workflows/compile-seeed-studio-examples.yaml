@@ -58,7 +58,7 @@ jobs:
             - source-path: ./
             ${{ matrix.board.libraries }}
           sketch-paths: |
-            - examples
+            - examples/seeed-studio/xio-wio-terminal/WebSocketClient
           enable-deltas-report: true
           sketches-report-path: ${{ env.SKETCHES_REPORTS_PATH }}
 
