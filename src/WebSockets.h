@@ -105,6 +105,12 @@
 #define WEBSOCKETS_YIELD() yield()
 #define WEBSOCKETS_YIELD_MORE() delay(1)
 
+#elif defined(WIO_TERMINAL) || defined(SEEED_XIAO_M0)
+
+#define WEBSOCKETS_MAX_DATA_SIZE (15 * 1024)
+#define WEBSOCKETS_YIELD() yield()
+#define WEBSOCKETS_YIELD_MORE() delay(1)
+
 #else
 
 // atmega328p has only 2KB ram!
@@ -128,7 +134,7 @@
 #define NETWORK_RP2040 (6)
 #define NETWORK_UNOWIFIR4 (7)
 #define NETWORK_WIFI_NINA (8)
-
+#define NETWORK_SAMD_SEED (9)
 
 // max size of the WS Message Header
 #define WEBSOCKETS_MAX_HEADER_SIZE (14)
@@ -152,6 +158,9 @@
 
 #elif defined(ARDUINO_SAMD_MKRWIFI1010) || defined(ARDUINO_SAMD_NANO_33_IOT)
 #define WEBSOCKETS_NETWORK_TYPE NETWORK_WIFI_NINA
+
+#elif defined(WIO_TERMINAL) || defined(SEEED_XIAO_M0)
+#define WEBSOCKETS_NETWORK_TYPE NETWORK_SAMD_SEED
 
 #else
 #define WEBSOCKETS_NETWORK_TYPE NETWORK_W5100
@@ -264,6 +273,19 @@
 
 #define WEBSOCKETS_NETWORK_CLASS WiFiClient
 #define WEBSOCKETS_NETWORK_SERVER_CLASS WiFiServer
+
+#elif(WEBSOCKETS_NETWORK_TYPE == NETWORK_SAMD_SEED)
+#if __has_include(<rpcWiFi.h>) && __has_include(<rpcWiFiClientSecure.h>)
+    #include <rpcWiFi.h>
+    #include <rpcWiFiClientSecure.h>
+#else
+    #error "Please install rpcWiFi library!"
+#endif
+
+#define WEBSOCKETS_NETWORK_CLASS WiFiClient
+#define WEBSOCKETS_NETWORK_SERVER_CLASS WiFiServer
+#define WEBSOCKETS_NETWORK_SSL_CLASS WiFiClientSecure
+
 #else
 #error "no network type selected!"
 #endif

@@ -1,0 +1,81 @@
+name: Compile SeedStudio Examples
+
+# See: https://docs.github.com/en/free-pro-team@latest/actions/reference/events-that-trigger-workflows
+on:
+  push:
+    paths:
+      - ".github/workflows/compile-seeed-studio-examples.yaml"
+      - "examples/seeed-studio/**"
+      - "src/**"
+  pull_request:
+    paths:
+      - ".github/workflows/compile-seeed-studio-examples.yaml"
+      - "examples/seeed-studio/**"
+      - "src/**"
+  schedule:
+    # Run every Tuesday at 8 AM UTC to catch breakage caused by changes to external resources (libraries, platforms).
+    - cron: "0 8 * * TUE"
+  workflow_dispatch:
+  repository_dispatch:
+
+jobs:
+  build:
+    name: ${{ matrix.board.fqbn }}
+    runs-on: ubuntu-latest
+
+    env:
+      SKETCHES_REPORTS_PATH: sketches-reports
+
+    strategy:
+      fail-fast: false
+
+      matrix:
+        board:
+          - fqbn: Seeeduino:samd:seeed_XIAO_m0:usbstack=arduino,debug=off
+            platforms: |
+              - name: Seeeduino:samd
+                source-url: https://files.seeedstudio.com/arduino/package_seeeduino_boards_index.json
+            libraries: |
+              - name: Seeed Arduino rpcWiFi
+              - name: Seeed Arduino rpcUnified
+              - name: Seeed_Arduino_mbedtls
+              - name: Seeed Arduino FS
+              - name: Seeed Arduino SFUD
+            artifact-name-suffix: seeeduino-xia0
+          - fqbn: Seeeduino:samd:seeed_wio_terminal
+            platforms: |
+              - name: Seeeduino:samd
+                source-url: https://files.seeedstudio.com/arduino/package_seeeduino_boards_index.json
+            libraries: |
+              - name: Seeed Arduino rpcWiFi
+              - name: Seeed Arduino rpcUnified
+              - name: Seeed_Arduino_mbedtls
+              - name: Seeed Arduino FS
+              - name: Seeed Arduino SFUD
+            artifact-name-suffix: seeeduino-wio_terminal
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Compile examples
+        uses: arduino/compile-sketches@v1
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          fqbn: ${{ matrix.board.fqbn }}
+          platforms: ${{ matrix.board.platforms }}
+          libraries: |
+            # Install the library from the local path.
+            - source-path: ./
+            ${{ matrix.board.libraries }}
+          sketch-paths: |
+            - examples/seeed-studio/xio-wio-terminal/WebSocketClient
+          enable-deltas-report: true
+          sketches-report-path: ${{ env.SKETCHES_REPORTS_PATH }}
+
+      - name: Save sketches report as workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          if-no-files-found: error
+          path: ${{ env.SKETCHES_REPORTS_PATH }}
+          name: sketches-report-${{ matrix.board.artifact-name-suffix }}
