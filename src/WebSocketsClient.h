@@ -140,7 +140,7 @@ class WebSocketsClient : protected WebSockets {
 #define SSL_FINGERPRINT_NULL NULL
 #endif
 
-#if defined(WIO_TERMINAL)
+#if defined(WIO_TERMINAL) || defined(SEEED_XIAO_M0)
     const char * _CA_cert;
     const uint8_t * _CA_bundle;
 #endif

@@ -244,7 +244,7 @@ void WebSocketsClient::loop(void) {
         if(_client.isSSL) {
             DEBUG_WEBSOCKETS("[WS-Client] connect wss...\n");
             if(_client.ssl) {
-                #if defined(WIO_TERMINAL)
+                #if defined(WIO_TERMINAL) || defined(SEEED_XIAO_M0)
                     // does not support delete (no destructor)
                 #elif
                     delete _client.ssl;
@@ -263,7 +263,7 @@ void WebSocketsClient::loop(void) {
                 _client.ssl->setCACert((const uint8_t *)_CA_cert, strlen(_CA_cert) + 1);
 #elif(defined(ESP8266) || defined(ARDUINO_ARCH_RP2040)) && defined(SSL_BARESSL)
                 _client.ssl->setTrustAnchors(_CA_cert);
-#elif defined(WIO_TERMINAL)
+#elif defined(WIO_TERMINAL) || defined(SEEED_XIAO_M0)
                 _client.ssl->setCACert(_CA_cert);
 #else
 #error setCACert not implemented
@@ -292,7 +292,8 @@ void WebSocketsClient::loop(void) {
         } else {
             DEBUG_WEBSOCKETS("[WS-Client] connect ws...\n");
             if(_client.tcp) {
-                #if defined(WIO_TERMINAL)
+                #if defined(WIO_TERMINAL) || defined(SEEED_XIAO_M0)
+                    // does not support delete (no destructor)
                 #elif
                 delete _client.tcp;
                 #endif
@@ -546,7 +547,7 @@ void WebSocketsClient::clientDisconnect(WSclient_t * client) {
 #if(WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266_ASYNC)
         client->status = WSC_NOT_CONNECTED;
 #else
-        #if(WEBSOCKETS_NETWORK_TYPE == NETWORK_WIFI_NINA || WEBSOCKETS_NETWORK_TYPE == NETWORK_WIO_TERMINAL)
+        #if(WEBSOCKETS_NETWORK_TYPE == NETWORK_WIFI_NINA || WEBSOCKETS_NETWORK_TYPE == NETWORK_SAMD_SEED)
             // does not support delete (no destructor)
         #else
             delete client->tcp;

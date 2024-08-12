@@ -31,11 +31,11 @@ jobs:
 
       matrix:
         board:
-          - fqbn: Seeeduino:samd:seeed_wio_terminal
+          - fqbn: Seeeduino:samd:seeed_XIAO_m0:usbstack=arduino,debug=off
             platforms: |
               - name: Seeeduino:samd
                 source-url: https://files.seeedstudio.com/arduino/package_seeeduino_boards_index.json
-            libraries: 
+            libraries: |
               - name: Seeed Arduino rpcWiFi
               - name: Seeed Arduino rpcUnified
               - name: Seeed_Arduino_mbedtls
