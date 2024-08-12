@@ -4,12 +4,12 @@ name: Compile SeedStudio Examples
 on:
   push:
     paths:
-      - ".github/workflows/compile-examples.yml"
+      - ".github/workflows/compile-seeed-studio-examples.yaml"
       - "examples/seeed-studio/**"
       - "src/**"
   pull_request:
     paths:
-      - ".github/workflows/compile-examples.yml"
+      - ".github/workflows/compile-seeed-studio-examples.yaml"
       - "examples/seeed-studio/**"
       - "src/**"
   schedule:
