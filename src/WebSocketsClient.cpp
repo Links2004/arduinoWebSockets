@@ -244,9 +244,9 @@ void WebSocketsClient::loop(void) {
         if(_client.isSSL) {
             DEBUG_WEBSOCKETS("[WS-Client] connect wss...\n");
             if(_client.ssl) {
-                #if defined(WIO_TERMINAL) || defined(SEEED_XIAO_M0)
+                #if defined(WIO_TERMINAL) || defined(SEEED_XIAO_M0) || defined(ARDUINO_SAMD_MKRWIFI1010) || defined(ARDUINO_SAMD_NANO_33_IOT)
                     // does not support delete (no destructor)
-                #elif
+                #else
                     delete _client.ssl;
                 #endif
                 
@@ -265,6 +265,8 @@ void WebSocketsClient::loop(void) {
                 _client.ssl->setTrustAnchors(_CA_cert);
 #elif defined(WIO_TERMINAL) || defined(SEEED_XIAO_M0)
                 _client.ssl->setCACert(_CA_cert);
+#elif defined(ARDUINO_SAMD_MKRWIFI1010) || defined(ARDUINO_SAMD_NANO_33_IOT)
+                // no setCACert
 #else
 #error setCACert not implemented
 #endif
@@ -292,9 +294,9 @@ void WebSocketsClient::loop(void) {
         } else {
             DEBUG_WEBSOCKETS("[WS-Client] connect ws...\n");
             if(_client.tcp) {
-                #if defined(WIO_TERMINAL) || defined(SEEED_XIAO_M0)
+                #if defined(WIO_TERMINAL) || defined(SEEED_XIAO_M0) || defined(ARDUINO_SAMD_MKRWIFI1010) || defined(ARDUINO_SAMD_NANO_33_IOT)
                     // does not support delete (no destructor)
-                #elif
+                #else
                 delete _client.tcp;
                 #endif
                 _client.tcp = NULL;
