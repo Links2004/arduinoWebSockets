@@ -1,7 +1,22 @@
 name: Compile Arduino WiFiNINA Examples
 
 # See: https://docs.github.com/en/free-pro-team@latest/actions/reference/events-that-trigger-workflows
-on: [push, pull_request]
+on:
+  push:
+    paths:
+      - ".github/workflows/compile-arduino_wifinina-examples.yaml"
+      - "examples/arduino_wifinina/**"
+      - "src/**"
+  pull_request:
+    paths:
+      - ".github/workflows/compile-arduino_wifinina-examples.yaml"
+      - "examples/arduino_wifinina/**"
+      - "src/**"
+  schedule:
+    # Run every Tuesday at 8 AM UTC to catch breakage caused by changes to external resources (libraries, platforms).
+    - cron: "0 8 * * TUE"
+  workflow_dispatch:
+  repository_dispatch:
 
 jobs:
   build:
