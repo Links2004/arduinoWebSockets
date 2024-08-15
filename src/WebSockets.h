@@ -269,7 +269,7 @@
 
 #define WEBSOCKETS_NETWORK_CLASS WiFiClient
 #define WEBSOCKETS_NETWORK_SERVER_CLASS WiFiServer
-#define WEBSOCKETS_NETWORK_SSL_CLASS WiFiClientSecure
+#define WEBSOCKETS_NETWORK_SSL_CLASS WiFiSSLClient
 
 #elif(WEBSOCKETS_NETWORK_TYPE == NETWORK_SAMD_SEED)
 #if __has_include(<rpcWiFi.h>) && __has_include(<rpcWiFiClientSecure.h>)
