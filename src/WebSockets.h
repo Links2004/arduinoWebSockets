@@ -286,15 +286,6 @@
 #define WEBSOCKETS_NETWORK_CLASS WiFiClient
 #define WEBSOCKETS_NETWORK_SERVER_CLASS WiFiServer
 
-#elif(WEBSOCKETS_NETWORK_TYPE == NETWORK_WIFI_NINA)
-#if __has_include(<WiFiNINA.h>)
-    #include <WiFiNINA.h>
-#else
-    #error "Please install WiFiNINA library!"
-#endif
-
-#define WEBSOCKETS_NETWORK_CLASS WiFiClient
-#define WEBSOCKETS_NETWORK_SERVER_CLASS WiFiServer
 #else
 #error "no network type selected!"
 #endif
