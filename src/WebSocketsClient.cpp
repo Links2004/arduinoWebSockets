@@ -294,7 +294,7 @@ void WebSocketsClient::loop(void) {
         } else {
             DEBUG_WEBSOCKETS("[WS-Client] connect ws...\n");
             if(_client.tcp) {
-                #if defined(WIO_TERMINAL) || defined(SEEED_XIAO_M0) || defined(ARDUINO_SAMD_MKRWIFI1010) || defined(ARDUINO_SAMD_NANO_33_IOT)
+                #if defined(WEBSOCKETS_NETWORK_TYPE == NETWORK_SAMD_SEED || WEBSOCKETS_NETWORK_TYPE == NETWORK_WIFI_NINA)
                     // does not support delete (no destructor)
                 #else
                 delete _client.tcp;
