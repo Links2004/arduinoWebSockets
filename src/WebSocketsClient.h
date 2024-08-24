@@ -140,7 +140,7 @@ class WebSocketsClient : protected WebSockets {
 #define SSL_FINGERPRINT_NULL NULL
 #endif
 
-#if(WEBSOCKETS_NETWORK_TYPE == NETWORK_SAMD_SEED || WEBSOCKETS_NETWORK_TYPE == NETWORK_WIFI_NINA)
+#if(WEBSOCKETS_NETWORK_TYPE == NETWORK_SAMD_SEED) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_WIFI_NINA)
     const char * _CA_cert;
     const uint8_t * _CA_bundle;
 #endif
