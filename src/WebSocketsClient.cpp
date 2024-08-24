@@ -167,15 +167,16 @@ void WebSocketsClient::beginSslWithCA(const char * host, uint16_t port, const ch
     beginSslWithCA(host, port, url, new BearSSL::X509List(CA_cert), protocol);
 }
 
+void WebSocketsClient::setSSLClientCertKey(const char * clientCert, const char * clientPrivateKey) {
+    setSSLClientCertKey(new BearSSL::X509List(clientCert), new BearSSL::PrivateKey(clientPrivateKey));
+}
+
 void WebSocketsClient::setSSLClientCertKey(BearSSL::X509List * clientCert, BearSSL::PrivateKey * clientPrivateKey) {
     _client_cert = clientCert;
     _client_key  = clientPrivateKey;
 }
-
-void WebSocketsClient::setSSLClientCertKey(const char * clientCert, const char * clientPrivateKey) {
-    setSSLClientCertKey(new BearSSL::X509List(clientCert), new BearSSL::PrivateKey(clientPrivateKey));
-}
 #endif    // SSL_BARESSL
+
 
 #endif    // SSL_AXTLS
 #endif    // HAS_SSL
@@ -549,7 +550,7 @@ void WebSocketsClient::clientDisconnect(WSclient_t * client) {
 #if(WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266_ASYNC)
         client->status = WSC_NOT_CONNECTED;
 #else
-        #if(WEBSOCKETS_NETWORK_TYPE == NETWORK_WIFI_NINA) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_SAMD_SEED)
+        #if(WEBSOCKETS_NETWORK_TYPE == NETWORK_WIFI_NINA) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_SAMD_SEED) || (WEBSOCKETS_NETWORK_TYPE ==NETWORK_UNOWIFIR4)
             // does not support delete (no destructor)
         #else
             delete client->tcp;
