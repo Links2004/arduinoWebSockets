@@ -25,6 +25,14 @@
 #include "WebSockets.h"
 #include "WebSocketsServer.h"
 
+#ifdef ESP32
+#if defined __has_include
+#if __has_include("soc/wdev_reg.h")
+#include "soc/wdev_reg.h"
+#endif    // __has_include
+#endif    // defined __has_include
+#endif
+
 WebSocketsServerCore::WebSocketsServerCore(const String & origin, const String & protocol) {
     _origin                 = origin;
     _protocol               = protocol;
@@ -87,6 +95,8 @@ void WebSocketsServerCore::begin(void) {
 
 #ifdef ESP8266
     randomSeed(RANDOM_REG32);
+#elif defined(ESP32) && defined(WDEV_RND_REG)
+    randomSeed(REG_READ(WDEV_RND_REG));
 #elif defined(ESP32)
 #define DR_REG_RNG_BASE 0x3ff75144
     randomSeed(READ_PERI_REG(DR_REG_RNG_BASE));
