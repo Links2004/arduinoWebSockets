@@ -262,9 +262,9 @@
 
 #elif(WEBSOCKETS_NETWORK_TYPE == NETWORK_WIFI_NINA)
 #if __has_include(<WiFiNINA.h>)
-    #include <WiFiNINA.h>
+#include <WiFiNINA.h>
 #else
-    #error "Please install WiFiNINA library!"
+#error "Please install WiFiNINA library!"
 #endif
 
 #define WEBSOCKETS_NETWORK_CLASS WiFiClient
@@ -273,10 +273,10 @@
 
 #elif(WEBSOCKETS_NETWORK_TYPE == NETWORK_SAMD_SEED)
 #if __has_include(<rpcWiFi.h>) && __has_include(<rpcWiFiClientSecure.h>)
-    #include <rpcWiFi.h>
-    #include <rpcWiFiClientSecure.h>
+#include <rpcWiFi.h>
+#include <rpcWiFiClientSecure.h>
 #else
-    #error "Please install rpcWiFi library!"
+#error "Please install rpcWiFi library!"
 #endif
 
 #define WEBSOCKETS_NETWORK_CLASS WiFiClient

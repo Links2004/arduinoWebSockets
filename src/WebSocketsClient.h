@@ -48,10 +48,10 @@ class WebSocketsClient : protected WebSockets {
     void beginSSL(String host, uint16_t port, String url = "/", String fingerprint = "", String protocol = "arduino");
 #else
     void beginSSL(const char * host, uint16_t port, const char * url = "/", const uint8_t * fingerprint = NULL, const char * protocol = "arduino");
-    #if defined(SSL_BARESSL)
+#if defined(SSL_BARESSL)
     void beginSslWithCA(const char * host, uint16_t port, const char * url = "/", BearSSL::X509List * CA_cert = NULL, const char * protocol = "arduino");
     void setSSLClientCertKey(BearSSL::X509List * clientCert = NULL, BearSSL::PrivateKey * clientPrivateKey = NULL);
-    #endif
+#endif
     void setSSLClientCertKey(const char * clientCert = NULL, const char * clientPrivateKey = NULL);
 #endif
     void beginSslWithCA(const char * host, uint16_t port, const char * url = "/", const char * CA_cert = NULL, const char * protocol = "arduino");
@@ -131,11 +131,11 @@ class WebSocketsClient : protected WebSockets {
 #define SSL_FINGERPRINT_NULL ""
 #else
     const uint8_t * _fingerprint;
-    #if defined(SSL_BARESSL)
+#if defined(SSL_BARESSL)
     BearSSL::X509List * _CA_cert;
     BearSSL::X509List * _client_cert;
     BearSSL::PrivateKey * _client_key;
-    #endif
+#endif
 #define SSL_FINGERPRINT_IS_SET (_fingerprint != NULL)
 #define SSL_FINGERPRINT_NULL NULL
 #endif

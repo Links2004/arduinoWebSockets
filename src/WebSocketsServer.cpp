@@ -65,11 +65,11 @@ WebSocketsServerCore::~WebSocketsServerCore() {
 }
 
 WebSocketsServer::~WebSocketsServer() {
-    #if(WEBSOCKETS_NETWORK_TYPE == NETWORK_WIFI_NINA) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_SAMD_SEED)
-        // does not support delete (no destructor)
-    #else
-        delete _server;
-    #endif    
+#if(WEBSOCKETS_NETWORK_TYPE == NETWORK_WIFI_NINA) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_SAMD_SEED)
+    // does not support delete (no destructor)
+#else
+    delete _server;
+#endif
 }
 
 /**
@@ -660,12 +660,12 @@ void WebSocketsServer::handleNewClients(void) {
     while(_server->hasClient()) {
 #endif
 
-        // store new connection
-        #if(WEBSOCKETS_NETWORK_TYPE == NETWORK_WIFI_NINA)
-            WEBSOCKETS_NETWORK_CLASS * tcpClient = new WEBSOCKETS_NETWORK_CLASS(_server->available());
-        #else
-            WEBSOCKETS_NETWORK_CLASS * tcpClient = new WEBSOCKETS_NETWORK_CLASS(_server->accept());
-        #endif
+// store new connection
+#if(WEBSOCKETS_NETWORK_TYPE == NETWORK_WIFI_NINA)
+        WEBSOCKETS_NETWORK_CLASS * tcpClient = new WEBSOCKETS_NETWORK_CLASS(_server->available());
+#else
+    WEBSOCKETS_NETWORK_CLASS * tcpClient = new WEBSOCKETS_NETWORK_CLASS(_server->accept());
+#endif
 
         if(!tcpClient) {
             DEBUG_WEBSOCKETS("[WS-Client] creating Network class failed!");
