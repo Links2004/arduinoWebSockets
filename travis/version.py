@@ -73,7 +73,7 @@ def get_library_json_version():
 
 def get_header_versions():
     data = {}
-    define = re.compile('^#define WEBSOCKETS_VERSION_?(.*) "?([0-9\.]*)"?$')
+    define = re.compile('^#define WEBSOCKETS_VERSION_?(.*) "?([0-9\\.]*)"?$')
     with open(f'{base_dir}/src/WebSocketsVersion.h', 'r') as f:
         for line in f:
             m = define.match(line)

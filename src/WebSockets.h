@@ -50,7 +50,10 @@
         DEBUG_ESP_PORT.flush();             \
     }
 #else
-// #define DEBUG_WEBSOCKETS(...) os_printf( __VA_ARGS__ )
+#ifdef DEBUG_PORT
+#define DEBUG_WEBSOCKETS(...) websocket_debug_printf(__VA_ARGS__)
+void websocket_debug_printf(const char * format, ...);
+#endif
 #endif
 #endif
 
