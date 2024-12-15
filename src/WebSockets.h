@@ -135,6 +135,7 @@
 #define NETWORK_UNOWIFIR4 (7)
 #define NETWORK_WIFI_NINA (8)
 #define NETWORK_SAMD_SEED (9)
+#define NETWORK_CUSTOM (10)
 
 // max size of the WS Message Header
 #define WEBSOCKETS_MAX_HEADER_SIZE (14)
@@ -286,7 +287,7 @@
 #define WEBSOCKETS_NETWORK_CLASS WiFiClient
 #define WEBSOCKETS_NETWORK_SERVER_CLASS WiFiServer
 
-#else
+#elif(WEBSOCKETS_NETWORK_TYPE != NETWORK_CUSTOM)
 #error "no network type selected!"
 #endif
 
