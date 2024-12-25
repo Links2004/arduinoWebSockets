@@ -287,7 +287,15 @@
 #define WEBSOCKETS_NETWORK_CLASS WiFiClient
 #define WEBSOCKETS_NETWORK_SERVER_CLASS WiFiServer
 
-#elif(WEBSOCKETS_NETWORK_TYPE != NETWORK_CUSTOM)
+#elif(WEBSOCKETS_NETWORK_TYPE == NETWORK_CUSTOM)
+#include <NetworkClient.h>
+#include <WiFiServer.h>
+
+#define SSL_AXTLS
+#define WEBSOCKETS_NETWORK_CLASS NetworkClient
+#define WEBSOCKETS_NETWORK_SSL_CLASS NetworkClient
+#define WEBSOCKETS_NETWORK_SERVER_CLASS WiFiServer
+#else
 #error "no network type selected!"
 #endif
 
