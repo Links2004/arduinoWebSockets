@@ -4,10 +4,13 @@
 #include <WiFiClient.h>
 
 class NetworkClient : public Client {
+    class Impl;
+    std::unique_ptr<Impl> _impl;
+
   public:
     NetworkClient();
     NetworkClient(WiFiClient wifi_client);
-    virtual ~NetworkClient() = default;
+    virtual ~NetworkClient();
 
     int connect(IPAddress ip, uint16_t port) final;
     int connect(const char * host, uint16_t port) final;
