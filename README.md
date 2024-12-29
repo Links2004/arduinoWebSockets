@@ -47,6 +47,7 @@ a WebSocket Server and Client for Arduino based on RFC6455.
 ### wss / SSL ###
  supported for:
  - wss client on the ESP8266
+ - wss / SSL for ESP32 in client mode
  - wss / SSL is not natively supported in WebSocketsServer however it is possible to achieve secure websockets
    by running the device behind an SSL proxy. See [Nginx](examples/Nginx/esp8266.ssl.reverse.proxy.conf) for a
    sample Nginx server configuration file to enable this.
