@@ -375,8 +375,7 @@ bool WebSockets::handleWebsocketWaitFor(WSclient_t * client, size_t size) {
             // timeout or error
             server->clientDisconnect(client, 1002);
         }
-    },
-                                                                                          this, size, std::placeholders::_1, std::placeholders::_2));
+    }, this, size, std::placeholders::_1, std::placeholders::_2));
     return false;
 }
 
@@ -459,7 +458,12 @@ void WebSockets::handleWebsocketCb(WSclient_t * client) {
             clientDisconnect(client, 1011);
             return;
         }
-        readCb(client, payload, header->payloadLen, std::bind(&WebSockets::handleWebsocketPayloadCb, this, std::placeholders::_1, std::placeholders::_2, payload));
+        //readCb(client, payload, header->payloadLen, std::bind(&WebSockets::handleWebsocketPayloadCb, this, std::placeholders::_1, std::placeholders::_2, payload));
+        //todo this is because the original arguments don't match
+        readCb(client, payload, header->payloadLen, [this, payload](WSclient_t * client, bool ok) {
+            // Call the original method with the additional `payload` argument
+            this->handleWebsocketPayloadCb(client, ok, payload);
+        });
     } else {
         handleWebsocketPayloadCb(client, true, NULL);
     }
@@ -676,7 +680,7 @@ size_t WebSockets::write(WSclient_t * client, uint8_t * out, size_t n) {
     unsigned long t = millis();
     size_t len      = 0;
     size_t total    = 0;
-    DEBUG_WEBSOCKETS("[write] n: %zu t: %lu\n", n, t);
+    DEBUG_WEBSOCKETS("[write][%d] n: %zu t: %lu\n", client->num, n, t);
     while(n > 0) {
         if(client->tcp == NULL) {
             DEBUG_WEBSOCKETS("[write] tcp is null!\n");
@@ -684,24 +688,24 @@ size_t WebSockets::write(WSclient_t * client, uint8_t * out, size_t n) {
         }
 
         if(!client->tcp->connected()) {
-            DEBUG_WEBSOCKETS("[write] not connected!\n");
+            DEBUG_WEBSOCKETS("[write][%d] not connected!\n", client->num);
             break;
         }
 
         if((millis() - t) > WEBSOCKETS_TCP_TIMEOUT) {
-            DEBUG_WEBSOCKETS("[write] write TIMEOUT! %lu\n", (millis() - t));
+            DEBUG_WEBSOCKETS("[write][%d] write TIMEOUT! %lu\n", client->num, (millis() - t));
             break;
         }
 
         len = client->tcp->write((const uint8_t *)out, n);
         if(len) {
-            t = millis();
+            t = millis();   //why restart time?
             out += len;
             n -= len;
             total += len;
-            // DEBUG_WEBSOCKETS("write %d left %d!\n", len, n);
+            DEBUG_WEBSOCKETS("WS[write] normal sent: %d, left: %d, t: %lu\n", len, n, millis());
         } else {
-            DEBUG_WEBSOCKETS("WS write %d failed left %d!\n", len, n);
+            DEBUG_WEBSOCKETS("WS [write][%d] error sent: %d, left: %d, %lu\n", client->num, len, n, millis());
         }
         if(n > 0) {
             WEBSOCKETS_YIELD();
@@ -740,7 +744,7 @@ void WebSockets::enableHeartbeat(WSclient_t * client, uint32_t pingInterval, uin
  * @param client WSclient_t *
  */
 void WebSockets::handleHBTimeout(WSclient_t * client) {
-    if(client->pingInterval) {    // if heartbeat is enabled
+    if( (client->pingInterval)  && (client->status == WSC_CONNECTED)) {    // if heartbeat is enabled and connected
         uint32_t pi = millis() - client->lastPing;
 
         if(client->pongReceived) {
@@ -748,9 +752,10 @@ void WebSockets::handleHBTimeout(WSclient_t * client) {
         } else {
             if(pi > client->pongTimeout) {    // pong not received in time
                 client->pongTimeoutCount++;
-                client->lastPing = millis() - client->pingInterval - 500;    // force ping on the next run
 
-                DEBUG_WEBSOCKETS("[HBtimeout] pong TIMEOUT! lp=%d millis=%lu pi=%d count=%d\n", client->lastPing, millis(), pi, client->pongTimeoutCount);
+                DEBUG_WEBSOCKETS("[HBtimeout][%d] pong TIMEOUT! lp=%d millis=%lu pi=%d count=%d\n", client->num, client->lastPing, millis(), pi, client->pongTimeoutCount);
+
+                client->lastPing = millis() - client->pingInterval - 500;    // give 500ms and force ping next run
 
                 if(client->disconnectTimeoutCount && client->pongTimeoutCount >= client->disconnectTimeoutCount) {
                     DEBUG_WEBSOCKETS("[HBtimeout] count=%d, DISCONNECTING\n", client->pongTimeoutCount);
