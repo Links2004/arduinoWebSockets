@@ -755,7 +755,7 @@ void WebSockets::handleHBTimeout(WSclient_t * client) {
 
                 DEBUG_WEBSOCKETS("[HBtimeout][%d] pong TIMEOUT! lp=%d millis=%lu pi=%d count=%d\n", client->num, client->lastPing, millis(), pi, client->pongTimeoutCount);
 
-                client->lastPing = millis() - client->pingInterval;    //force send ping next loop, next time out in client->pongTimeout
+                client->lastPing = millis() - client->pingInterval - 500;    //force send ping next loop, next time out in client->pongTimeout
 
                 if(client->disconnectTimeoutCount && client->pongTimeoutCount >= client->disconnectTimeoutCount) {
                     DEBUG_WEBSOCKETS("[HBtimeout] count=%d, DISCONNECTING\n", client->pongTimeoutCount);
