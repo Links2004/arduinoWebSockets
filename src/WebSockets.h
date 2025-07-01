@@ -288,12 +288,12 @@
 #define WEBSOCKETS_NETWORK_SERVER_CLASS WiFiServer
 
 #elif(WEBSOCKETS_NETWORK_TYPE == NETWORK_CUSTOM)
-#include <NetworkClient.h>
+#include <NetworkClientSecure.h>
 #include <WiFiServer.h>
 
 #define SSL_AXTLS
 #define WEBSOCKETS_NETWORK_CLASS NetworkClient
-#define WEBSOCKETS_NETWORK_SSL_CLASS NetworkClient
+#define WEBSOCKETS_NETWORK_SSL_CLASS NetworkClientSecure
 #define WEBSOCKETS_NETWORK_SERVER_CLASS WiFiServer
 #else
 #error "no network type selected!"
@@ -377,7 +377,7 @@ typedef struct {
 
 #if defined(HAS_SSL)
     bool isSSL = false;    ///< run in ssl mode
-    WEBSOCKETS_NETWORK_SSL_CLASS * ssl;
+    WEBSOCKETS_NETWORK_SSL_CLASS * ssl = nullptr;
 #endif
 
     String cUrl;           ///< http url

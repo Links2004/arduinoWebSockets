@@ -556,6 +556,7 @@ void WebSocketsClient::clientDisconnect(WSclient_t * client) {
 #endif
 #endif
         client->tcp = NULL;
+        client->ssl = NULL;
     }
 
     client->cCode        = 0;
