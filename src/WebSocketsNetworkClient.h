@@ -3,14 +3,14 @@
 #include <Client.h>
 #include <WiFiClient.h>
 
-class NetworkClient : public Client {
+class WebSocketsNetworkClient : public Client {
   public:
     struct Impl;
     std::unique_ptr<Impl> _impl;
 
-    NetworkClient();
-    NetworkClient(WiFiClient wifi_client);
-    virtual ~NetworkClient();
+    WebSocketsNetworkClient();
+    WebSocketsNetworkClient(WiFiClient wifi_client);
+    virtual ~WebSocketsNetworkClient();
 
     virtual int connect(IPAddress ip, uint16_t port);
     virtual int connect(const char * host, uint16_t port);

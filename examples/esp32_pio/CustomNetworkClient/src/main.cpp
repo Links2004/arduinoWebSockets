@@ -105,7 +105,7 @@ void setup() {
   }
 
   // Call to enable WiFi interface to be used by the webSocketClient
-  NetworkClient::Impl::enableWifi();
+  WebSocketsNetworkClient::Impl::enableWifi();
 
   setClock();
 

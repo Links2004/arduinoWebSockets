@@ -288,12 +288,12 @@
 #define WEBSOCKETS_NETWORK_SERVER_CLASS WiFiServer
 
 #elif(WEBSOCKETS_NETWORK_TYPE == NETWORK_CUSTOM)
-#include <NetworkClientSecure.h>
+#include <WebSocketsNetworkClientSecure.h>
 #include <WiFiServer.h>
 
 #define SSL_AXTLS
-#define WEBSOCKETS_NETWORK_CLASS NetworkClient
-#define WEBSOCKETS_NETWORK_SSL_CLASS NetworkClientSecure
+#define WEBSOCKETS_NETWORK_CLASS WebSocketsNetworkClient
+#define WEBSOCKETS_NETWORK_SSL_CLASS WebSocketsNetworkClientSecure
 #define WEBSOCKETS_NETWORK_SERVER_CLASS WiFiServer
 #else
 #error "no network type selected!"

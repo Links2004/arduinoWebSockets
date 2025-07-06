@@ -1,12 +1,12 @@
 #pragma once
 
-#include <NetworkClient.h>
+#include <WebSocketsNetworkClient.h>
 
-class NetworkClientSecure : public NetworkClient {
+class WebSocketsNetworkClientSecure : public WebSocketsNetworkClient {
   public:
-    NetworkClientSecure();
-    NetworkClientSecure(WiFiClient wifi_client);
-    virtual ~NetworkClientSecure();
+    WebSocketsNetworkClientSecure();
+    WebSocketsNetworkClientSecure(WiFiClient wifi_client);
+    virtual ~WebSocketsNetworkClientSecure();
 
     int connect(IPAddress ip, uint16_t port) override;
     int connect(const char * host, uint16_t port) override;

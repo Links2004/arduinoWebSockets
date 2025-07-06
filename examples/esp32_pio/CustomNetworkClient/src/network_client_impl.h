@@ -1,11 +1,11 @@
 #pragma once
 
-#include <NetworkClientSecure.h>
 #include <SSLClient.h>
 #include <TinyGSM.h>
+#include <WebSocketsNetworkClientSecure.h>
 #include <WiFiClientSecure.h>
 
-struct NetworkClient::Impl {
+struct WebSocketsNetworkClient::Impl {
   static void enableWifi() {
     // Do nothing if already enabled
     if (wifi_client_ && wifi_client_secure_) {
