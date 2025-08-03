@@ -549,7 +549,21 @@ void WebSocketsServerCore::dropNativeClient(WSclient_t * client) {
 #if(WEBSOCKETS_NETWORK_TYPE != NETWORK_ESP8266_ASYNC) && (WEBSOCKETS_NETWORK_TYPE != NETWORK_ESP32) && (WEBSOCKETS_NETWORK_TYPE != NETWORK_RP2040)
             client->tcp->flush();
 #endif
+            // For ESP32, add proper buffer cleanup to prevent pbuf_free crashes
+#if(WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP32)
+            // Give time for pending network operations to complete
+            delay(10);
+            yield();
+            // Flush any pending data before stopping
+            client->tcp->flush();
+#endif
             client->tcp->stop();
+            
+#if(WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP32)
+            // Additional cleanup time for ESP32 to prevent pbuf_free crashes
+            delay(5);
+            yield();
+#endif
         }
 #if(WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266_ASYNC)
         client->status = WSC_NOT_CONNECTED;
@@ -577,6 +591,12 @@ void WebSocketsServerCore::clientDisconnect(WSclient_t * client) {
         client->ssl = NULL;
         client->tcp = NULL;
     }
+#endif
+
+    // For ESP32, add extra safety checks before calling dropNativeClient
+#if(WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP32)
+    // Ensure we're not in the middle of a network operation
+    yield();
 #endif
 
     dropNativeClient(client);
@@ -619,6 +639,12 @@ bool WebSocketsServerCore::clientIsConnected(WSclient_t * client) {
         // client lost
         if(client->status != WSC_NOT_CONNECTED) {
             DEBUG_WEBSOCKETS("[WS-Server][%d] client connection lost.\n", client->num);
+            // For ESP32, be more careful about disconnection timing
+#if(WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP32)
+            // Add a small delay to prevent rapid disconnection calls
+            delay(5);
+            yield();
+#endif
             // do cleanup
             clientDisconnect(client);
         }
@@ -627,6 +653,12 @@ bool WebSocketsServerCore::clientIsConnected(WSclient_t * client) {
     if(client->tcp) {
         // do cleanup
         DEBUG_WEBSOCKETS("[WS-Server][%d] client list cleanup.\n", client->num);
+        // For ESP32, be more careful about disconnection timing
+#if(WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP32)
+        // Add a small delay to prevent rapid disconnection calls
+        delay(5);
+        yield();
+#endif
         clientDisconnect(client);
     }
 
@@ -964,13 +996,25 @@ void WebSocketsServer::close(void) {
 #endif
 }
 
-#if(WEBSOCKETS_NETWORK_TYPE != NETWORK_ESP8266_ASYNC)
 /**
  * called in arduino loop
  */
 void WebSocketsServerCore::loop(void) {
     if(_runnning) {
         WEBSOCKETS_YIELD();
+        
+        // For ESP32, add more conservative timing to prevent pbuf_free crashes
+#if(WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP32)
+        static unsigned long lastLoop = 0;
+        unsigned long currentTime = millis();
+        
+        // Only process client data every 5ms to prevent overwhelming the network stack
+        if (currentTime - lastLoop < 5) {
+            return;
+        }
+        lastLoop = currentTime;
+#endif
+        
         handleClientData();
     }
 }
@@ -981,8 +1025,20 @@ void WebSocketsServerCore::loop(void) {
 void WebSocketsServer::loop(void) {
     if(_runnning) {
         WEBSOCKETS_YIELD();
+        
+        // For ESP32, add more conservative timing to prevent pbuf_free crashes
+#if(WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP32)
+        static unsigned long lastLoop = 0;
+        unsigned long currentTime = millis();
+        
+        // Only process new clients and data every 5ms to prevent overwhelming the network stack
+        if (currentTime - lastLoop < 5) {
+            return;
+        }
+        lastLoop = currentTime;
+#endif
+        
         handleNewClients();
         WebSocketsServerCore::loop();
     }
 }
-#endif
