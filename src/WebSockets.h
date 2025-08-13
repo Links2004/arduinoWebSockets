@@ -170,7 +170,7 @@
 #endif
 
 // Includes and defined based on Network Type
-#if(WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266_ASYNC)
+#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266_ASYNC)
 
 // Note:
 //   No SSL/WSS support for client in Async mode
@@ -193,7 +193,7 @@
 #define WEBSOCKETS_NETWORK_CLASS AsyncTCPbuffer
 #define WEBSOCKETS_NETWORK_SERVER_CLASS AsyncServer
 
-#elif(WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
+#elif (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
 
 #if !defined(ESP8266) && !defined(ESP31B)
 #error "network type ESP8266 only possible on the ESP mcu!"
@@ -213,7 +213,7 @@
 #define WEBSOCKETS_NETWORK_SSL_CLASS WiFiClientSecure
 #define WEBSOCKETS_NETWORK_SERVER_CLASS WiFiServer
 
-#elif(WEBSOCKETS_NETWORK_TYPE == NETWORK_W5100)
+#elif (WEBSOCKETS_NETWORK_TYPE == NETWORK_W5100)
 
 #ifdef STM32_DEVICE
 #define WEBSOCKETS_NETWORK_CLASS TCPClient
@@ -225,13 +225,13 @@
 #define WEBSOCKETS_NETWORK_SERVER_CLASS EthernetServer
 #endif
 
-#elif(WEBSOCKETS_NETWORK_TYPE == NETWORK_ENC28J60)
+#elif (WEBSOCKETS_NETWORK_TYPE == NETWORK_ENC28J60)
 
 #include <UIPEthernet.h>
 #define WEBSOCKETS_NETWORK_CLASS UIPClient
 #define WEBSOCKETS_NETWORK_SERVER_CLASS UIPServer
 
-#elif(WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP32)
+#elif (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP32)
 
 #include <WiFi.h>
 #include <WiFiClientSecure.h>
@@ -240,13 +240,13 @@
 #define WEBSOCKETS_NETWORK_SSL_CLASS WiFiClientSecure
 #define WEBSOCKETS_NETWORK_SERVER_CLASS WiFiServer
 
-#elif(WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP32_ETH)
+#elif (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP32_ETH)
 
 #include <ETH.h>
 #define WEBSOCKETS_NETWORK_CLASS WiFiClient
 #define WEBSOCKETS_NETWORK_SERVER_CLASS WiFiServer
 
-#elif(WEBSOCKETS_NETWORK_TYPE == NETWORK_RP2040)
+#elif (WEBSOCKETS_NETWORK_TYPE == NETWORK_RP2040)
 
 #include <WiFi.h>
 #include <WiFiClientSecure.h>
@@ -255,13 +255,13 @@
 #define WEBSOCKETS_NETWORK_SSL_CLASS WiFiClientSecure
 #define WEBSOCKETS_NETWORK_SERVER_CLASS WiFiServer
 
-#elif(WEBSOCKETS_NETWORK_TYPE == NETWORK_UNOWIFIR4)
+#elif (WEBSOCKETS_NETWORK_TYPE == NETWORK_UNOWIFIR4)
 
 #include <WiFiS3.h>
 #define WEBSOCKETS_NETWORK_CLASS WiFiClient
 #define WEBSOCKETS_NETWORK_SERVER_CLASS WiFiServer
 
-#elif(WEBSOCKETS_NETWORK_TYPE == NETWORK_WIFI_NINA)
+#elif (WEBSOCKETS_NETWORK_TYPE == NETWORK_WIFI_NINA)
 #if __has_include(<WiFiNINA.h>)
 #include <WiFiNINA.h>
 #else
@@ -272,7 +272,7 @@
 #define WEBSOCKETS_NETWORK_SERVER_CLASS WiFiServer
 #define WEBSOCKETS_NETWORK_SSL_CLASS WiFiSSLClient
 
-#elif(WEBSOCKETS_NETWORK_TYPE == NETWORK_SAMD_SEED)
+#elif (WEBSOCKETS_NETWORK_TYPE == NETWORK_SAMD_SEED)
 #if __has_include(<rpcWiFi.h>) && __has_include(<rpcWiFiClientSecure.h>)
 #include <rpcWiFi.h>
 #include <rpcWiFiClientSecure.h>
@@ -287,7 +287,7 @@
 #define WEBSOCKETS_NETWORK_CLASS WiFiClient
 #define WEBSOCKETS_NETWORK_SERVER_CLASS WiFiServer
 
-#elif(WEBSOCKETS_NETWORK_TYPE == NETWORK_CUSTOM)
+#elif (WEBSOCKETS_NETWORK_TYPE == NETWORK_CUSTOM)
 #include <WebSocketsNetworkClientSecure.h>
 #include <WiFiServer.h>
 
@@ -376,7 +376,7 @@ typedef struct {
     bool isSocketIO = false;    ///< client for socket.io server
 
 #if defined(HAS_SSL)
-    bool isSSL = false;    ///< run in ssl mode
+    bool isSSL                         = false;    ///< run in ssl mode
     WEBSOCKETS_NETWORK_SSL_CLASS * ssl = nullptr;
 #endif
 
@@ -413,7 +413,7 @@ typedef struct {
     uint8_t disconnectTimeoutCount = 0;    // after how many subsequent pong timeouts discconnect will happen, 0 means "do not disconnect"
     uint8_t pongTimeoutCount       = 0;    // current pong timeout count
 
-#if(WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266_ASYNC)
+#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266_ASYNC)
     String cHttpLine;    ///< HTTP header lines
 #endif
 

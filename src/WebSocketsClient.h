@@ -77,7 +77,7 @@ class WebSocketsClient : protected WebSockets {
 #endif
 #endif
 
-#if(WEBSOCKETS_NETWORK_TYPE != NETWORK_ESP8266_ASYNC)
+#if (WEBSOCKETS_NETWORK_TYPE != NETWORK_ESP8266_ASYNC)
     void loop(void);
 #else
     // Async interface not need a loop call
@@ -140,7 +140,7 @@ class WebSocketsClient : protected WebSockets {
 #define SSL_FINGERPRINT_NULL NULL
 #endif
 
-#if(WEBSOCKETS_NETWORK_TYPE == NETWORK_SAMD_SEED) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_WIFI_NINA)
+#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_SAMD_SEED) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_WIFI_NINA)
     const char * _CA_cert;
     const uint8_t * _CA_bundle;
 #endif
@@ -159,7 +159,7 @@ class WebSocketsClient : protected WebSockets {
     void clientDisconnect(WSclient_t * client);
     bool clientIsConnected(WSclient_t * client);
 
-#if(WEBSOCKETS_NETWORK_TYPE != NETWORK_ESP8266_ASYNC)
+#if (WEBSOCKETS_NETWORK_TYPE != NETWORK_ESP8266_ASYNC)
     void handleClientData(void);
 #endif
 
@@ -171,7 +171,7 @@ class WebSocketsClient : protected WebSockets {
 
     void handleHBPing();    // send ping in specified intervals
 
-#if(WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266_ASYNC)
+#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266_ASYNC)
     void asyncConnect();
 #endif
 

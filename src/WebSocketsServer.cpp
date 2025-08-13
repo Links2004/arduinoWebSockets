@@ -54,7 +54,7 @@ WebSocketsServer::WebSocketsServer(uint16_t port, const String & origin, const S
 
     _server = new WEBSOCKETS_NETWORK_SERVER_CLASS(port);
 
-#if(WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266_ASYNC)
+#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266_ASYNC)
     _server->onClient([](void * s, AsyncClient * c) {
         ((WebSocketsServerCore *)s)->newClient(new AsyncTCPbuffer(c));
     },
@@ -73,7 +73,7 @@ WebSocketsServerCore::~WebSocketsServerCore() {
 }
 
 WebSocketsServer::~WebSocketsServer() {
-#if(WEBSOCKETS_NETWORK_TYPE == NETWORK_WIFI_NINA) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_SAMD_SEED)
+#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_WIFI_NINA) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_SAMD_SEED)
     // does not support delete (no destructor)
 #else
     delete _server;
@@ -411,7 +411,7 @@ bool WebSocketsServerCore::clientIsConnected(uint8_t num) {
     return clientIsConnected(client);
 }
 
-#if(WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266_ASYNC) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP32) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_RP2040)
+#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266_ASYNC) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP32) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_RP2040)
 /**
  * get an IP for a client
  * @param num uint8_t client id
@@ -445,7 +445,7 @@ WSclient_t * WebSocketsServerCore::newClient(WEBSOCKETS_NETWORK_CLASS * TCPclien
 
         // look for match to existing socket before creating a new one
         if(clientIsConnected(client)) {
-#if(WEBSOCKETS_NETWORK_TYPE == NETWORK_W5100)
+#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_W5100)
             // Check to see if it is the same socket - if so, return it
             if(client->tcp->getSocketNumber() == TCPclient->getSocketNumber()) {
                 return client;
@@ -455,16 +455,16 @@ WSclient_t * WebSocketsServerCore::newClient(WEBSOCKETS_NETWORK_CLASS * TCPclien
             // state is not connected or tcp connection is lost
             client->tcp = TCPclient;
 
-#if(WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP32)
+#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP32)
             client->isSSL = false;
             client->tcp->setNoDelay(true);
 #endif
-#if(WEBSOCKETS_NETWORK_TYPE != NETWORK_ESP8266_ASYNC)
+#if (WEBSOCKETS_NETWORK_TYPE != NETWORK_ESP8266_ASYNC)
             // set Timeout for readBytesUntil and readStringUntil
             client->tcp->setTimeout(WEBSOCKETS_TCP_TIMEOUT);
 #endif
             client->status = WSC_HEADER;
-#if(WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266_ASYNC) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP32) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_RP2040)
+#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266_ASYNC) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP32) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_RP2040)
 #ifndef NODEBUG_WEBSOCKETS
             IPAddress ip = client->tcp->remoteIP();
 #endif
@@ -473,7 +473,7 @@ WSclient_t * WebSocketsServerCore::newClient(WEBSOCKETS_NETWORK_CLASS * TCPclien
             DEBUG_WEBSOCKETS("[WS-Server][%d] new client\n", client->num);
 #endif
 
-#if(WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266_ASYNC)
+#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266_ASYNC)
             client->tcp->onDisconnect(std::bind([](WebSocketsServerCore * server, AsyncTCPbuffer * obj, WSclient_t * client) -> bool {
                 DEBUG_WEBSOCKETS("[WS-Server][%d] Disconnect client\n", client->num);
 
@@ -546,14 +546,14 @@ void WebSocketsServerCore::dropNativeClient(WSclient_t * client) {
     }
     if(client->tcp) {
         if(client->tcp->connected()) {
-#if(WEBSOCKETS_NETWORK_TYPE != NETWORK_ESP8266_ASYNC) && (WEBSOCKETS_NETWORK_TYPE != NETWORK_ESP32) && (WEBSOCKETS_NETWORK_TYPE != NETWORK_RP2040)
+#if (WEBSOCKETS_NETWORK_TYPE != NETWORK_ESP8266_ASYNC) && (WEBSOCKETS_NETWORK_TYPE != NETWORK_ESP32) && (WEBSOCKETS_NETWORK_TYPE != NETWORK_RP2040)
             client->tcp->flush();
 #endif
             client->tcp->stop();
         }
-#if(WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266_ASYNC)
+#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266_ASYNC)
         client->status = WSC_NOT_CONNECTED;
-#elif(WEBSOCKETS_NETWORK_TYPE == NETWORK_WIFI_NINA) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_SAMD_SEED)
+#elif (WEBSOCKETS_NETWORK_TYPE == NETWORK_WIFI_NINA) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_SAMD_SEED)
         // does not support delete (no destructor)
 #else
         delete client->tcp;
@@ -567,7 +567,7 @@ void WebSocketsServerCore::dropNativeClient(WSclient_t * client) {
  * @param client WSclient_t *  ptr to the client struct
  */
 void WebSocketsServerCore::clientDisconnect(WSclient_t * client) {
-#if(WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP32) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_RP2040)
+#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP32) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_RP2040)
     if(client->isSSL && client->ssl) {
         if(client->ssl->connected()) {
             client->ssl->flush();
@@ -590,7 +590,7 @@ void WebSocketsServerCore::clientDisconnect(WSclient_t * client) {
 
     client->cWsRXsize = 0;
 
-#if(WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266_ASYNC)
+#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266_ASYNC)
     client->cHttpLine = "";
 #endif
 
@@ -632,7 +632,7 @@ bool WebSocketsServerCore::clientIsConnected(WSclient_t * client) {
 
     return false;
 }
-#if(WEBSOCKETS_NETWORK_TYPE != NETWORK_ESP8266_ASYNC)
+#if (WEBSOCKETS_NETWORK_TYPE != NETWORK_ESP8266_ASYNC)
 /**
  * Handle incoming Connection Request
  */
@@ -641,7 +641,7 @@ WSclient_t * WebSocketsServerCore::handleNewClient(WEBSOCKETS_NETWORK_CLASS * tc
 
     if(!client) {
         // no free space to handle client
-#if(WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP32) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_RP2040)
+#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP32) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_RP2040)
 #ifndef NODEBUG_WEBSOCKETS
         IPAddress ip = tcpClient->remoteIP();
 #endif
@@ -666,12 +666,12 @@ WSclient_t * WebSocketsServerCore::handleNewClient(WEBSOCKETS_NETWORK_CLASS * tc
  * Handle incoming Connection Request
  */
 void WebSocketsServer::handleNewClients(void) {
-#if(WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP32) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_RP2040)
+#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP32) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_RP2040)
     while(_server->hasClient()) {
 #endif
 
 // store new connection
-#if(WEBSOCKETS_NETWORK_TYPE == NETWORK_WIFI_NINA)
+#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_WIFI_NINA)
         WEBSOCKETS_NETWORK_CLASS * tcpClient = new WEBSOCKETS_NETWORK_CLASS(_server->available());
 #else
     WEBSOCKETS_NETWORK_CLASS * tcpClient = new WEBSOCKETS_NETWORK_CLASS(_server->accept());
@@ -684,7 +684,7 @@ void WebSocketsServer::handleNewClients(void) {
 
         handleNewClient(tcpClient);
 
-#if(WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP32) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_RP2040)
+#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP32) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_RP2040)
     }
 #endif
 }
@@ -798,7 +798,7 @@ void WebSocketsServerCore::handleHeader(WSclient_t * client, String * headerLine
         }
 
         (*headerLine) = "";
-#if(WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266_ASYNC)
+#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266_ASYNC)
         client->tcp->readStringUntil('\n', &(client->cHttpLine), std::bind(&WebSocketsServerCore::handleHeader, this, client, &(client->cHttpLine)));
 #endif
     } else {
@@ -955,16 +955,16 @@ void WebSocketsServer::begin(void) {
 
 void WebSocketsServer::close(void) {
     WebSocketsServerCore::close();
-#if(WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_RP2040)
+#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_RP2040)
     _server->close();
-#elif(WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP32) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266_ASYNC)
+#elif (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP32) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266_ASYNC)
     _server->end();
 #else
     // TODO how to close server?
 #endif
 }
 
-#if(WEBSOCKETS_NETWORK_TYPE != NETWORK_ESP8266_ASYNC)
+#if (WEBSOCKETS_NETWORK_TYPE != NETWORK_ESP8266_ASYNC)
 /**
  * called in arduino loop
  */
