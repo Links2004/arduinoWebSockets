@@ -525,7 +525,7 @@ void WebSocketsClient::messageReceived(WSclient_t * client, WSopcode_t opcode, u
 void WebSocketsClient::clientDisconnect(WSclient_t * client) {
     bool event = false;
 
-#if(WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP32) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_RP2040) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_CUSTOM)
+#ifdef HAS_SSL
     if(client->isSSL && client->ssl) {
         if(client->ssl->connected()) {
             client->ssl->flush();
