@@ -528,7 +528,7 @@ void WebSocketsClient::clientDisconnect(WSclient_t * client) {
 #ifdef HAS_SSL
     if(client->isSSL && client->ssl) {
         if(client->ssl->connected()) {
-            client->ssl->flush();
+            client->ssl->clear();
             client->ssl->stop();
         }
         event = true;
@@ -541,7 +541,7 @@ void WebSocketsClient::clientDisconnect(WSclient_t * client) {
     if(client->tcp) {
         if(client->tcp->connected()) {
 #if (WEBSOCKETS_NETWORK_TYPE != NETWORK_ESP8266_ASYNC)
-            client->tcp->flush();
+            client->tcp->clear();
 #endif
             client->tcp->stop();
         }
@@ -1029,3 +1029,4 @@ void WebSocketsClient::enableHeartbeat(uint32_t pingInterval, uint32_t pongTimeo
 void WebSocketsClient::disableHeartbeat() {
     _client.pingInterval = 0;
 }
+
