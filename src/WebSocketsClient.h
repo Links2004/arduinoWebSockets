@@ -55,6 +55,7 @@ class WebSocketsClient : protected WebSockets {
     void setSSLClientCertKey(const char * clientCert = NULL, const char * clientPrivateKey = NULL);
 #endif
     void beginSslWithCA(const char * host, uint16_t port, const char * url = "/", const char * CA_cert = NULL, const char * protocol = "arduino");
+    void beginSslWithClientKey(const char * host, uint16_t port, const char * url, const char * CA_cert, const char * clientCert, const char * clientPrivateKey, const char * protocol);
 #ifdef ESP32
 #if ESP_ARDUINO_VERSION >= ESP_ARDUINO_VERSION_VAL(3, 0, 4)
     void beginSslWithBundle(const char * host, uint16_t port, const char * url = "/", const uint8_t * CA_bundle = NULL, size_t CA_bundle_size = 0, const char * protocol = "arduino");
@@ -122,6 +123,8 @@ class WebSocketsClient : protected WebSockets {
     String _fingerprint;
     const char * _CA_cert;
     const uint8_t * _CA_bundle;
+    const char * _client_cert;
+    const char * _client_key;
 #if defined(ESP32)
 #if ESP_ARDUINO_VERSION >= ESP_ARDUINO_VERSION_VAL(3, 0, 4)
     size_t _CA_bundle_size;
