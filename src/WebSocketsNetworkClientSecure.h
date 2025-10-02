@@ -24,7 +24,11 @@ class WebSocketsNetworkClientSecure : public WebSocketsNetworkClient {
     operator bool() override;
 
     void setCACert(const char * rootCA);
+#if ESP_ARDUINO_VERSION >= ESP_ARDUINO_VERSION_VAL(3, 0, 4)
+    void setCACertBundle(const uint8_t * bundle, size_t bundle_size);
+#else
     void setCACertBundle(const uint8_t * bundle);
+#endif
     void setInsecure();
     bool verify(const char * fingerprint, const char * domain_name);
 };
