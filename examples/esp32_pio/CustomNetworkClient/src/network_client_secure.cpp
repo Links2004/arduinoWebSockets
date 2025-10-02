@@ -158,11 +158,20 @@ void WebSocketsNetworkClientSecure::setCACert(const char *rootCA) {
   Serial.println(_impl->no_interface_error_);
 }
 
+#if ESP_ARDUINO_VERSION >= ESP_ARDUINO_VERSION_VAL(3, 0, 4)
+void WebSocketsNetworkClientSecure::setCACertBundle(const uint8_t *bundle,
+                                                    size_t bundle_size) {
+#else
 void WebSocketsNetworkClientSecure::setCACertBundle(const uint8_t *bundle) {
+#endif
   if (_impl->gsm_client_secure_) {
     return _impl->gsm_client_secure_->setCACertBundle(bundle);
   } else if (_impl->wifi_client_secure_) {
+#if ESP_ARDUINO_VERSION >= ESP_ARDUINO_VERSION_VAL(3, 0, 4)
+    return _impl->wifi_client_secure_->setCACertBundle(bundle, bundle_size);
+#else
     return _impl->wifi_client_secure_->setCACertBundle(bundle);
+#endif
   }
   Serial.println(_impl->no_interface_error_);
 }
