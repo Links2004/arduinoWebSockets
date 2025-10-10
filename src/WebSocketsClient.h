@@ -112,6 +112,7 @@ class WebSocketsClient : protected WebSockets {
     void disableHeartbeat();
 
     bool isConnected(void);
+    String getUrl(void);
 
   protected:
     String _host;

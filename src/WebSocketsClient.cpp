@@ -478,6 +478,19 @@ bool WebSocketsClient::isConnected(void) {
     return (_client.status == WSC_CONNECTED);
 }
 
+/**
+ * RFC 6455
+ * get the full URL/URI of the connection
+ */
+String WebSocketsClient::getUrl(void) {
+#if defined(HAS_SSL)
+    String protocol = (_client.isSSL) ? WEBSOCKETS_STRING("wss://") : WEBSOCKETS_STRING("ws://");
+#else
+    String protocol = WEBSOCKETS_STRING("ws://");
+#endif
+    return protocol + _host + ":" + String(_port) + _client.cUrl;
+}
+
 // #################################################################################
 // #################################################################################
 // #################################################################################
