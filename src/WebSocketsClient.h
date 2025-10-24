@@ -157,7 +157,10 @@ class WebSocketsClient : protected WebSockets {
 
     void messageReceived(WSclient_t * client, WSopcode_t opcode, uint8_t * payload, size_t length, bool fin);
 
-    void clientDisconnect(WSclient_t * client);
+    void clientDisconnect(WSclient_t * client) {
+        clientDisconnect(client, NULL);
+    }
+    void clientDisconnect(WSclient_t * client, const char * reason = NULL);
     bool clientIsConnected(WSclient_t * client);
 
 #if (WEBSOCKETS_NETWORK_TYPE != NETWORK_ESP8266_ASYNC)

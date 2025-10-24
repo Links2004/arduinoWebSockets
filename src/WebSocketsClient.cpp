@@ -532,10 +532,11 @@ void WebSocketsClient::messageReceived(WSclient_t * client, WSopcode_t opcode, u
 }
 
 /**
- * Disconnect an client
+ * Disconnect a client
  * @param client WSclient_t *  ptr to the client struct
+ * @param reason const char * disconnect reason (optional, defaults to NULL)
  */
-void WebSocketsClient::clientDisconnect(WSclient_t * client) {
+void WebSocketsClient::clientDisconnect(WSclient_t * client, const char * reason) {
     bool event = false;
 
 #ifdef HAS_SSL
@@ -584,7 +585,11 @@ void WebSocketsClient::clientDisconnect(WSclient_t * client) {
 
     DEBUG_WEBSOCKETS("[WS-Client] client disconnected.\n");
     if(event) {
-        runCbEvent(WStype_DISCONNECTED, NULL, 0);
+        if(reason && strlen(reason) > 0) {
+            runCbEvent(WStype_DISCONNECTED, (uint8_t *)reason, strlen(reason));
+        } else {
+            runCbEvent(WStype_DISCONNECTED, NULL, 0);
+        }
     }
 }
 
@@ -607,13 +612,13 @@ bool WebSocketsClient::clientIsConnected(WSclient_t * client) {
         if(client->status != WSC_NOT_CONNECTED) {
             DEBUG_WEBSOCKETS("[WS-Client] connection lost.\n");
             // do cleanup
-            clientDisconnect(client);
+            clientDisconnect(client, "Connection lost");
         }
     }
 
     if(client->tcp) {
         // do cleanup
-        clientDisconnect(client);
+        clientDisconnect(client, "TCP connection cleanup");
     }
 
     return false;
@@ -625,7 +630,7 @@ bool WebSocketsClient::clientIsConnected(WSclient_t * client) {
 void WebSocketsClient::handleClientData(void) {
     if((_client.status == WSC_HEADER || _client.status == WSC_BODY) && _lastHeaderSent + WEBSOCKETS_TCP_TIMEOUT < millis()) {
         DEBUG_WEBSOCKETS("[WS-Client][handleClientData] header response timeout.. disconnecting!\n");
-        clientDisconnect(&_client);
+        clientDisconnect(&_client, "Header response timeout");
         WEBSOCKETS_YIELD();
         return;
     }
@@ -860,7 +865,9 @@ void WebSocketsClient::handleHeader(WSclient_t * client, String * headerLine) {
                 default:     ///< Server dont unterstand requrst
                     ok = false;
                     DEBUG_WEBSOCKETS("[WS-Client][handleHeader] serverCode is not 101 (%d)\n", client->cCode);
-                    clientDisconnect(client);
+                    // Create disconnect reason with HTTP status code
+                    String reason = "HTTP " + String(client->cCode);
+                    clientDisconnect(client, reason.c_str());
                     _lastConnectionFail = millis();
                     break;
             }
@@ -904,7 +911,11 @@ void WebSocketsClient::handleHeader(WSclient_t * client, String * headerLine) {
             if(clientIsConnected(client)) {
                 write(client, "This is a webSocket client!");
             }
-            clientDisconnect(client);
+            String reason = "WebSocket handshake failed";
+            if(client->cCode > 0) {
+                reason += " - HTTP " + String(client->cCode);
+            }
+            clientDisconnect(client, reason.c_str());
         }
     }
 }
