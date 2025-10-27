@@ -62,7 +62,7 @@ jobs:
           sketches-report-path: ${{ env.SKETCHES_REPORTS_PATH }}
 
       - name: Save sketches report as workflow artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           if-no-files-found: error
           path: ${{ env.SKETCHES_REPORTS_PATH }}
