@@ -50,7 +50,7 @@
         DEBUG_ESP_PORT.flush();             \
     }
 #else
-// #define DEBUG_WEBSOCKETS(...) os_printf( __VA_ARGS__ )
+    //#define DEBUG_WEBSOCKETS(...) os_printf( __VA_ARGS__ )   // Uncomment to debug
 #endif
 #endif
 
