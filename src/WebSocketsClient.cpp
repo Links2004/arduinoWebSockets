@@ -639,12 +639,14 @@ void WebSocketsClient::handleClientData(void) {
     if(len > 0) {
         switch(_client.status) {
             case WSC_HEADER: {
-                String headerLine = _client.tcp->readStringUntil('\n');
+                // Security fix: Use length-limited read to prevent unbounded heap allocation
+                String headerLine = readLineWithLimit(&_client);
                 handleHeader(&_client, &headerLine);
             } break;
             case WSC_BODY: {
-                char buf[256] = { 0 };
-                _client.tcp->readBytes(&buf[0], std::min((size_t)len, sizeof(buf)));
+                // Security: buf[256] is always '\0' due to zero-init, preventing strlen overread
+                char buf[257] = { 0 };
+                _client.tcp->readBytes(&buf[0], std::min((size_t)len, (size_t)256));
                 String bodyLine = buf;
                 handleHeader(&_client, &bodyLine);
             } break;
@@ -757,6 +759,13 @@ void WebSocketsClient::sendHeader(WSclient_t * client) {
  * @param client WSclient_t *  ptr to the client struct
  */
 void WebSocketsClient::handleHeader(WSclient_t * client, String * headerLine) {
+    // Security: Reject excessively long header lines (defense-in-depth for async paths)
+    if(headerLine->length() > WEBSOCKETS_MAX_HEADER_LINE_LENGTH) {
+        DEBUG_WEBSOCKETS("[WS-Client][handleHeader] header line too long, disconnecting\n");
+        clientDisconnect(client, "Header line too long");
+        return;
+    }
+
     headerLine->trim();    // remove \r
 
     // this code handels the http body for Socket.IO V3 requests
