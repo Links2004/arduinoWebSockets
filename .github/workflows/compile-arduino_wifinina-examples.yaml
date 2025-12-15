@@ -45,7 +45,7 @@ jobs:
               - name: WiFiNINA
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Compile examples
         uses: arduino/compile-sketches@v1
