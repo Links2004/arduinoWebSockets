@@ -69,7 +69,7 @@ jobs:
           echo "hash=$(/bin/date -u "+%Y%m%d")-$(md5sum ".github/workflows/main.yml" | cut -d ' ' -f 1)" >> $GITHUB_OUTPUT
         shell: bash
 
-      - uses: actions/cache@v4
+      - uses: actions/cache@v5
         id: cache_all
         with:
           path: |
@@ -128,7 +128,7 @@ jobs:
           echo "hash=$(/bin/date -u "+%Y%m%d")-$(md5sum ".github/workflows/main.yml" | cut -d ' ' -f 1)" >> $GITHUB_OUTPUT
         shell: bash
 
-      - uses: actions/cache@v4
+      - uses: actions/cache@v5
         id: cache_all
         with:
           path: |
