@@ -128,6 +128,12 @@ void WebSocketsClient::beginSslWithCA(const char * host, uint16_t port, const ch
     _CA_bundle    = NULL;
 }
 
+void WebSocketsClient::beginSslWithClientKey(const char * host, uint16_t port, const char * url, const char * CA_cert, const char * clientCert, const char * clientPrivateKey, const char * protocol) {
+    _client_cert = clientCert;
+    _client_key  = clientPrivateKey;
+    beginSslWithCA(host, port, url, CA_cert, protocol);
+}
+
 #if defined(ESP32) && ESP_ARDUINO_VERSION >= ESP_ARDUINO_VERSION_VAL(3, 0, 4)
 void WebSocketsClient::beginSslWithBundle(const char * host, uint16_t port, const char * url, const uint8_t * CA_bundle, size_t CA_bundle_size, const char * protocol) {
     begin(host, port, url, protocol);
@@ -256,8 +262,15 @@ void WebSocketsClient::loop(void) {
             _client.ssl = new WEBSOCKETS_NETWORK_SSL_CLASS();
             _client.tcp = _client.ssl;
             if(_CA_cert) {
-                DEBUG_WEBSOCKETS("[WS-Client] setting CA certificate");
+                DEBUG_WEBSOCKETS("[WS-Client] setting CA certificate\n");
 #if defined(ESP32)
+                if(_client_cert && _client_key) {
+                    DEBUG_WEBSOCKETS("[WS-Client] setting client certificate and private key\n");
+                    _client.ssl->setCertificate(_client_cert);
+                    _client.ssl->setPrivateKey(_client_key);
+                } else {
+                    DEBUG_WEBSOCKETS("[WS-Client] no client certificate and/or private key set\n");
+                }
                 _client.ssl->setCACert(_CA_cert);
 #elif defined(ESP8266) && defined(SSL_AXTLS)
                 _client.ssl->setCACert((const uint8_t *)_CA_cert, strlen(_CA_cert) + 1);
@@ -272,7 +285,7 @@ void WebSocketsClient::loop(void) {
 #endif
 #if defined(ESP32)
             } else if(_CA_bundle) {
-                DEBUG_WEBSOCKETS("[WS-Client] setting CA bundle");
+                DEBUG_WEBSOCKETS("[WS-Client] setting CA bundle\n");
 #if ESP_ARDUINO_VERSION >= ESP_ARDUINO_VERSION_VAL(3, 0, 4)
                 _client.ssl->setCACertBundle(_CA_bundle, _CA_bundle_size);
 #else
@@ -287,8 +300,10 @@ void WebSocketsClient::loop(void) {
                 _client.ssl->setInsecure();
             }
             if(_client_cert && _client_key) {
+                DEBUG_WEBSOCKETS("[WS-Client] setting client certificate and private key\n");
                 _client.ssl->setClientRSACert(_client_cert, _client_key);
-                DEBUG_WEBSOCKETS("[WS-Client] setting client certificate and key");
+            } else {
+                DEBUG_WEBSOCKETS("[WS-Client] no client certificate and/or private key set\n");
 #endif
             }
         } else {
