@@ -188,7 +188,11 @@ void SocketIOclient::loop(void) {
 void SocketIOclient::handleCbEvent(WStype_t type, uint8_t * payload, size_t length) {
     switch(type) {
         case WStype_DISCONNECTED:
-            runIOCbEvent(sIOtype_DISCONNECT, NULL, 0);
+            if(payload && length > 0) {
+                runIOCbEvent(sIOtype_DISCONNECT, payload, length);
+            } else {
+                runIOCbEvent(sIOtype_DISCONNECT, NULL, 0);
+            }
             DEBUG_WEBSOCKETS("[wsIOc] Disconnected!\n");
             break;
         case WStype_CONNECTED: {
