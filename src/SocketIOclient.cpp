@@ -190,10 +190,11 @@ void SocketIOclient::handleCbEvent(WStype_t type, uint8_t * payload, size_t leng
         case WStype_DISCONNECTED:
             if(payload && length > 0) {
                 runIOCbEvent(sIOtype_DISCONNECT, payload, length);
+                DEBUG_WEBSOCKETS("[wsIOc] Disconnected! reason: %s\n", payload);
             } else {
                 runIOCbEvent(sIOtype_DISCONNECT, NULL, 0);
+                DEBUG_WEBSOCKETS("[wsIOc] Disconnected!\n");
             }
-            DEBUG_WEBSOCKETS("[wsIOc] Disconnected!\n");
             break;
         case WStype_CONNECTED: {
             DEBUG_WEBSOCKETS("[wsIOc] Connected to url: %s\n", payload);
