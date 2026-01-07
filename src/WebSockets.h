@@ -240,6 +240,11 @@
 #define WEBSOCKETS_NETWORK_SSL_CLASS WiFiClientSecure
 #define WEBSOCKETS_NETWORK_SERVER_CLASS WiFiServer
 
+#if !defined(ESP_ARDUINO_VERSION) || ESP_ARDUINO_VERSION < ESP_ARDUINO_VERSION_VAL(3, 0, 0)
+// The ESP32 Arduino core 2.x.x has a wrong implementation of setTimeout (it takes secondes as argument)
+#define NETWORK_SET_TIMEOUT_IN_SECONDS
+#endif
+
 #elif (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP32_ETH)
 
 #include <ETH.h>

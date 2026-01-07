@@ -955,11 +955,12 @@ void WebSocketsClient::connectedCb() {
     _client.status = WSC_HEADER;
 
 // set Timeout for readBytesUntil and readStringUntil
-#if defined(ESP_ARDUINO_VERSION) && WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP32 && ESP_ARDUINO_VERSION < ESP_ARDUINO_VERSION_VAL(3, 0, 0)
-    // The ESP32 Arduino core 2.x.x has a wrong implementation of setTimeout (it takes secondes as argument)
-    _client.tcp->setTimeout(WEBSOCKETS_TCP_TIMEOUT/1000);
-#elif (WEBSOCKETS_NETWORK_TYPE != NETWORK_ESP8266_ASYNC)
+#if (WEBSOCKETS_NETWORK_TYPE != NETWORK_ESP8266_ASYNC)
+#if defined(NETWORK_SET_TIMEOUT_IN_SECONDS)
+    _client.tcp->setTimeout(WEBSOCKETS_TCP_TIMEOUT / 1000);
+#else
     _client.tcp->setTimeout(WEBSOCKETS_TCP_TIMEOUT);
+#endif
 #endif
 
 #if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP32) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_RP2040)
