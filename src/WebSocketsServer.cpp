@@ -451,8 +451,10 @@ WSclient_t * WebSocketsServerCore::newClient(WEBSOCKETS_NETWORK_CLASS * TCPclien
                 return client;
             }
 #endif
+            DEBUG_WEBSOCKETS("[WS-Server][newclient][%d] is in use\n", client->num);
         } else {
             // state is not connected or tcp connection is lost
+        	DEBUG_WEBSOCKETS("[WS-Server][newclient][%d] available for connection\n", client->num);
             client->tcp = TCPclient;
 
 #if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP32)
@@ -491,9 +493,10 @@ WSclient_t * WebSocketsServerCore::newClient(WEBSOCKETS_NETWORK_CLASS * TCPclien
 
             client->pingInterval           = _pingInterval;
             client->pongTimeout            = _pongTimeout;
+            client->pongTimeoutCount       = 0;             //gw addition reset to zero for new client
             client->disconnectTimeoutCount = _disconnectTimeoutCount;
             client->lastPing               = millis();
-            client->pongReceived           = false;
+            client->pongReceived           = true;         //gw set true - no spurious timeout before first ping sent following WSC_CONNECTED
 
             return client;
             break;
@@ -599,6 +602,8 @@ void WebSocketsServerCore::clientDisconnect(WSclient_t * client) {
     DEBUG_WEBSOCKETS("[WS-Server][%d] client disconnected.\n", client->num);
 
     runCbEvent(client->num, WStype_DISCONNECTED, NULL, 0);
+
+    DEBUG_WEBSOCKETS("WS-Server][%d], pongTimeoutCount %d, (should be zero)\n", client->num, client->pongTimeoutCount);  //todo this is for testing
 }
 
 /**
@@ -656,6 +661,9 @@ WSclient_t * WebSocketsServerCore::handleNewClient(WEBSOCKETS_NETWORK_CLASS * tc
         dropNativeClient(client);
         return nullptr;
     }
+
+    //test to see if ping timeout values are correct  todo remove
+    DEBUG_WEBSOCKETS("[WS-Client] [handleNewClients] [%d] PongTimeoutCount %d, should be zero for new client\n", client->num, client->pongTimeoutCount);
 
     WEBSOCKETS_YIELD();
 
@@ -882,8 +890,8 @@ void WebSocketsServerCore::handleHeader(WSclient_t * client, String * headerLine
 
             headerDone(client);
 
-            // send ping
-            WebSockets::sendFrame(client, WSop_ping);
+            // Send HeartBeat Ping if enabled
+            handleHBPing(client);
 
             runCbEvent(client->num, WStype_CONNECTED, (uint8_t *)client->cUrl.c_str(), client->cUrl.length());
 
@@ -897,7 +905,7 @@ void WebSocketsServerCore::handleHeader(WSclient_t * client, String * headerLine
  * send heartbeat ping to server in set intervals
  */
 void WebSocketsServerCore::handleHBPing(WSclient_t * client) {
-    if(client->pingInterval == 0)
+    if( (client->pingInterval == 0) || client->status != WSC_CONNECTED)
         return;
     uint32_t pi = millis() - client->lastPing;
     if(pi > client->pingInterval) {
