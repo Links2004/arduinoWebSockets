@@ -760,3 +760,66 @@ void WebSockets::handleHBTimeout(WSclient_t * client) {
         }
     }
 }
+
+/**
+ * Read a line from TCP stream with maximum length limit.
+ * Security fix: Prevents unbounded heap allocation from malicious peers
+ * sending continuous data without newlines (CVE prevention).
+ * @param client WSclient_t * ptr to the client struct
+ * @param maxLen Maximum characters to read before truncating
+ * @return String containing the line (without newline), empty if disconnected
+ */
+String WebSockets::readLineWithLimit(WSclient_t * client, size_t maxLen) {
+    String line;
+    if(!client->tcp || !client->tcp->connected()) {
+        return line;
+    }
+
+    line.reserve(std::min(maxLen, (size_t)128));  // Pre-allocate reasonable initial size
+
+    size_t count = 0;
+    unsigned long timeout = millis();
+    
+    while(client->tcp->connected() && count < maxLen) {
+        if((millis() - timeout) > WEBSOCKETS_TCP_TIMEOUT) {
+            DEBUG_WEBSOCKETS("[readLineWithLimit] TIMEOUT!\n");
+            break;
+        }
+
+        if(!client->tcp->available()) {
+            WEBSOCKETS_YIELD_MORE();
+            continue;
+        }
+
+        int c = client->tcp->read();
+        if(c < 0) {
+            break;
+        }
+        
+        timeout = millis();  // Reset timeout on successful read
+        
+        if(c == '\n') {
+            break;
+        }
+        if(c != '\r') {
+            line += (char)c;
+            count++;
+        }
+    }
+
+    // If we hit maxLen, consume remaining bytes until newline to stay in sync
+    if(count >= maxLen) {
+        DEBUG_WEBSOCKETS("[readLineWithLimit] line exceeded maxLen (%zu), truncating\n", maxLen);
+        while(client->tcp->connected() && client->tcp->available()) {
+            int c = client->tcp->read();
+            if(c < 0 || c == '\n') {
+                break;
+            }
+            if((millis() - timeout) > WEBSOCKETS_TCP_TIMEOUT) {
+                break;
+            }
+        }
+    }
+
+    return line;
+}

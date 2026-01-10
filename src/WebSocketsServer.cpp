@@ -702,7 +702,8 @@ void WebSocketsServerCore::handleClientData(void) {
                 // DEBUG_WEBSOCKETS("[WS-Server][%d][handleClientData] len: %d\n", client->num, len);
                 switch(client->status) {
                     case WSC_HEADER: {
-                        String headerLine = client->tcp->readStringUntil('\n');
+                        // Security fix: Use length-limited read to prevent unbounded heap allocation
+                        String headerLine = readLineWithLimit(client);
                         handleHeader(client, &headerLine);
                     } break;
                     case WSC_CONNECTED:
@@ -742,6 +743,13 @@ bool WebSocketsServerCore::hasMandatoryHeader(String headerName) {
  */
 void WebSocketsServerCore::handleHeader(WSclient_t * client, String * headerLine) {
     static const char * NEW_LINE = "\r\n";
+
+    // Security: Reject excessively long header lines (defense-in-depth for async paths)
+    if(headerLine->length() > WEBSOCKETS_MAX_HEADER_LINE_LENGTH) {
+        DEBUG_WEBSOCKETS("[WS-Server][%d][handleHeader] header line too long, disconnecting\n", client->num);
+        clientDisconnect(client);
+        return;
+    }
 
     headerLine->trim();    // remove \r
 

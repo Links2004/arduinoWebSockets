@@ -140,6 +140,11 @@
 // max size of the WS Message Header
 #define WEBSOCKETS_MAX_HEADER_SIZE (14)
 
+// Maximum HTTP header line length (security: prevents unbounded heap allocation)
+#ifndef WEBSOCKETS_MAX_HEADER_LINE_LENGTH
+#define WEBSOCKETS_MAX_HEADER_LINE_LENGTH (1024)
+#endif
+
 #if !defined(WEBSOCKETS_NETWORK_TYPE)
 // select Network type based
 #if defined(ESP8266) || defined(ESP31B)
@@ -460,6 +465,15 @@ class WebSockets {
 
     void enableHeartbeat(WSclient_t * client, uint32_t pingInterval, uint32_t pongTimeout, uint8_t disconnectTimeoutCount);
     void handleHBTimeout(WSclient_t * client);
+
+    /**
+     * Read a line from TCP stream with maximum length limit.
+     * Security fix: Prevents unbounded heap allocation from malicious peers.
+     * @param client WSclient_t * ptr to the client struct
+     * @param maxLen Maximum characters to read before truncating
+     * @return String containing the line (without newline)
+     */
+    String readLineWithLimit(WSclient_t * client, size_t maxLen = WEBSOCKETS_MAX_HEADER_LINE_LENGTH);
 };
 
 #ifndef UNUSED
