@@ -48,11 +48,21 @@ class WebSocketsClient : protected WebSockets {
     void beginSSL(String host, uint16_t port, String url = "/", String fingerprint = "", String protocol = "arduino");
 #else
     void beginSSL(const char * host, uint16_t port, const char * url = "/", const uint8_t * fingerprint = NULL, const char * protocol = "arduino");
+#if defined(SSL_BARESSL)
     void beginSslWithCA(const char * host, uint16_t port, const char * url = "/", BearSSL::X509List * CA_cert = NULL, const char * protocol = "arduino");
     void setSSLClientCertKey(BearSSL::X509List * clientCert = NULL, BearSSL::PrivateKey * clientPrivateKey = NULL);
+#endif
     void setSSLClientCertKey(const char * clientCert = NULL, const char * clientPrivateKey = NULL);
 #endif
     void beginSslWithCA(const char * host, uint16_t port, const char * url = "/", const char * CA_cert = NULL, const char * protocol = "arduino");
+    void beginSslWithClientKey(const char * host, uint16_t port, const char * url, const char * CA_cert, const char * clientCert, const char * clientPrivateKey, const char * protocol = "arduino");
+#ifdef ESP32
+#if ESP_ARDUINO_VERSION >= ESP_ARDUINO_VERSION_VAL(3, 0, 4)
+    void beginSslWithBundle(const char * host, uint16_t port, const char * url = "/", const uint8_t * CA_bundle = NULL, size_t CA_bundle_size = 0, const char * protocol = "arduino");
+#else
+    void beginSslWithBundle(const char * host, uint16_t port, const char * url = "/", const uint8_t * CA_bundle = NULL, const char * protocol = "arduino");
+#endif
+#endif
 #endif
 
     void beginSocketIO(const char * host, uint16_t port, const char * url = "/socket.io/?EIO=3", const char * protocol = "arduino");
@@ -68,7 +78,7 @@ class WebSocketsClient : protected WebSockets {
 #endif
 #endif
 
-#if(WEBSOCKETS_NETWORK_TYPE != NETWORK_ESP8266_ASYNC)
+#if (WEBSOCKETS_NETWORK_TYPE != NETWORK_ESP8266_ASYNC)
     void loop(void);
 #else
     // Async interface not need a loop call
@@ -103,6 +113,7 @@ class WebSocketsClient : protected WebSockets {
     void disableHeartbeat();
 
     bool isConnected(void);
+    String getUrl(void);
 
   protected:
     String _host;
@@ -112,15 +123,30 @@ class WebSocketsClient : protected WebSockets {
 #ifdef SSL_AXTLS
     String _fingerprint;
     const char * _CA_cert;
+    const uint8_t * _CA_bundle;
+    const char * _client_cert;
+    const char * _client_key;
+#if defined(ESP32)
+#if ESP_ARDUINO_VERSION >= ESP_ARDUINO_VERSION_VAL(3, 0, 4)
+    size_t _CA_bundle_size;
+#endif
+#endif
 #define SSL_FINGERPRINT_IS_SET (_fingerprint.length())
 #define SSL_FINGERPRINT_NULL ""
 #else
     const uint8_t * _fingerprint;
+#if defined(SSL_BARESSL)
     BearSSL::X509List * _CA_cert;
     BearSSL::X509List * _client_cert;
     BearSSL::PrivateKey * _client_key;
+#endif
 #define SSL_FINGERPRINT_IS_SET (_fingerprint != NULL)
 #define SSL_FINGERPRINT_NULL NULL
+#endif
+
+#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_SAMD_SEED) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_WIFI_NINA)
+    const char * _CA_cert;
+    const uint8_t * _CA_bundle;
 #endif
 
 #endif
@@ -134,10 +160,13 @@ class WebSocketsClient : protected WebSockets {
 
     void messageReceived(WSclient_t * client, WSopcode_t opcode, uint8_t * payload, size_t length, bool fin);
 
-    void clientDisconnect(WSclient_t * client);
+    void clientDisconnect(WSclient_t * client) {
+        clientDisconnect(client, NULL);
+    }
+    void clientDisconnect(WSclient_t * client, const char * reason = NULL);
     bool clientIsConnected(WSclient_t * client);
 
-#if(WEBSOCKETS_NETWORK_TYPE != NETWORK_ESP8266_ASYNC)
+#if (WEBSOCKETS_NETWORK_TYPE != NETWORK_ESP8266_ASYNC)
     void handleClientData(void);
 #endif
 
@@ -149,7 +178,7 @@ class WebSocketsClient : protected WebSockets {
 
     void handleHBPing();    // send ping in specified intervals
 
-#if(WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266_ASYNC)
+#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266_ASYNC)
     void asyncConnect();
 #endif
 

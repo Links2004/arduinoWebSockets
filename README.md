@@ -1,4 +1,4 @@
-WebSocket Server and Client for Arduino [![Build Status](https://github.com/Links2004/arduinoWebSockets/workflows/CI/badge.svg?branch=master)](https://github.com/Links2004/arduinoWebSockets/actions?query=workflow%3ACI+branch%3Amaster)
+WebSocket Server and Client for Arduino [![Build Status](https://github.com/Links2004/arduinoWebSockets/actions/workflows/main.yml/badge.svg?branch=master)](https://github.com/Links2004/arduinoWebSockets/actions?query=branch%3Amaster)
 ===========================================
 
 a WebSocket Server and Client for Arduino based on RFC6455.
@@ -32,6 +32,9 @@ a WebSocket Server and Client for Arduino based on RFC6455.
  - ATmega328 with enc28j60 (ATmega branch)
  - ATmega2560 with Ethernet Shield (ATmega branch)
  - ATmega2560 with enc28j60 (ATmega branch)
+ - Arduino UNO [R4 WiFi](https://github.com/arduino/ArduinoCore-renesas)
+ - Arduino Nano 33 IoT, MKR WIFI 1010 (requires [WiFiNINA](https://github.com/arduino-libraries/WiFiNINA/) library)
+ - Seeeduino XIAO, Seeeduino Wio Terminal (requires [rpcWiFi](https://github.com/Seeed-Studio/Seeed_Arduino_rpcWiFi) library)
 
 ###### Note: ######
 
@@ -44,9 +47,20 @@ a WebSocket Server and Client for Arduino based on RFC6455.
 ### wss / SSL ###
  supported for:
  - wss client on the ESP8266
+ - wss / SSL for ESP32 in client mode
  - wss / SSL is not natively supported in WebSocketsServer however it is possible to achieve secure websockets
    by running the device behind an SSL proxy. See [Nginx](examples/Nginx/esp8266.ssl.reverse.proxy.conf) for a
    sample Nginx server configuration file to enable this.
+
+### Root CA Cert Bundles for SSL/TLS connections ###
+
+Secure connections require the certificate of the server to be verified. One option is to provide a single certificate in the chain of trust. However, for flexibility and robustness, a certificate bundle is recommended. If a server changes the root CA from which it derives its certificates, this will not be a problem. With a single CA cert it will not connect.
+
+ - For [technical details](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/protocols/esp_crt_bundle.html)
+ - For a [PlatformIO setup](https://github.com/Duckle29/esp32-certBundle/)
+ - For an [example](examples/esp32/WebSocketClientSSLBundle/)
+
+Including a bundle with all CA certs will use 77.2 kB but this list can be reduced to 16.5 kB for the 41 most common. This results in 90% absolute usage coverage and 99% market share coverage according to [W3Techs](https://w3techs.com/technologies/overview/ssl_certificate). The bundle is inserted into the compiled firmware. The bundle is not loaded into RAM, only its index.
 
 ### ESP Async TCP ###
 
@@ -63,19 +77,19 @@ The mode can be activated in the ```WebSockets.h``` (see WEBSOCKETS_NETWORK_TYPE
 ```c++
 void begin(const char *host, uint16_t port, const char * url = "/", const char * protocol = "arduino");
 void begin(String host, uint16_t port, String url = "/", String protocol = "arduino");
- ```
+```
  - `onEvent`: Callback to handle for websocket events
 
- ```c++
+```c++
  void onEvent(WebSocketClientEvent cbEvent);
- ```
+```
 
  - `WebSocketClientEvent`: Handler for websocket events
- ```c++
+```c++
  void (*WebSocketClientEvent)(WStype_t type, uint8_t * payload, size_t length)
- ```
+```
 Where `WStype_t type` is defined as:
-  ```c++
+```c++
   typedef enum {
       WStype_ERROR,
       WStype_DISCONNECTED,
@@ -89,12 +103,10 @@ Where `WStype_t type` is defined as:
       WStype_PING,
       WStype_PONG,
   } WStype_t;
-  ```
+```
 
 ### Issues ###
 Submit issues to: https://github.com/Links2004/arduinoWebSockets/issues
-
-[![Join the chat at https://gitter.im/Links2004/arduinoWebSockets](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/Links2004/arduinoWebSockets?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 ### License and credits ###
 

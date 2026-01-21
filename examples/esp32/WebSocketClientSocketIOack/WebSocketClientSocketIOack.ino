@@ -54,7 +54,7 @@ void socketIOEvent(socketIOmessageType_t type, uint8_t * payload, size_t length)
 
             // Message Includes a ID for a ACK (callback)
             if(id) {
-                // creat JSON message for Socket.IO (ack)
+                // create JSON message for Socket.IO (ack)
                 DynamicJsonDocument docOut(1024);
                 JsonArray array = docOut.to<JsonArray>();
 
@@ -130,11 +130,11 @@ void loop() {
     if(now - messageTimestamp > 2000) {
         messageTimestamp = now;
 
-        // creat JSON message for Socket.IO (event)
+        // create JSON message for Socket.IO (event)
         DynamicJsonDocument doc(1024);
         JsonArray array = doc.to<JsonArray>();
 
-        // add evnet name
+        // add event name
         // Hint: socket.on('event_name', ....
         array.add("event_name");
 
@@ -142,7 +142,7 @@ void loop() {
         JsonObject param1 = array.createNestedObject();
         param1["now"] = (uint32_t) now;
 
-        // JSON to String (serializion)
+        // JSON to String (serialization)
         String output;
         serializeJson(doc, output);
 

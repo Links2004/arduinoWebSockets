@@ -55,9 +55,11 @@ class SocketIOclient : protected WebSocketsClient {
     void beginSSL(String host, uint16_t port, String url = "/socket.io/?EIO=3", String protocol = "arduino", uint32_t pingInterval = 60 * 1000, uint32_t pongTimeout = 90 * 1000, uint8_t disconnectTimeoutCount = 5);
 #ifndef SSL_AXTLS
     void beginSSLWithCA(const char * host, uint16_t port, const char * url = "/socket.io/?EIO=3", const char * CA_cert = NULL, const char * protocol = "arduino", uint32_t pingInterval = 60 * 1000, uint32_t pongTimeout = 90 * 1000, uint8_t disconnectTimeoutCount = 5);
-    void beginSSLWithCA(const char * host, uint16_t port, const char * url = "/socket.io/?EIO=3", BearSSL::X509List * CA_cert = NULL, const char * protocol = "arduino", uint32_t pingInterval = 60 * 1000, uint32_t pongTimeout = 90 * 1000, uint8_t disconnectTimeoutCount = 5);
     void setSSLClientCertKey(const char * clientCert = NULL, const char * clientPrivateKey = NULL);
+#if defined(SSL_BARESSL)
+    void beginSSLWithCA(const char * host, uint16_t port, const char * url = "/socket.io/?EIO=3", BearSSL::X509List * CA_cert = NULL, const char * protocol = "arduino", uint32_t pingInterval = 60 * 1000, uint32_t pongTimeout = 90 * 1000, uint8_t disconnectTimeoutCount = 5);
     void setSSLClientCertKey(BearSSL::X509List * clientCert = NULL, BearSSL::PrivateKey * clientPrivateKey = NULL);
+#endif
 #endif
 #endif
     bool isConnected(void);

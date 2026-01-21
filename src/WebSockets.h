@@ -93,6 +93,24 @@
 #define WEBSOCKETS_YIELD() yield()
 #define WEBSOCKETS_YIELD_MORE() delay(1)
 
+#elif defined(ARDUINO_UNOWIFIR4)
+
+#define WEBSOCKETS_MAX_DATA_SIZE (15 * 1024)
+#define WEBSOCKETS_YIELD() yield()
+#define WEBSOCKETS_YIELD_MORE() delay(1)
+
+#elif defined(ARDUINO_SAMD_MKRWIFI1010) || defined(ARDUINO_SAMD_NANO_33_IOT)
+
+#define WEBSOCKETS_MAX_DATA_SIZE (15 * 1024)
+#define WEBSOCKETS_YIELD() yield()
+#define WEBSOCKETS_YIELD_MORE() delay(1)
+
+#elif defined(WIO_TERMINAL) || defined(SEEED_XIAO_M0)
+
+#define WEBSOCKETS_MAX_DATA_SIZE (15 * 1024)
+#define WEBSOCKETS_YIELD() yield()
+#define WEBSOCKETS_YIELD_MORE() delay(1)
+
 #else
 
 // atmega328p has only 2KB ram!
@@ -114,6 +132,10 @@
 #define NETWORK_ESP32 (4)
 #define NETWORK_ESP32_ETH (5)
 #define NETWORK_RP2040 (6)
+#define NETWORK_UNOWIFIR4 (7)
+#define NETWORK_WIFI_NINA (8)
+#define NETWORK_SAMD_SEED (9)
+#define NETWORK_CUSTOM (10)
 
 // max size of the WS Message Header
 #define WEBSOCKETS_MAX_HEADER_SIZE (14)
@@ -132,6 +154,15 @@
 #elif defined(ARDUINO_ARCH_RP2040)
 #define WEBSOCKETS_NETWORK_TYPE NETWORK_RP2040
 
+#elif defined(ARDUINO_UNOWIFIR4)
+#define WEBSOCKETS_NETWORK_TYPE NETWORK_UNOWIFIR4
+
+#elif defined(ARDUINO_SAMD_MKRWIFI1010) || defined(ARDUINO_SAMD_NANO_33_IOT)
+#define WEBSOCKETS_NETWORK_TYPE NETWORK_WIFI_NINA
+
+#elif defined(WIO_TERMINAL) || defined(SEEED_XIAO_M0)
+#define WEBSOCKETS_NETWORK_TYPE NETWORK_SAMD_SEED
+
 #else
 #define WEBSOCKETS_NETWORK_TYPE NETWORK_W5100
 
@@ -139,7 +170,7 @@
 #endif
 
 // Includes and defined based on Network Type
-#if(WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266_ASYNC)
+#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266_ASYNC)
 
 // Note:
 //   No SSL/WSS support for client in Async mode
@@ -162,7 +193,7 @@
 #define WEBSOCKETS_NETWORK_CLASS AsyncTCPbuffer
 #define WEBSOCKETS_NETWORK_SERVER_CLASS AsyncServer
 
-#elif(WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
+#elif (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266)
 
 #if !defined(ESP8266) && !defined(ESP31B)
 #error "network type ESP8266 only possible on the ESP mcu!"
@@ -182,7 +213,7 @@
 #define WEBSOCKETS_NETWORK_SSL_CLASS WiFiClientSecure
 #define WEBSOCKETS_NETWORK_SERVER_CLASS WiFiServer
 
-#elif(WEBSOCKETS_NETWORK_TYPE == NETWORK_W5100)
+#elif (WEBSOCKETS_NETWORK_TYPE == NETWORK_W5100)
 
 #ifdef STM32_DEVICE
 #define WEBSOCKETS_NETWORK_CLASS TCPClient
@@ -194,13 +225,13 @@
 #define WEBSOCKETS_NETWORK_SERVER_CLASS EthernetServer
 #endif
 
-#elif(WEBSOCKETS_NETWORK_TYPE == NETWORK_ENC28J60)
+#elif (WEBSOCKETS_NETWORK_TYPE == NETWORK_ENC28J60)
 
 #include <UIPEthernet.h>
 #define WEBSOCKETS_NETWORK_CLASS UIPClient
 #define WEBSOCKETS_NETWORK_SERVER_CLASS UIPServer
 
-#elif(WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP32)
+#elif (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP32)
 
 #include <WiFi.h>
 #include <WiFiClientSecure.h>
@@ -209,13 +240,18 @@
 #define WEBSOCKETS_NETWORK_SSL_CLASS WiFiClientSecure
 #define WEBSOCKETS_NETWORK_SERVER_CLASS WiFiServer
 
-#elif(WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP32_ETH)
+#if !defined(ESP_ARDUINO_VERSION) || ESP_ARDUINO_VERSION < ESP_ARDUINO_VERSION_VAL(3, 0, 0)
+// The ESP32 Arduino core 2.x.x has a wrong implementation of setTimeout (it takes secondes as argument)
+#define NETWORK_SET_TIMEOUT_IN_SECONDS
+#endif
+
+#elif (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP32_ETH)
 
 #include <ETH.h>
 #define WEBSOCKETS_NETWORK_CLASS WiFiClient
 #define WEBSOCKETS_NETWORK_SERVER_CLASS WiFiServer
 
-#elif(WEBSOCKETS_NETWORK_TYPE == NETWORK_RP2040)
+#elif (WEBSOCKETS_NETWORK_TYPE == NETWORK_RP2040)
 
 #include <WiFi.h>
 #include <WiFiClientSecure.h>
@@ -224,6 +260,46 @@
 #define WEBSOCKETS_NETWORK_SSL_CLASS WiFiClientSecure
 #define WEBSOCKETS_NETWORK_SERVER_CLASS WiFiServer
 
+#elif (WEBSOCKETS_NETWORK_TYPE == NETWORK_UNOWIFIR4)
+
+#include <WiFiS3.h>
+#define WEBSOCKETS_NETWORK_CLASS WiFiClient
+#define WEBSOCKETS_NETWORK_SERVER_CLASS WiFiServer
+
+#elif (WEBSOCKETS_NETWORK_TYPE == NETWORK_WIFI_NINA)
+#if __has_include(<WiFiNINA.h>)
+#include <WiFiNINA.h>
+#else
+#error "Please install WiFiNINA library!"
+#endif
+
+#define WEBSOCKETS_NETWORK_CLASS WiFiClient
+#define WEBSOCKETS_NETWORK_SERVER_CLASS WiFiServer
+#define WEBSOCKETS_NETWORK_SSL_CLASS WiFiSSLClient
+
+#elif (WEBSOCKETS_NETWORK_TYPE == NETWORK_SAMD_SEED)
+#if __has_include(<rpcWiFi.h>) && __has_include(<rpcWiFiClientSecure.h>)
+#include <rpcWiFi.h>
+#include <rpcWiFiClientSecure.h>
+#else
+#error "Please install rpcWiFi library!"
+#endif
+
+#define WEBSOCKETS_NETWORK_CLASS WiFiClient
+#define WEBSOCKETS_NETWORK_SERVER_CLASS WiFiServer
+#define WEBSOCKETS_NETWORK_SSL_CLASS WiFiClientSecure
+
+#define WEBSOCKETS_NETWORK_CLASS WiFiClient
+#define WEBSOCKETS_NETWORK_SERVER_CLASS WiFiServer
+
+#elif (WEBSOCKETS_NETWORK_TYPE == NETWORK_CUSTOM)
+#include <WebSocketsNetworkClientSecure.h>
+#include <WiFiServer.h>
+
+#define SSL_AXTLS
+#define WEBSOCKETS_NETWORK_CLASS WebSocketsNetworkClient
+#define WEBSOCKETS_NETWORK_SSL_CLASS WebSocketsNetworkClientSecure
+#define WEBSOCKETS_NETWORK_SERVER_CLASS WiFiServer
 #else
 #error "no network type selected!"
 #endif
@@ -305,8 +381,8 @@ typedef struct {
     bool isSocketIO = false;    ///< client for socket.io server
 
 #if defined(HAS_SSL)
-    bool isSSL = false;    ///< run in ssl mode
-    WEBSOCKETS_NETWORK_SSL_CLASS * ssl;
+    bool isSSL                         = false;    ///< run in ssl mode
+    WEBSOCKETS_NETWORK_SSL_CLASS * ssl = nullptr;
 #endif
 
     String cUrl;           ///< http url
@@ -342,7 +418,7 @@ typedef struct {
     uint8_t disconnectTimeoutCount = 0;    // after how many subsequent pong timeouts discconnect will happen, 0 means "do not disconnect"
     uint8_t pongTimeoutCount       = 0;    // current pong timeout count
 
-#if(WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266_ASYNC)
+#if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266_ASYNC)
     String cHttpLine;    ///< HTTP header lines
 #endif
 
