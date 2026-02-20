@@ -29,6 +29,8 @@ class WebSocketsNetworkClientSecure : public WebSocketsNetworkClient {
 #else
     void setCACertBundle(const uint8_t * bundle);
 #endif
+    void setCertificate(const char * client_ca);
+    void setPrivateKey(const char * private_key);
     void setInsecure();
     bool verify(const char * fingerprint, const char * domain_name);
 };
