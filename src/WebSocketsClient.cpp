@@ -822,7 +822,7 @@ void WebSocketsClient::handleHeader(WSclient_t * client, String * headerLine) {
                 client->cExtensions = headerValue;
             } else if(headerName.equalsIgnoreCase(WEBSOCKETS_STRING("Sec-WebSocket-Version"))) {
                 client->cVersion = headerValue.toInt();
-            } else if(headerName.equalsIgnoreCase(WEBSOCKETS_STRING("Set-Cookie")) && headerValue.indexOf(" io=") > -1) {
+            } else if(headerName.equalsIgnoreCase(WEBSOCKETS_STRING("Set-Cookie")) && headerValue.indexOf("io=") > -1) {
                 if(headerValue.indexOf(';') > -1) {
                     client->cSessionId = headerValue.substring(headerValue.indexOf('=') + 1, headerValue.indexOf(";"));
                 } else {
