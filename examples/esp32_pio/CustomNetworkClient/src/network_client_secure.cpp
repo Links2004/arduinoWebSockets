@@ -19,7 +19,7 @@ int WebSocketsNetworkClientSecure::connect(IPAddress ip, uint16_t port) {
   return 0;
 }
 
-int WebSocketsNetworkClientSecure::connect(const char *host, uint16_t port) {
+int WebSocketsNetworkClientSecure::connect(const char* host, uint16_t port) {
   if (_impl->gsm_client_secure_) {
     return _impl->gsm_client_secure_->connect(host, port);
   } else if (_impl->wifi_client_secure_) {
@@ -28,7 +28,7 @@ int WebSocketsNetworkClientSecure::connect(const char *host, uint16_t port) {
   Serial.println(_impl->no_interface_error_);
   return 0;
 }
-int WebSocketsNetworkClientSecure::connect(const char *host, uint16_t port,
+int WebSocketsNetworkClientSecure::connect(const char* host, uint16_t port,
                                            int32_t timeout_ms) {
   if (_impl->gsm_client_secure_) {
     // Ignore timeout as will cause read() to block for specified time
@@ -50,7 +50,7 @@ size_t WebSocketsNetworkClientSecure::write(uint8_t data) {
   return 0;
 }
 
-size_t WebSocketsNetworkClientSecure::write(const uint8_t *buf, size_t size) {
+size_t WebSocketsNetworkClientSecure::write(const uint8_t* buf, size_t size) {
   if (_impl->gsm_client_secure_) {
     return _impl->gsm_client_secure_->write(buf, size);
   } else if (_impl->wifi_client_secure_) {
@@ -60,12 +60,12 @@ size_t WebSocketsNetworkClientSecure::write(const uint8_t *buf, size_t size) {
   return 0;
 }
 
-size_t WebSocketsNetworkClientSecure::write(const char *str) {
+size_t WebSocketsNetworkClientSecure::write(const char* str) {
   const int size = strlen(str);
   if (_impl->gsm_client_secure_) {
-    return _impl->gsm_client_secure_->write((const uint8_t *)str, size);
+    return _impl->gsm_client_secure_->write((const uint8_t*)str, size);
   } else if (_impl->wifi_client_secure_) {
-    return _impl->wifi_client_secure_->write((const uint8_t *)str, size);
+    return _impl->wifi_client_secure_->write((const uint8_t*)str, size);
   }
   Serial.println(_impl->no_interface_error_);
   return 0;
@@ -91,7 +91,7 @@ int WebSocketsNetworkClientSecure::read() {
   return 0;
 }
 
-int WebSocketsNetworkClientSecure::read(uint8_t *buf, size_t size) {
+int WebSocketsNetworkClientSecure::read(uint8_t* buf, size_t size) {
   if (_impl->gsm_client_secure_) {
     return _impl->gsm_client_secure_->read(buf, size);
   } else if (_impl->wifi_client_secure_) {
@@ -149,29 +149,40 @@ WebSocketsNetworkClientSecure::operator bool() {
   return 0;
 }
 
-void WebSocketsNetworkClientSecure::setCACert(const char *rootCA) {
+void WebSocketsNetworkClientSecure::setCACert(const char* rootCA) {
   if (_impl->gsm_client_secure_) {
-    return _impl->gsm_client_secure_->setCertificate(rootCA);
+    return _impl->gsm_client_secure_->setCACert(rootCA);
   } else if (_impl->wifi_client_secure_) {
     return _impl->wifi_client_secure_->setCACert(rootCA);
   }
   Serial.println(_impl->no_interface_error_);
 }
 
-#if ESP_ARDUINO_VERSION >= ESP_ARDUINO_VERSION_VAL(3, 0, 4)
-void WebSocketsNetworkClientSecure::setCACertBundle(const uint8_t *bundle,
-                                                    size_t bundle_size) {
-#else
-void WebSocketsNetworkClientSecure::setCACertBundle(const uint8_t *bundle) {
-#endif
+void WebSocketsNetworkClientSecure::setCACertBundle(const uint8_t* bundle_start,
+                                                    const size_t bundle_size) {
   if (_impl->gsm_client_secure_) {
-    return _impl->gsm_client_secure_->setCACertBundle(bundle);
+    return _impl->gsm_client_secure_->setCACertBundle(bundle_start);
   } else if (_impl->wifi_client_secure_) {
-#if ESP_ARDUINO_VERSION >= ESP_ARDUINO_VERSION_VAL(3, 0, 4)
-    return _impl->wifi_client_secure_->setCACertBundle(bundle, bundle_size);
-#else
-    return _impl->wifi_client_secure_->setCACertBundle(bundle);
-#endif
+    return _impl->wifi_client_secure_->setCACertBundle(bundle_start,
+                                                       bundle_size);
+  }
+  Serial.println(_impl->no_interface_error_);
+}
+
+void WebSocketsNetworkClientSecure::setCertificate(const char* client_ca) {
+  if (_impl->gsm_client_secure_) {
+    return _impl->gsm_client_secure_->setCertificate(client_ca);
+  } else if (_impl->wifi_client_secure_) {
+    _impl->wifi_client_secure_->setCertificate(client_ca);
+  }
+  Serial.println(_impl->no_interface_error_);
+}
+
+void WebSocketsNetworkClientSecure::setPrivateKey(const char* private_key) {
+  if (_impl->gsm_client_secure_) {
+    return _impl->gsm_client_secure_->setPrivateKey(private_key);
+  } else if (_impl->wifi_client_secure_) {
+    _impl->wifi_client_secure_->setPrivateKey(private_key);
   }
   Serial.println(_impl->no_interface_error_);
 }
@@ -185,8 +196,8 @@ void WebSocketsNetworkClientSecure::setInsecure() {
   Serial.println(_impl->no_interface_error_);
 }
 
-bool WebSocketsNetworkClientSecure::verify(const char *fingerprint,
-                                           const char *domain_name) {
+bool WebSocketsNetworkClientSecure::verify(const char* fingerprint,
+                                           const char* domain_name) {
   if (_impl->gsm_client_secure_) {
     // Simply calling SSLClient::verify() will break TLS handshake
     // Can be skipped as verification is done by SSLClient itself,
