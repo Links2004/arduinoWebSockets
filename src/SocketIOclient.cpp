@@ -38,13 +38,13 @@ void SocketIOclient::beginSSL(String host, uint16_t port, String url, String pro
     WebSocketsClient::enableHeartbeat(pingInterval, pongTimeout, disconnectTimeoutCount);
     initClient();
 }
-#if defined(SSL_BARESSL)
 void SocketIOclient::beginSSLWithCA(const char * host, uint16_t port, const char * url, const char * CA_cert, const char * protocol, uint32_t pingInterval, uint32_t pongTimeout, uint8_t disconnectTimeoutCount) {
     WebSocketsClient::beginSocketIOSSLWithCA(host, port, url, CA_cert, protocol);
     WebSocketsClient::enableHeartbeat(pingInterval, pongTimeout, disconnectTimeoutCount);
     initClient();
 }
 
+#if defined(SSL_BARESSL)
 void SocketIOclient::beginSSLWithCA(const char * host, uint16_t port, const char * url, BearSSL::X509List * CA_cert, const char * protocol, uint32_t pingInterval, uint32_t pongTimeout, uint8_t disconnectTimeoutCount) {
     WebSocketsClient::beginSocketIOSSLWithCA(host, port, url, CA_cert, protocol);
     WebSocketsClient::enableHeartbeat(pingInterval, pongTimeout, disconnectTimeoutCount);
