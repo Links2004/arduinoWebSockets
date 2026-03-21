@@ -494,6 +494,7 @@ WSclient_t * WebSocketsServerCore::newClient(WEBSOCKETS_NETWORK_CLASS * TCPclien
             client->disconnectTimeoutCount = _disconnectTimeoutCount;
             client->lastPing               = millis();
             client->pongReceived           = false;
+            client->pongTimeoutCount       = 0;
 
             return client;
             break;
