@@ -63,7 +63,9 @@
 
 #if defined(ESP8266) || defined(ESP32)
 
+#ifndef WEBSOCKETS_MAX_DATA_SIZE
 #define WEBSOCKETS_MAX_DATA_SIZE (15 * 1024)
+#endif
 #define WEBSOCKETS_USE_BIG_MEM
 #define GET_FREE_HEAP ESP.getFreeHeap()
 // moves all Header strings to Flash (~300 Byte)
@@ -79,7 +81,9 @@
 
 #elif defined(STM32_DEVICE)
 
+#ifndef WEBSOCKETS_MAX_DATA_SIZE
 #define WEBSOCKETS_MAX_DATA_SIZE (15 * 1024)
+#endif
 #define WEBSOCKETS_USE_BIG_MEM
 #define GET_FREE_HEAP System.freeMemory()
 #define WEBSOCKETS_YIELD()
@@ -87,7 +91,9 @@
 
 #elif defined(ARDUINO_ARCH_RP2040)
 
+#ifndef WEBSOCKETS_MAX_DATA_SIZE
 #define WEBSOCKETS_MAX_DATA_SIZE (15 * 1024)
+#endif
 #define WEBSOCKETS_USE_BIG_MEM
 #define GET_FREE_HEAP rp2040.getFreeHeap()
 #define WEBSOCKETS_YIELD() yield()
@@ -95,26 +101,34 @@
 
 #elif defined(ARDUINO_UNOWIFIR4)
 
+#ifndef WEBSOCKETS_MAX_DATA_SIZE
 #define WEBSOCKETS_MAX_DATA_SIZE (15 * 1024)
+#endif
 #define WEBSOCKETS_YIELD() yield()
 #define WEBSOCKETS_YIELD_MORE() delay(1)
 
 #elif defined(ARDUINO_SAMD_MKRWIFI1010) || defined(ARDUINO_SAMD_NANO_33_IOT)
 
+#ifndef WEBSOCKETS_MAX_DATA_SIZE
 #define WEBSOCKETS_MAX_DATA_SIZE (15 * 1024)
+#endif
 #define WEBSOCKETS_YIELD() yield()
 #define WEBSOCKETS_YIELD_MORE() delay(1)
 
 #elif defined(WIO_TERMINAL) || defined(SEEED_XIAO_M0)
 
+#ifndef WEBSOCKETS_MAX_DATA_SIZE
 #define WEBSOCKETS_MAX_DATA_SIZE (15 * 1024)
+#endif
 #define WEBSOCKETS_YIELD() yield()
 #define WEBSOCKETS_YIELD_MORE() delay(1)
 
 #else
 
 // atmega328p has only 2KB ram!
+#ifndef WEBSOCKETS_MAX_DATA_SIZE
 #define WEBSOCKETS_MAX_DATA_SIZE (1024)
+#endif
 // moves all Header strings to Flash
 #define WEBSOCKETS_SAVE_RAM
 #define WEBSOCKETS_YIELD()

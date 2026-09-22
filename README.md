@@ -13,7 +13,7 @@ a WebSocket Server and Client for Arduino based on RFC6455.
  - continuation frame
 
 ##### Limitations #####
- - max input length is limited to the ram size and the ```WEBSOCKETS_MAX_DATA_SIZE``` define
+ - max input length is limited to the ram size and the ```WEBSOCKETS_MAX_DATA_SIZE``` define (override it with a build flag, e.g. ```-DWEBSOCKETS_MAX_DATA_SIZE=32768```)
  - max output length has no limit (the hardware is the limit)
  - Client send big frames with mask 0x00000000 (on AVR all frames)
  - continuation frame reassembly need to be handled in the application code
