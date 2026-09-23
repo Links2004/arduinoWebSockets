@@ -548,7 +548,7 @@ void WebSocketsServerCore::dropNativeClient(WSclient_t * client) {
     if(client->tcp) {
         if(client->tcp->connected()) {
 #if (WEBSOCKETS_NETWORK_TYPE != NETWORK_ESP8266_ASYNC) && (WEBSOCKETS_NETWORK_TYPE != NETWORK_ESP32) && (WEBSOCKETS_NETWORK_TYPE != NETWORK_RP2040)
-            client->tcp->flush();
+            client->tcp->clear();
 #endif
             client->tcp->stop();
         }
@@ -571,7 +571,7 @@ void WebSocketsServerCore::clientDisconnect(WSclient_t * client) {
 #if (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP8266) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP32) || (WEBSOCKETS_NETWORK_TYPE == NETWORK_RP2040)
     if(client->isSSL && client->ssl) {
         if(client->ssl->connected()) {
-            client->ssl->flush();
+            client->ssl->clear();
             client->ssl->stop();
         }
         delete client->ssl;
@@ -987,3 +987,4 @@ void WebSocketsServer::loop(void) {
     }
 }
 #endif
+
